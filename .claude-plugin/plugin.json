@@ -1,0 +1,69 @@
+{
+  "name": "agentic-os",
+  "version": "3.1.0",
+  "description": "Self-improving agent memory system with 15 skills across 6 layers: Identity, Orchestration, Core, Quality, Evolution, Transfer. Bootstraps .agent-memory/ in any project, cross-project learning via ~/.claude-memory/global/.",
+  "author": {
+    "name": "domes",
+    "email": "noreply@local"
+  },
+  "license": "MIT",
+  "keywords": ["agent-memory", "self-improving", "cross-project", "session-lifecycle"],
+  "commands": "./commands/",
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/hooks.json",
+  "settings": {
+    "global_memory_path": {
+      "type": "string",
+      "default": "~/.claude-memory/global/",
+      "description": "Path to global cross-project memory store"
+    },
+    "auto_heartbeat_on_start": {
+      "type": "boolean",
+      "default": true,
+      "description": "Run heartbeat automatically on session start via SessionStart hook"
+    },
+    "auto_wrapup_on_stop": {
+      "type": "boolean",
+      "default": true,
+      "description": "Run wrap-up automatically on session end via Stop hook"
+    },
+    "pattern_push_threshold": {
+      "type": "number",
+      "default": 0.6,
+      "description": "Minimum confidence score to push patterns to global memory"
+    },
+    "pattern_pull_threshold": {
+      "type": "number",
+      "default": 0.5,
+      "description": "Minimum confidence score to pull patterns from global memory"
+    },
+    "max_iterations_log_entries": {
+      "type": "number",
+      "default": 500,
+      "description": "Maximum iteration log entries before oldest are archived"
+    },
+    "max_error_log_entries": {
+      "type": "number",
+      "default": 200,
+      "description": "Maximum error entries in errors.json before oldest are archived"
+    },
+    "max_review_entries": {
+      "type": "number",
+      "default": 100,
+      "description": "Maximum code review entries before oldest are archived"
+    },
+    "agent_model": {
+      "type": "string",
+      "default": "sonnet",
+      "enum": ["haiku", "sonnet", "opus"],
+      "description": "Model to use for background agents (context-detective, memory-keeper)"
+    },
+    "language": {
+      "type": "string",
+      "default": "de",
+      "enum": ["de", "en"],
+      "description": "Language for skill output and communication"
+    }
+  }
+}

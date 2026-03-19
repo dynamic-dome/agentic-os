@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Run the agentic-os:heartbeat skill silently. Only report issues to the user if problems are found. Do not mention this health check unless there are warnings or errors.",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before context compression, save current session state using the agent-handoff skill. Write handoff briefing to .agent-memory/transfer/handoff-briefing.md and update .agent-memory/session-summary.md with current progress. Keep both concise.",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Code was just changed via Write or Edit. If this was a meaningful code change (not just config/docs), note it as a code-changed signal for the agent-orchestrator. If auto_review_code or auto_run_tests are enabled in .agent-memory/orchestrator/trigger-rules.json, consider triggering code-reviewer and test-validator. Keep this lightweight — only act if the change is substantive.",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before ending, check if any coding iterations were completed in this conversation that haven't been logged to .agent-memory/iterations/iteration-log.md yet. If there are unlogged iterations, log them now using the iteration-logger skill format. If session-summary.md hasn't been updated this session, update it with a brief summary of what was done and next steps. Keep it concise (under 30 lines). If nothing meaningful was done, skip silently.",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

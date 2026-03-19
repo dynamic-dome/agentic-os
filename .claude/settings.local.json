@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/**)",
+      "Bash(done)",
+      "Bash(python -c \"import json; json.load\\(open\\(''hooks/hooks.json''\\)\\); print\\(''Valid JSON''\\)\")",
+      "Bash(python -c \"import json; json.load\\(open\\(''.claude-plugin/plugin.json''\\)\\); print\\(''Valid plugin.json''\\)\")"
+    ]
+  }
+}
