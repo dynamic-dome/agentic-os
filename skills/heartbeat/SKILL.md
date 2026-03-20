@@ -131,7 +131,7 @@ Danger Zone:  > 120k Token         → rot (Context Erosion aktiv)
 Bei Warning/Danger:
 - Empfehle welche Kontexte entladen werden koennen
 - Schlage `/save-session` vor fuer Session-Rotation
-- Empfehle `self-improving-agent:agent-handoff` fuer Kontext-Sicherung
+- Empfehle `agentic-os:agent-handoff` fuer Kontext-Sicherung
 
 ### Schritt 5: Konsistenz-Checks
 
@@ -151,13 +151,13 @@ Nutze `Read` und `Grep` fuer:
 
 ### Schritt 6: Identitaet laden
 
-Rufe `self-improving-agent:soul-and-identity` im `read` Modus auf:
+Rufe `agentic-os:soul-and-identity` im `read` Modus auf:
 - Lade soul.md → Kommunikationsstil und Prioritaeten anwenden
 - Lade user.md → User-Praeferenzen verstehen
 
 ### Schritt 7: Session-Bootstrap ausfuehren
 
-Delegiere an `self-improving-agent:session-bootstrap` fuer das Briefing:
+Delegiere an `agentic-os:session-bootstrap` fuer das Briefing:
 - Projektkontext laden
 - Letzte Session-Zusammenfassung
 - Aktive Warnungen
@@ -191,4 +191,4 @@ Falls `.agent-memory/heartbeat/` nicht existiert:
 1. Nutze `Bash`: `mkdir -p` fuer Verzeichnisstruktur
 2. Scanne Skills → `skill-registry.json` via `Write`-Tool
 3. Baue initiale Context-Matrix
-4. Falls `identity/` fehlt → Rufe `self-improving-agent:soul-and-identity` init auf
+4. Falls `identity/` fehlt → Rufe `agentic-os:soul-and-identity` init auf

@@ -4,12 +4,14 @@ description: >
   Logs every coding iteration (feature, bugfix, refactor) to the memory system.
   Captures what was done, what errors occurred, and what was learned.
   Trigger phrases: "log iteration", "log this fix", "iteration done",
-  "document what I did".
+  "document what I did", "Iteration loggen", "Fortschritt festhalten",
+  "was habe ich gemacht".
 
 metadata:
   author: agentic-os
   version: '3.0'
-  layer: system
+  part-of: agentic-os
+  layer: core
 ---
 
 # Iteration Logger

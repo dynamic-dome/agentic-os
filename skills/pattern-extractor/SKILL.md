@@ -4,12 +4,14 @@ description: >
   Analyzes iteration history and error logs to extract recurring patterns
   and anti-patterns. Updates the pattern catalog.
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
-  "what patterns do you see".
+  "what patterns do you see", "Muster extrahieren", "Patterns analysieren",
+  "welche Muster erkennst du".
 
 metadata:
   author: agentic-os
   version: '3.0'
-  layer: system
+  part-of: agentic-os
+  layer: core
 ---
 
 # Pattern Extractor

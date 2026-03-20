@@ -60,6 +60,7 @@ Complete directory and file structure created by `/agentic-os:init`.
 │
 └── transfer/
     ├── handoff-briefing.md            # Context for next session/agent
+    ├── exportable-patterns.json       # Patterns marked for cross-project sharing
     └── agent-profiles/                # Exportable agent configurations
 ```
 

@@ -4,7 +4,8 @@ description: >
   Fuehrt nach Codeaenderungen automatisch Tests aus, bewertet Ergebnisse und
   protokolliert Test-Trends. Erkennt Regressionen, fehlende Tests und Flaky Tests.
   Wird vom agent-orchestrator nach code-changed Signalen getriggert.
-  Trigger: "tests laufen lassen", "validate", "test results", "regression check".
+  Trigger: "tests laufen lassen", "validate", "test results", "regression check",
+  "run tests", "check tests", "Tests ausfuehren".
 metadata:
   author: agentic-os
   version: '3.0'
@@ -143,6 +144,6 @@ Coverage > 80%: +5 Bonus | Coverage < 40%: -10 Penalty
 
 ## Log-Rotation
 
-Wenn `test-results.json` mehr als 100 Eintraege enthaelt (konfigurierbar via Plugin-Setting `max_review_entries`):
+Wenn `test-results.json` mehr als 100 Eintraege enthaelt (konfigurierbar via Plugin-Setting `max_test_result_entries`):
 - Behalte die neuesten 100 Eintraege
 - Archiviere aeltere in `test-results-archive-<YYYY-MM>.json` im selben Verzeichnis

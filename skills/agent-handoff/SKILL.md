@@ -103,7 +103,7 @@ Nutze `Write`-Tool fuer `.agent-memory/transfer/handoff-briefing.md`:
 
 ## Memory-System
 Dieses Projekt nutzt `.agent-memory/` fuer persistentes Wissen.
-Starte naechste Session mit `self-improving-agent:session-bootstrap`.
+Starte naechste Session mit `agentic-os:session-bootstrap`.
 ```
 
 ### Schritt 4: Handoff-Log
@@ -132,5 +132,5 @@ Agent Handoff erstellt
    - Offene Fragen: <n>
 
    Naechste Session starten mit:
-   → self-improving-agent:session-bootstrap
+   → agentic-os:session-bootstrap
 ```

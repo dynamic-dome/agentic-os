@@ -4,7 +4,8 @@ description: >
   Selbstbewertung der Code-Qualitaet nach Aenderungen in Claude Code.
   Reviewed generierten Code auf Lesbarkeit, Wartbarkeit, Security, Performance
   und Einhaltung von Projekt-Konventionen. Erstellt strukturierte Review-Eintraege.
-  Trigger: "code reviewen", "review this", "qualitaet pruefen", "selbst-review".
+  Trigger: "code reviewen", "review this", "qualitaet pruefen", "selbst-review",
+  "code review", "check quality", "self-review".
 metadata:
   author: agentic-os
   version: '3.0'

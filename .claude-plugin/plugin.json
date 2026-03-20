@@ -53,6 +53,11 @@
       "default": 100,
       "description": "Maximum code review entries before oldest are archived"
     },
+    "max_test_result_entries": {
+      "type": "number",
+      "default": 100,
+      "description": "Maximum test result entries before oldest are archived"
+    },
     "agent_model": {
       "type": "string",
       "default": "sonnet",

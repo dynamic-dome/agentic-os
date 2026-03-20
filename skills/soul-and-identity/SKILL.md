@@ -6,7 +6,8 @@ description: >
   user.md speichert Arbeitsstil und Praeferenzen. Wird vom heartbeat bei
   Session-Start geladen und vom wrap-up aktualisiert. Schuetzt gegen
   Regression-to-the-Mean. Trigger: "identitaet anpassen", "verhalten aendern",
-  "user profil", "soul update", "praeferenzen speichern".
+  "user profil", "soul update", "praeferenzen speichern",
+  "update identity", "change behavior", "save preferences".
 metadata:
   author: agentic-os
   version: '3.0'

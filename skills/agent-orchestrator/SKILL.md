@@ -3,7 +3,7 @@ name: agent-orchestrator
 description: >
   Zentrale Steuerungslogik des Self-Improving Agent Systems fuer Claude Code.
   Analysiert nach jeder Interaktion den Output und triggert automatisch passende
-  Skills (iteration-logger, context-keeper, test-validator, code-reviewer,
+  Skills (iteration-logger, test-validator, code-reviewer,
   pattern-extractor). Trigger: "orchestrate", "auto-improve", "system steuern",
   oder implizit nach jeder signifikanten Code-Aenderung.
 metadata:
@@ -42,7 +42,7 @@ Analysiere den Output der gerade abgeschlossenen Interaktion:
 | Signal | Erkennungsmuster | Aktion |
 |--------|-----------------|--------|
 | `error-fixed` | Fehlermeldung → Fix → "funktioniert jetzt" | → iteration-logger |
-| `decision-made` | "Ich verwende X statt Y" / Architektur-Aenderung | → context-keeper |
+| `decision-made` | "Ich verwende X statt Y" / Architektur-Aenderung | → iteration-logger |
 | `code-changed` | Dateien erstellt/geaendert, neue Funktionen, Refactoring | → code-reviewer, test-validator |
 | `test-result` | Tests liefen, Ergebnisse sichtbar | → test-validator |
 | `pattern-threshold` | errors.json hat 5+ neue Eintraege seit letzter Analyse | → pattern-extractor |
@@ -74,19 +74,19 @@ Lies `trigger-rules.json` (oder erstelle mit Defaults):
 Nutze das Claude Code `Skill`-Tool um die passenden Skills aufzurufen:
 
 **Bei `error-fixed`:**
-- Rufe `self-improving-agent:iteration-logger` auf
-- Falls auto_review_code: Rufe `self-improving-agent:code-reviewer` auf
+- Rufe `agentic-os:iteration-logger` auf
+- Falls auto_review_code: Rufe `agentic-os:code-reviewer` auf
 
 **Bei `decision-made`:**
-- Rufe `self-improving-agent:context-keeper` auf
+- Rufe `agentic-os:iteration-logger` auf
 
 **Bei `code-changed`:**
-- Falls auto_run_tests: Rufe `self-improving-agent:test-validator` auf
-- Falls auto_review_code: Rufe `self-improving-agent:code-reviewer` auf
+- Falls auto_run_tests: Rufe `agentic-os:test-validator` auf
+- Falls auto_review_code: Rufe `agentic-os:code-reviewer` auf
 
 **Bei `pattern-threshold`:**
 - Zaehle neue Eintraege in errors.json seit letztem pattern-extractor Lauf
-- Falls >= pattern_check_interval: Rufe `self-improving-agent:pattern-extractor` auf
+- Falls >= pattern_check_interval: Rufe `agentic-os:pattern-extractor` auf
 
 ### Schritt 4: Orchestrator-Log aktualisieren
 

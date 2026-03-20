@@ -4,7 +4,8 @@ description: >
   Tiefenanalyse ueber mehrere Sessions hinweg. Aggregiert Daten aus allen
   Skills und berechnet Langzeit-Metriken: Wird der Agent besser? Wo sind
   blinde Flecken? Periodisch aufrufen (alle 5 Sessions oder woechentlich).
-  Trigger: "retrospektive", "metriken zeigen", "fortschritt", "wie entwickeln wir uns".
+  Trigger: "retrospektive", "metriken zeigen", "fortschritt", "wie entwickeln wir uns",
+  "retrospective", "show metrics", "progress report", "how are we doing".
 metadata:
   author: agentic-os
   version: '3.0'
