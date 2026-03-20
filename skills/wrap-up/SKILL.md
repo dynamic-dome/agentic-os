@@ -4,12 +4,14 @@ description: >
   Performs session wrap-up: summarizes work done, extracts learnings,
   syncs to global memory, updates session-summary.md.
   Trigger phrases: "wrap up", "end session", "session end",
-  "save session", "close session".
+  "save session", "close session", "Session beenden", "Zusammenfassung",
+  "fertig fuer heute".
 
 metadata:
   author: agentic-os
   version: '3.0'
-  layer: system
+  part-of: agentic-os
+  layer: core
 ---
 
 # Session Wrap-Up
@@ -54,3 +56,10 @@ At the end of every coding session, or when context is getting long.
 - Keep session-summary.md concise — it's read at every session start
 - Focus on actionable next steps, not detailed history
 - Global sync should only push patterns with confidence >= 0.6
+
+## Error Handling
+
+- If `iteration-log.md` is empty or missing: note "Keine Iterationen in dieser Session", skip pattern extraction
+- If any JSON file is corrupt (parse error): rename to `<file>.corrupt.bak`, create fresh with defaults, warn user
+- If global memory path is unreachable: skip sync, log warning, continue with local wrap-up
+- If `session-summary.md` is missing: create it fresh instead of appending

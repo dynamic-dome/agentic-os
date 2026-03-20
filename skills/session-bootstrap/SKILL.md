@@ -5,12 +5,14 @@ description: >
   soul, user profile, patterns, and global learnings. Use at the beginning
   of every coding session.
   Trigger phrases: "start session", "session bootstrap", "session start",
-  "begin work", "what was I working on".
+  "begin work", "what was I working on", "Session starten", "Briefing laden",
+  "woran habe ich gearbeitet".
 
 metadata:
   author: agentic-os
   version: '3.0'
-  layer: system
+  part-of: agentic-os
+  layer: core
 ---
 
 # Session Bootstrap
@@ -39,3 +41,10 @@ At the start of every coding session to restore full context.
 - Do NOT dump all file contents to the user — summarize concisely
 - If session-summary.md says "System frisch initialisiert", prompt user to set up project context
 - If quality score shows declining trend, mention it proactively
+
+## Error Handling
+
+- If `session-summary.md` is missing: skip it, note "Keine vorherige Session gefunden"
+- If `identity/soul.md` or `identity/user.md` is missing: trigger `agentic-os:init-memory` to create them
+- If any JSON file is corrupt (parse error): rename to `<file>.corrupt.bak`, create fresh with defaults, warn user
+- If `.agent-memory/` does not exist at all: suggest running `/agentic-os:init`

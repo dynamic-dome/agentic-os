@@ -6,7 +6,8 @@ description: >
   mutiert SKILL.md autonom. Nutzt Claude Code Agent-Tool mit Worktree-Isolation
   fuer sichere Mutationstests. Dokumentiert fehlgeschlagene Versuche als
   Research Assets. Trigger: "skill optimieren", "mutation engine", "auto optimize",
-  "eval laufen lassen", "skill benchmarken", "ab-test".
+  "eval laufen lassen", "skill benchmarken", "ab-test",
+  "optimize skill", "run eval", "benchmark skill".
 metadata:
   author: agentic-os
   version: '3.0'

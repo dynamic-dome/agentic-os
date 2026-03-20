@@ -4,12 +4,14 @@ description: >
   Synchronizes patterns and learnings between local .agent-memory/ and
   global ~/.claude-memory/global/. Enables cross-project learning.
   Trigger phrases: "sync memory", "pull patterns", "push learnings",
-  "cross-project sync", "global memory".
+  "cross-project sync", "global memory", "Kontext synchronisieren",
+  "globale Patterns holen", "Wissen teilen".
 
 metadata:
   author: agentic-os
   version: '3.0'
-  layer: system
+  part-of: agentic-os
+  layer: core
 ---
 
 # Cross-Project Sync
@@ -61,7 +63,10 @@ When pulling global patterns into a local project:
 
 ## Instructions
 
-1. Determine sync direction from arguments (--pull, --push, --both)
+1. Determine sync direction from user intent:
+   - "pull" / "holen" / "importieren" → pull only
+   - "push" / "teilen" / "exportieren" → push only
+   - "sync" / "beides" / no specific direction → bidirectional (default)
 2. Read both local and global pattern stores
 3. Apply merge rules with deduplication
 4. Write merged results atomically (tempfile → rename)
