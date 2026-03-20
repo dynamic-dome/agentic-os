@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Run the agentic-os:heartbeat skill silently. Only report issues to the user if problems are found. Do not mention this health check unless there are warnings or errors.",
+            "prompt": "Phase 1 — Agentic OS Heartbeat (runs FIRST, takes priority):\nRun the agentic-os:heartbeat skill silently. Only report issues to the user if problems are found. Do not mention this health check unless there are warnings or errors.\n\nPhase 2 — Superpowers Skill Awareness (runs AFTER heartbeat):\nYou have superpowers skills available. Before every response, check if any of the available skills match the user's request. If there is even a 1% chance a skill might apply, invoke it via the Skill tool BEFORE generating any other response. Available superpowers skills include: brainstorming, writing-plans, executing-plans, test-driven-development, systematic-debugging, dispatching-parallel-agents, subagent-driven-development, verification-before-completion, using-git-worktrees, receiving-code-review, requesting-code-review, finishing-a-development-branch, writing-skills. For the full skill content, use the Skill tool to invoke superpowers:using-superpowers. Agentic OS hooks and skills always take priority over superpowers skills when both could apply.",
             "timeout": 30
           }
         ]
