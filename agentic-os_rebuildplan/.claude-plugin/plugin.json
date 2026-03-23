@@ -1,8 +1,0 @@
-{
-  "name": "agentic-os",
-  "description": "Self-improving agent memory system with 10 skills across 3 layers: Core (iteration-logger, pattern-extractor, context-keeper, skill-generator, wrap-up), Quality (code-reviewer, test-validator, tdd), Orchestration (session-bootstrap). Bootstraps .agent-memory/ in any project for persistent learning across sessions.",
-  "author": {
-    "name": "domes",
-    "email": "noreply@local"
-  }
-}
