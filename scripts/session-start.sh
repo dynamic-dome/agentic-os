@@ -1,85 +1,220 @@
 #!/bin/bash
-set -euo pipefail
+# Agentic OS — SessionStart Hook (v3)
+# Auto-Init + Kontext-Injection. Plattform: Windows (Git Bash) + Linux/Mac.
+# Ausgabe: JSON mit systemMessage fuer Claude.
 
-# Agentic OS — SessionStart Hook (v2)
-# Injected dynamischen Projekt-Kontext + Agent-Memory in jede Session.
-# Basiert auf Context-Injection Pattern: stdout = Kontext fuer Claude.
+# Kein set -euo pipefail — wir wollen bei fehlenden Dateien nicht abbrechen
+set +e
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 MEMORY_DIR="$PROJECT_DIR/.agent-memory"
 
-# --- Immer: Dynamischer Projekt-State ---
-context="## Projekt-State\n"
+# ============================================================
+# PHASE 1: Auto-Init (falls .agent-memory/ nicht existiert)
+# ============================================================
 
-if command -v git &> /dev/null && git rev-parse --git-dir &> /dev/null 2>&1; then
-  BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
-  context+="- **Branch:** $BRANCH\n"
+if [ ! -d "$MEMORY_DIR" ]; then
+  # Verzeichnisse anlegen
+  mkdir -p "$MEMORY_DIR/identity"
+  mkdir -p "$MEMORY_DIR/context"
+  mkdir -p "$MEMORY_DIR/iterations"
+  mkdir -p "$MEMORY_DIR/patterns"
+  mkdir -p "$MEMORY_DIR/quality"
+  mkdir -p "$MEMORY_DIR/learnings"
+  mkdir -p "$MEMORY_DIR/generated-skills"
 
-  STAGED=$(git diff --cached --stat 2>/dev/null | tail -1)
-  [ -n "$STAGED" ] && context+="- **Staged:** $STAGED\n"
+  # session-summary.md
+  cat > "$MEMORY_DIR/session-summary.md" << 'EOFILE'
+# Letzte Session
 
-  UNSTAGED=$(git diff --stat 2>/dev/null | tail -1)
-  [ -n "$UNSTAGED" ] && context+="- **Unstaged:** $UNSTAGED\n"
+*Erste Session — System frisch initialisiert.*
 
-  RECENT=$(git log --oneline -3 2>/dev/null)
-  [ -n "$RECENT" ] && context+="- **Letzte Commits:**\n\`\`\`\n$RECENT\n\`\`\`\n"
+## Naechste Schritte
+1. Projektkontext pruefen
+2. Erste Coding-Iteration starten
+EOFILE
+
+  # identity/soul.md
+  cat > "$MEMORY_DIR/identity/soul.md" << 'EOFILE'
+# Agent Identity
+
+## Communication
+- Language: de (switch to en if user writes in English)
+- Brevity: 3/5 (balanced)
+- Proactivity: 3/5
+
+## Guard Rails
+- Confirm before deleting files
+- Justify new dependencies
+- For multi-file changes: write a brief plan first
+- No architecture decisions without discussion
+
+## Priorities
+1. Correctness over speed
+2. Simplicity over cleverness
+3. Working code over perfect code
+EOFILE
+
+  # identity/user.md
+  TODAY=$(date +%Y-%m-%d 2>/dev/null || echo "unknown")
+  cat > "$MEMORY_DIR/identity/user.md" << EOFILE
+# User Profile
+
+*Initialized: ${TODAY}*
+
+## Preferences
+- (Will be populated through observed patterns)
+
+## Work Style
+- (Will be populated through session observations)
+
+## Known Corrections
+- (Recorded when user corrects agent behavior 3+ times)
+EOFILE
+
+  # context/project-context.md — Auto-Detect
+  PROJECT_NAME=$(basename "$PROJECT_DIR")
+  LANG=""
+  FRAMEWORK=""
+  PKG_MGR=""
+
+  [ -f "$PROJECT_DIR/package.json" ] && LANG="JavaScript/TypeScript"
+  [ -f "$PROJECT_DIR/pyproject.toml" ] || [ -f "$PROJECT_DIR/requirements.txt" ] && LANG="Python"
+  [ -f "$PROJECT_DIR/Cargo.toml" ] && LANG="Rust"
+  [ -f "$PROJECT_DIR/go.mod" ] && LANG="Go"
+  [ -f "$PROJECT_DIR/pom.xml" ] && LANG="Java"
+
+  if [ -f "$PROJECT_DIR/package.json" ]; then
+    # Framework-Erkennung aus package.json
+    grep -q '"next"' "$PROJECT_DIR/package.json" 2>/dev/null && FRAMEWORK="Next.js"
+    grep -q '"react"' "$PROJECT_DIR/package.json" 2>/dev/null && [ -z "$FRAMEWORK" ] && FRAMEWORK="React"
+    grep -q '"vue"' "$PROJECT_DIR/package.json" 2>/dev/null && FRAMEWORK="Vue"
+    grep -q '"express"' "$PROJECT_DIR/package.json" 2>/dev/null && FRAMEWORK="Express"
+    grep -q '"fastify"' "$PROJECT_DIR/package.json" 2>/dev/null && FRAMEWORK="Fastify"
+  fi
+
+  for pm_lock in "bun.lockb:Bun" "pnpm-lock.yaml:pnpm" "yarn.lock:Yarn" "package-lock.json:npm" "poetry.lock:Poetry" "Pipfile.lock:Pipenv"; do
+    file="${pm_lock%%:*}"
+    name="${pm_lock##*:}"
+    if [ -f "$PROJECT_DIR/$file" ]; then
+      PKG_MGR="$name"
+      break
+    fi
+  done
+
+  cat > "$MEMORY_DIR/context/project-context.md" << EOFILE
+# Project Context
+
+## Project
+- **Name:** ${PROJECT_NAME}
+- **Language:** ${LANG:-unknown}
+- **Framework:** ${FRAMEWORK:-none detected}
+- **Package Manager:** ${PKG_MGR:-none detected}
+
+## Architecture
+- (To be documented)
+
+## Constraints
+- (To be documented)
+
+## Current Status
+- Fresh initialization
+EOFILE
+
+  # JSON-Dateien
+  echo "[]" > "$MEMORY_DIR/context/decisions.json"
+  echo "[]" > "$MEMORY_DIR/iterations/errors.json"
+  echo "[]" > "$MEMORY_DIR/patterns/patterns.json"
+  echo "[]" > "$MEMORY_DIR/quality/test-results.json"
+  echo "[]" > "$MEMORY_DIR/quality/code-reviews.json"
+  cat > "$MEMORY_DIR/quality/quality-score.json" << 'EOFILE'
+{"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}
+EOFILE
+
+  # Markdown-Dateien
+  printf '# Iteration Log\n\n*Noch keine Eintraege.*\n' > "$MEMORY_DIR/iterations/iteration-log.md"
+  printf '# Pattern-Katalog\n\n*Noch keine Patterns erkannt.*\n' > "$MEMORY_DIR/patterns/patterns.md"
+  printf '# Learnings\n\n*Noch keine Session-Learnings.*\n' > "$MEMORY_DIR/learnings/learnings.md"
+
+  INIT_MSG="[Agentic OS] Memory-System initialisiert fuer '${PROJECT_NAME}'. Stack: ${LANG:-?} + ${FRAMEWORK:-?}. Bitte .agent-memory/context/project-context.md pruefen."
 fi
 
-TODO_COUNT=$(grep -rl "TODO\|FIXME\|HACK\|XXX" --include="*.ts" --include="*.py" --include="*.js" --include="*.tsx" --include="*.jsx" "$PROJECT_DIR" 2>/dev/null | wc -l | tr -d '[:space:]')
-[ "${TODO_COUNT:-0}" -gt 0 ] 2>/dev/null && context+="- **Dateien mit TODOs:** $TODO_COUNT\n"
+# ============================================================
+# PHASE 2: Kontext laden und als systemMessage ausgeben
+# ============================================================
 
-# Package Manager erkennen
-for pm_lock in "bun.lockb:Bun" "pnpm-lock.yaml:pnpm" "yarn.lock:Yarn" "package-lock.json:npm" "poetry.lock:Poetry" "Pipfile.lock:Pipenv"; do
-  file="${pm_lock%%:*}"
-  name="${pm_lock##*:}"
-  if [ -f "$PROJECT_DIR/$file" ]; then
-    context+="- **Package Manager:** $name\n"
-    break
-  fi
-done
+context=""
 
-# --- Falls .agent-memory/ vorhanden: Agentic OS Kontext ---
+# Git-State
+if command -v git &> /dev/null && git rev-parse --git-dir > /dev/null 2>&1; then
+  BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
+  context="Branch: $BRANCH"
+
+  STAGED=$(git diff --cached --stat 2>/dev/null | tail -1)
+  [ -n "$STAGED" ] && context="$context | Staged: $STAGED"
+
+  UNSTAGED=$(git diff --stat 2>/dev/null | tail -1)
+  [ -n "$UNSTAGED" ] && context="$context | Unstaged: $UNSTAGED"
+fi
+
+# Memory-Kontext laden
 if [ -d "$MEMORY_DIR" ]; then
-  context+="\n## Agentic OS\n"
-
-  # Identity / Soul
-  if [ -f "$MEMORY_DIR/identity/soul.md" ]; then
-    soul=$(head -20 "$MEMORY_DIR/identity/soul.md" 2>/dev/null || true)
-    [ -n "$soul" ] && context+="### Identity\n$soul\n\n"
+  # Session-Summary (erste 10 Zeilen)
+  if [ -f "$MEMORY_DIR/session-summary.md" ]; then
+    SUMMARY=$(head -10 "$MEMORY_DIR/session-summary.md" 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g' || true)
+    [ -n "$SUMMARY" ] && context="$context\nLetzte Session: $SUMMARY"
   fi
 
-  # Letzte Session-Summary
-  if [ -f "$MEMORY_DIR/session-summary.md" ]; then
-    summary=$(head -30 "$MEMORY_DIR/session-summary.md" 2>/dev/null || true)
-    [ -n "$summary" ] && context+="### Letzte Session\n$summary\n\n"
+  # Soul (erste 5 Zeilen, nur Kern-Settings)
+  if [ -f "$MEMORY_DIR/identity/soul.md" ]; then
+    SOUL=$(grep -E "^- " "$MEMORY_DIR/identity/soul.md" 2>/dev/null | head -5 | tr '\n' ' ' || true)
+    [ -n "$SOUL" ] && context="$context\nIdentity: $SOUL"
+  fi
+
+  # Project-Context (Sprache + Framework)
+  if [ -f "$MEMORY_DIR/context/project-context.md" ]; then
+    STACK=$(grep -E "Language:|Framework:|Package Manager:" "$MEMORY_DIR/context/project-context.md" 2>/dev/null | tr '\n' ' ' || true)
+    [ -n "$STACK" ] && context="$context\nStack: $STACK"
   fi
 
   # Quality Warnings
   if [ -f "$MEMORY_DIR/quality/quality-score.json" ]; then
-    declining=$(grep -c '"declining"' "$MEMORY_DIR/quality/quality-score.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
-    [ "${declining:-0}" -gt 0 ] 2>/dev/null && context+="### WARNUNG\nQuality Scores sind declining! Bitte pruefen.\n\n"
+    DECLINING=$(grep -c '"declining"' "$MEMORY_DIR/quality/quality-score.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
+    [ "${DECLINING:-0}" -gt 0 ] 2>/dev/null && context="$context\nWARNUNG: Quality Scores declining!"
   fi
 
-  # Iteration-Count fuer Empfehlung
-  iteration_count=0
-  if [ -f "$MEMORY_DIR/iterations/errors.json" ]; then
-    iteration_count=$(grep -c '"id"' "$MEMORY_DIR/iterations/errors.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
-  fi
-  [ "${iteration_count:-0}" -gt 15 ] 2>/dev/null && context+="**Hinweis:** $iteration_count Fehler-Eintraege — Pattern-Extract empfohlen.\n"
+  # Statistiken (tr -d entfernt Whitespace/Newlines von grep -c)
+  ERR_COUNT=$(grep -c '"id"' "$MEMORY_DIR/iterations/errors.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
+  ITER_COUNT=$(grep -c "^## Iteration" "$MEMORY_DIR/iterations/iteration-log.md" 2>/dev/null | tr -d '[:space:]' || echo "0")
+  PAT_COUNT=$(grep -c '"id"' "$MEMORY_DIR/patterns/patterns.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
+  context="$context | Stats: ${ITER_COUNT} Iter, ${ERR_COUNT} Err, ${PAT_COUNT} Pat"
+
+  [ "${ERR_COUNT:-0}" -gt 15 ] 2>/dev/null && context="$context\nHinweis: Viele Fehler — Pattern-Extract empfohlen."
 
   # Env-Vars setzen
   if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
     echo "export AGENTIC_OS_ACTIVE=true" >> "$CLAUDE_ENV_FILE"
     echo "export AGENTIC_OS_MEMORY_DIR=$MEMORY_DIR" >> "$CLAUDE_ENV_FILE"
   fi
-
-  context+="\nFuehre 'agentic-os:session-bootstrap' aus fuer ein vollstaendiges Briefing."
 fi
 
-# --- Kontext als systemMessage ausgeben ---
-escaped=$(echo -e "$context" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" 2>/dev/null || echo "\"[Agentic OS] Session gestartet.\"")
+# Init-Message voranstellen falls frisch initialisiert
+if [ -n "${INIT_MSG:-}" ]; then
+  context="$INIT_MSG\n\n$context"
+fi
 
-cat <<EOJSON
+# JSON-Output erzeugen (python3 fuer sicheres Escaping, Fallback ohne)
+if command -v python3 > /dev/null 2>&1; then
+  escaped=$(printf '%s' "$context" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
+elif command -v python > /dev/null 2>&1; then
+  escaped=$(printf '%s' "$context" | python -c "import sys,json; print(json.dumps(sys.stdin.read()))")
+else
+  # Fallback: einfaches Escaping
+  safe=$(printf '%s' "$context" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g' | tr '\n' ' ')
+  escaped="\"$safe\""
+fi
+
+cat << EOJSON
 {
   "continue": true,
   "systemMessage": $escaped

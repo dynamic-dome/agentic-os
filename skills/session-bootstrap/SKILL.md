@@ -22,11 +22,13 @@ Restore full project context at the start of every coding session.
 - User asks "Wo waren wir?" or "Projektstand?"
 - Agent switch (Claude Code <-> other)
 
+**Note:** The SessionStart hook now handles Auto-Init automatically. If `.agent-memory/` doesn't exist, the hook creates it before this skill runs. You should never need to suggest `/agentic-os:init` manually anymore.
+
 ## Step 1: Check Memory System Exists
 
 Read `.agent-memory/session-summary.md`:
 
-- If `.agent-memory/` does not exist → output "Memory system not initialized. Run `/agentic-os:init` to set up." and stop.
+- If `.agent-memory/` does not exist → this should not happen (SessionStart hook auto-creates it). If it does, output "Memory system not found. This is unexpected — the SessionStart hook should have created it. Try restarting the session." and stop.
 - If it exists but `session-summary.md` is missing → note "Keine vorherige Session gefunden", continue with other files.
 
 ## Step 2: Load Knowledge Files

@@ -5,8 +5,8 @@
       "version": "2.0.0",
       "description": "Self-improving agent memory system with 10 skills. Tracks iterations, extracts patterns, reviews code, validates tests, and generates skills from recurring workflows.",
       "source": {
-        "source": "directory",
-        "path": "."
+        "source": "git",
+        "url": "https://github.com/willneverusegit/argentic-os.git"
       }
     }
   ]

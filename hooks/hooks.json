@@ -1,5 +1,5 @@
 {
-  "description": "Agentic OS Lifecycle Hooks: Auto-Bootstrap bei Session-Start, Wrap-Up bei Session-Ende, Completeness-Check bei Stop",
+  "description": "Agentic OS Lifecycle Hooks v3: Auto-Init bei SessionStart, Wrap-Up bei Stop",
   "hooks": {
     "SessionStart": [
       {
@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/session-start.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/session-start.sh\"",
             "timeout": 15
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Check if meaningful work was done this session (code changes, decisions, debugging). If yes: 1) Update .agent-memory/session-summary.md with completed work, open items, and next steps (max 30 lines). 2) Log any unlogged coding iterations to iteration-log.md. 3) If 3+ iterations were done, briefly note key learnings in learnings.md. If nothing meaningful was done, skip silently. Return 'approve' to stop.",
+            "prompt": "You are the Agentic OS Stop hook. Check if `.agent-memory/` exists in the working directory. If not, return 'approve' immediately.\n\nIf it exists, check if meaningful work was done this session (code changes, decisions, debugging). If yes:\n\n1. Update `.agent-memory/session-summary.md` with:\n   - Was wurde gemacht (2-3 bullet points)\n   - Offene Punkte\n   - Naechste Schritte\n   - Keep under 30 lines total.\n\n2. Check if there are unlogged coding iterations (significant debugging cycles or features completed). If so, append entries to `.agent-memory/iterations/iteration-log.md`.\n\n3. If errors occurred during the session, read `.agent-memory/iterations/errors.json`, append new entries, write back.\n\n4. If 3+ iterations were done, note key learnings in `.agent-memory/learnings/learnings.md` (only genuine insights).\n\nIf nothing meaningful was done, skip silently.\n\nReturn 'approve' to stop.",
             "timeout": 30
           }
         ]
@@ -30,9 +30,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/pre-compact.sh",
-            "timeout": 10
+            "type": "prompt",
+            "prompt": "Context is about to be compressed. If `.agent-memory/` exists, quickly re-read these files and keep their content in mind:\n1. `.agent-memory/session-summary.md`\n2. `.agent-memory/identity/soul.md`\n3. `.agent-memory/context/project-context.md`\n\nAlso note the current git branch. This ensures critical context survives compression. Return 'approve'.",
+            "timeout": 15
           }
         ]
       }
@@ -42,8 +42,8 @@
         "matcher": "*",
         "hooks": [
           {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/session-end.sh",
+            "type": "prompt",
+            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n1. Ensure session-summary.md is up to date (if not already done by Stop hook)\n2. Output a one-line summary of what was done this session.\n\nReturn 'approve'.",
             "timeout": 15
           }
         ]
