@@ -1,13 +1,21 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agentic-os-marketplace",
+  "description": "Self-improving agent memory system for Claude Code",
+  "owner": {
+    "name": "domes",
+    "email": "noreply@local"
+  },
   "plugins": [
     {
       "name": "agentic-os",
-      "version": "2.0.0",
       "description": "Self-improving agent memory system with 10 skills. Tracks iterations, extracts patterns, reviews code, validates tests, and generates skills from recurring workflows.",
+      "category": "development",
       "source": {
-        "source": "git",
+        "source": "url",
         "url": "https://github.com/willneverusegit/argentic-os.git"
-      }
+      },
+      "homepage": "https://github.com/willneverusegit/argentic-os"
     }
   ]
 }
