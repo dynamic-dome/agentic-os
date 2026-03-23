@@ -203,6 +203,9 @@ if [ -n "${INIT_MSG:-}" ]; then
   context="$INIT_MSG\n\n$context"
 fi
 
+# Anweisung an Claude: Status im Chat anzeigen
+context="[AGENTIC OS] Bei deiner ERSTEN Antwort in dieser Session, beginne mit einem kurzen Status-Block (2-3 Zeilen max):\n---\nAgentic OS aktiv | Branch: ${BRANCH:-?} | ${ITER_COUNT:-0} Iterationen, ${PAT_COUNT:-0} Patterns\n$([ -n \"${INIT_MSG:-}\" ] && echo 'Neu initialisiert!' || echo '')\n---\nDanach antworte normal auf die User-Frage.\n\n$context"
+
 # JSON-Output erzeugen (python3 fuer sicheres Escaping, Fallback ohne)
 if command -v python3 > /dev/null 2>&1; then
   escaped=$(printf '%s' "$context" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
