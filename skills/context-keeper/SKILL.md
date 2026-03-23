@@ -1,14 +1,17 @@
 ---
 name: context-keeper
 description: >
-  Maintains the living project context: tech stack, architecture decisions,
-  dependencies, constraints, and current project status. Called whenever an
-  important decision is made or the architecture changes. Enables full context
-  restoration across session switches.
+  Maintains the living project context — tech stack, architecture decisions,
+  dependencies, constraints, and current status. Use whenever you make a significant
+  technical choice (picked a library, changed the architecture, added a constraint),
+  switch frameworks or tools, or need to recall why a past decision was made.
+  Also use when onboarding to a project and the context file needs updating, or
+  when the project scope or direction changes.
   Trigger phrases: "kontext aktualisieren", "entscheidung festhalten",
   "update context", "warum haben wir X gewaehlt", "projektstand aktualisieren",
   "decision record", "ADR erstellen", "stack change", "neue dependency",
-  "why did we choose X".
+  "why did we choose X", "wir haben uns fuer X entschieden",
+  "ich nutze jetzt Y statt Z", "projekt hat sich geaendert".
 user_invocable: true
 ---
 

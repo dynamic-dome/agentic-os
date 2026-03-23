@@ -1,12 +1,15 @@
 ---
 name: skill-generator
 description: >
-  Generates new reusable skills from recurring patterns for Claude Code. Reads the
-  pattern catalog (patterns.json) and creates SKILL.md files following the skill
-  template. Activates when pattern-extractor identifies a skill_candidate or user
-  wants to save a workflow as skill. Trigger: "skill aus pattern erstellen",
-  "generate skill", "workflow als skill speichern", "make this a skill",
-  "Skill erstellen", "neuen Skill generieren", "create skill".
+  Turns recurring workflows into reusable skills. Use when you notice you keep
+  doing the same multi-step process, when pattern-extractor flags a skill candidate,
+  or when you want to automate a workflow you just did manually. Reads the pattern
+  catalog and generates properly structured SKILL.md files that can be used by
+  any Claude Code agent.
+  Trigger: "skill aus pattern erstellen", "generate skill",
+  "workflow als skill speichern", "make this a skill", "Skill erstellen",
+  "neuen Skill generieren", "create skill", "das mache ich staendig",
+  "diesen workflow automatisieren", "kann man das als skill speichern".
 user_invocable: true
 metadata:
   author: agentic-os

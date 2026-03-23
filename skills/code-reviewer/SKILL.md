@@ -1,11 +1,15 @@
 ---
 name: code-reviewer
 description: |
-  Selbstbewertung der Code-Qualitaet nach Aenderungen in Claude Code.
-  Reviewed generierten Code auf Lesbarkeit, Wartbarkeit, Security, Performance
-  und Einhaltung von Projekt-Konventionen. Erstellt strukturierte Review-Eintraege.
+  Reviews code quality after any code changes — whether you just finished a feature,
+  fixed a bug, refactored something, or are about to commit. Scores readability,
+  maintainability, security, performance, correctness, and testability on a 0-100 scale.
+  Use after completing coding work to catch issues before they persist, or when you
+  want a second opinion on code you wrote. Also triggers when preparing a commit or
+  pull request and want to ensure quality standards are met.
   Trigger: "code reviewen", "review this", "qualitaet pruefen", "selbst-review",
-  "code review", "check quality", "self-review".
+  "code review", "check quality", "self-review", "ist der code gut so",
+  "before I commit", "schauen wir uns den code an".
 
   <example>
   Context: User wants to check code quality before committing

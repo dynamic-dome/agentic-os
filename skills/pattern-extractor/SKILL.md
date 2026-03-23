@@ -1,14 +1,17 @@
 ---
 name: pattern-extractor
 description: |
-  Analyzes iteration history and error logs to extract recurring patterns,
-  anti-patterns, and best practices into a searchable pattern catalog.
-  Uses deterministic clustering on category, tags, and file paths.
-  Run periodically (every 5 iterations), at session end, when a problem
-  occurs 3+ times, or on explicit request.
+  Discovers recurring themes in your coding history — repeated errors, common
+  debugging approaches, anti-patterns, and best practices. Analyzes iteration
+  logs and error data to surface what keeps happening and why. Use when you
+  notice the same problem appearing again, want to understand your error trends,
+  or after a productive session to extract reusable insights. Automatically
+  identifies skill candidates when a pattern occurs 3+ times with high confidence.
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
   "what patterns do you see", "Muster extrahieren", "Patterns analysieren",
-  "welche Muster erkennst du", "lessons learned", "retrospektive", "pattern scan".
+  "welche Muster erkennst du", "lessons learned", "retrospektive", "pattern scan",
+  "was lief heute schief", "warum passiert das immer wieder",
+  "welche fehler mache ich oft".
 
   <example>
   Context: After several debugging sessions with recurring issues

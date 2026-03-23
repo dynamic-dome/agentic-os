@@ -1,10 +1,13 @@
 ---
 name: test-validator
 description: |
-  Fuehrt nach Codeaenderungen Tests aus, bewertet Ergebnisse und protokolliert
-  Test-Trends. Erkennt Regressionen, fehlende Tests und Flaky Tests.
+  Runs the test suite after code changes and gives you a health score. Detects
+  regressions (tests that passed before but fail now), flaky tests, and missing
+  coverage. Use after finishing a feature or bugfix to make sure nothing broke,
+  or periodically to track test health trends over time.
   Trigger: "tests laufen lassen", "validate", "test results", "regression check",
-  "run tests", "check tests", "Tests ausfuehren".
+  "run tests", "check tests", "Tests ausfuehren", "ist was kaputt gegangen",
+  "funktioniert noch alles", "hab ich was kaputt gemacht".
 
   <example>
   Context: User finished a refactoring and wants to check for regressions

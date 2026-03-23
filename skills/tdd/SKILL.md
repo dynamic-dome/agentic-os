@@ -1,12 +1,15 @@
 ---
 name: tdd
 description: >
-  AI-assisted Test-Driven Development using the Red-Green-Refactor cycle.
-  Use this skill whenever implementing a new feature, fixing a bug, or adding functionality
-  where correctness matters. Trigger on: "use TDD", "test first", "test-driven",
-  "write tests before code", "red-green-refactor", or any feature request where you want
-  to ensure quality through tests. Also use when the user says "implement X" and the project
-  has an existing test suite. This is a rigid process skill — follow the cycle exactly.
+  Enforces the Red-Green-Refactor cycle for building correct code from the start.
+  Use when implementing features where correctness is critical, fixing bugs that
+  need a regression test, or when you want confidence that code works before
+  shipping. Automatically detects the project's test runner (pytest, Jest, Vitest,
+  cargo test, go test, etc.). Follow this when the user says "implement X" and
+  tests exist, or when a bug fix should be proven with a test first.
+  Trigger on: "use TDD", "test first", "test-driven", "write tests before code",
+  "red-green-refactor", "erst testen dann coden", "schreib erstmal einen test",
+  "das muss getestet sein".
 user_invocable: true
 ---
 

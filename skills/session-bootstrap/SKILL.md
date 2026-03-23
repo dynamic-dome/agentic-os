@@ -1,14 +1,16 @@
 ---
 name: session-bootstrap
 description: >
-  Bootstraps full project context at session start. Reads session-summary,
-  identity files, patterns, and quality scores. Performs health checks on
-  the memory system. Produces a compact briefing with warnings and next steps.
-  Use at the beginning of every coding session.
+  Loads everything you need to continue working — last session's summary,
+  project context, active patterns, quality scores, and open items. Use at the
+  start of any coding session to pick up where you left off, after a context
+  reset, or when switching between projects. Performs health checks on the
+  memory system and warns about missing or outdated files.
   Trigger phrases: "start session", "session bootstrap", "session start",
   "begin work", "what was I working on", "Session starten", "Briefing laden",
   "woran habe ich gearbeitet", "wo waren wir", "was wissen wir",
-  "context restore", "neue session", "Projektstand".
+  "context restore", "neue session", "Projektstand",
+  "lass uns weitermachen", "wo stehen wir", "was ist der aktuelle stand".
 user_invocable: true
 ---
 

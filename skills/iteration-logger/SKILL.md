@@ -1,12 +1,15 @@
 ---
 name: iteration-logger
 description: |
-  Logs every coding iteration (feature, bugfix, refactor) to the memory system.
-  Captures what was done, what errors occurred, and what was learned. Includes
-  duplicate detection, recurrence tracking, and structured tagging.
+  Logs completed coding work — bug fixes, features, refactors, config changes —
+  to the memory system. Use after finishing any meaningful coding task to capture
+  what was done, what errors occurred, and what was learned. Especially valuable
+  after multi-step debugging sessions or when a fix required several attempts.
+  Includes duplicate detection and recurrence tracking to spot repeated problems.
   Trigger phrases: "log iteration", "log this fix", "iteration done",
   "document what I did", "Iteration loggen", "Fortschritt festhalten",
-  "was habe ich gemacht".
+  "was habe ich gemacht", "ich hab gerade einen bug gefixt",
+  "feature ist fertig", "das sollten wir festhalten".
 
   <example>
   Context: User just fixed a bug after multiple attempts

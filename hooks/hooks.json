@@ -1,5 +1,5 @@
 {
-  "description": "Agentic OS Lifecycle Hooks v4: Auto-Init, Briefing, Auto-Logging, Wrap-Up",
+  "description": "Agentic OS Lifecycle Hooks v5: Auto-Init, Briefing, Lightweight Logging, Smart Routing, Session Wrap-Up, Auto-Commit",
   "hooks": {
     "PostToolUse": [
       {
@@ -25,14 +25,26 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Scan the user's prompt for intent signals. Do NOT act on these — only add a brief internal hint if relevant:\n\n- If the prompt describes completed work (e.g. 'fixed the bug', 'feature is done', 'refactored X') → hint: 'Consider logging this iteration with iteration-logger.'\n- If the prompt mentions a decision or tech choice (e.g. 'let's use Redis', 'switching to TypeScript') → hint: 'Consider recording this decision with context-keeper.'\n- If the prompt asks about recurring problems (e.g. 'why does this keep happening', 'same error again') → hint: 'Consider running pattern-extractor.'\n\nIf no signal is detected, return 'approve' silently. Never block or delay the user. This is advisory only.\n\nReturn 'approve'.",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "You are the Agentic OS Stop hook. Check if `.agent-memory/` exists in the working directory. If not, return 'approve' immediately.\n\nIf it exists, check if meaningful work was done this session (code changes, decisions, debugging). If yes:\n\n1. Update `.agent-memory/session-summary.md` with:\n   - Was wurde gemacht (2-3 bullet points)\n   - Offene Punkte\n   - Naechste Schritte\n   - Keep under 30 lines total.\n\n2. Check if there are unlogged coding iterations (significant debugging cycles or features completed). If so, append entries to `.agent-memory/iterations/iteration-log.md`.\n\n3. If errors occurred during the session, read `.agent-memory/iterations/errors.json`, append new entries, write back.\n\n4. If 3+ iterations were done, note key learnings in `.agent-memory/learnings/learnings.md` (only genuine insights).\n\nIf nothing meaningful was done, skip silently.\n\nReturn 'approve' to stop.",
-            "timeout": 30
+            "prompt": "You are the Agentic OS Stop hook (lightweight). Check if `.agent-memory/` exists. If not, return 'approve' immediately.\n\nIf it exists and meaningful code changes were made this turn:\n1. Append a brief iteration entry to `.agent-memory/iterations/iteration-log.md` (date, type, 1-line summary).\n2. If errors occurred, append to `.agent-memory/iterations/errors.json`.\n\nDo NOT update session-summary.md here — that is handled by SessionEnd.\nDo NOT trigger pattern-extractor — that is handled by wrap-up skill.\n\nReturn 'approve'.",
+            "timeout": 15
           }
         ]
       }
@@ -55,8 +67,20 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n1. Ensure session-summary.md is up to date (if not already done by Stop hook)\n2. Output a one-line summary of what was done this session.\n\nReturn 'approve'.",
-            "timeout": 15
+            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n1. Update `.agent-memory/session-summary.md` with:\n   - Was wurde gemacht (2-3 bullet points of this session's work)\n   - Offene Punkte (anything unfinished)\n   - Naechste Schritte (what to do next session)\n   - Keep under 30 lines total.\n2. If 3+ iterations were logged this session, note key learnings in `.agent-memory/learnings/learnings.md` (only genuine, non-trivial insights).\n3. Output a one-line summary of what was done this session.\n\nReturn 'approve'.",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "quality-gate|improvement-scout",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "An agent just completed a significant task. Check if there are staged or unstaged changes via `git status`.\n\nIf there are meaningful code changes (not just .agent-memory/ updates):\n1. Suggest a commit message based on the changes.\n2. Ask the user: 'Soll ich diese Aenderungen committen? Vorgeschlagene Message: {message}'\n3. Only commit if the user confirms.\n\nIf only .agent-memory/ files changed, skip silently.\n\nReturn 'approve'.",
+            "timeout": 10
           }
         ]
       }
