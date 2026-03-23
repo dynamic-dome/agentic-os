@@ -1,6 +1,6 @@
 ---
 name: pattern-extractor
-description: >
+description: |
   Analyzes iteration history and error logs to extract recurring patterns,
   anti-patterns, and best practices into a searchable pattern catalog.
   Uses deterministic clustering on category, tags, and file paths.
@@ -9,6 +9,16 @@ description: >
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
   "what patterns do you see", "Muster extrahieren", "Patterns analysieren",
   "welche Muster erkennst du", "lessons learned", "retrospektive", "pattern scan".
+
+  <example>
+  Context: After several debugging sessions with recurring issues
+  user: "what patterns do you see in my errors?"
+  assistant: "Pattern Extraction: 2 new anti-patterns found, 1 skill candidate"
+  <commentary>
+  User wants to analyze recurring issues, trigger pattern-extractor.
+  </commentary>
+  </example>
+user_invocable: true
 ---
 
 # Pattern Extractor

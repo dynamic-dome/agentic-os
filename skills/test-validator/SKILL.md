@@ -1,10 +1,20 @@
 ---
 name: test-validator
-description: >
+description: |
   Fuehrt nach Codeaenderungen Tests aus, bewertet Ergebnisse und protokolliert
   Test-Trends. Erkennt Regressionen, fehlende Tests und Flaky Tests.
   Trigger: "tests laufen lassen", "validate", "test results", "regression check",
   "run tests", "check tests", "Tests ausfuehren".
+
+  <example>
+  Context: User finished a refactoring and wants to check for regressions
+  user: "run tests, check for regressions"
+  assistant: "Test-Ergebnis: 92/100 (Excellent) — 40/42 passed, 0 regressions"
+  <commentary>
+  User wants test validation after code changes, trigger test-validator.
+  </commentary>
+  </example>
+user_invocable: true
 metadata:
   author: agentic-os
   version: '3.0'

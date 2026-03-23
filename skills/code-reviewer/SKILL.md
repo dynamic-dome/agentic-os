@@ -1,11 +1,21 @@
 ---
 name: code-reviewer
-description: >
+description: |
   Selbstbewertung der Code-Qualitaet nach Aenderungen in Claude Code.
   Reviewed generierten Code auf Lesbarkeit, Wartbarkeit, Security, Performance
   und Einhaltung von Projekt-Konventionen. Erstellt strukturierte Review-Eintraege.
   Trigger: "code reviewen", "review this", "qualitaet pruefen", "selbst-review",
   "code review", "check quality", "self-review".
+
+  <example>
+  Context: User wants to check code quality before committing
+  user: "review the code I just wrote"
+  assistant: "Code Review: 82/100 (Good) — 3 findings..."
+  <commentary>
+  User requests quality check on recent changes, trigger code-reviewer.
+  </commentary>
+  </example>
+user_invocable: true
 metadata:
   author: agentic-os
   version: '3.0'

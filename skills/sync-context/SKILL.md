@@ -8,6 +8,7 @@ description: >
   Trigger phrases: "sync memory", "pull patterns", "push learnings",
   "cross-project sync", "global memory", "Kontext synchronisieren",
   "globale Patterns holen", "Wissen teilen".
+user_invocable: true
 ---
 
 # Cross-Project Sync (Optional, Manual Only)

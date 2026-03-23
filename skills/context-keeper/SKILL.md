@@ -9,6 +9,7 @@ description: >
   "update context", "warum haben wir X gewaehlt", "projektstand aktualisieren",
   "decision record", "ADR erstellen", "stack change", "neue dependency",
   "why did we choose X".
+user_invocable: true
 ---
 
 # Context Keeper

@@ -1,12 +1,31 @@
 ---
 name: iteration-logger
-description: >
+description: |
   Logs every coding iteration (feature, bugfix, refactor) to the memory system.
   Captures what was done, what errors occurred, and what was learned. Includes
   duplicate detection, recurrence tracking, and structured tagging.
   Trigger phrases: "log iteration", "log this fix", "iteration done",
   "document what I did", "Iteration loggen", "Fortschritt festhalten",
   "was habe ich gemacht".
+
+  <example>
+  Context: User just fixed a bug after multiple attempts
+  user: "log this fix"
+  assistant: "Iteration #12 logged: bugfix — fixed circular import in auth module"
+  <commentary>
+  User completed a debugging cycle, trigger iteration-logger to record the fix.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User finished implementing a new feature
+  user: "done with the API endpoint, log it"
+  assistant: "Iteration #13 logged: feature — added /api/users endpoint"
+  <commentary>
+  Feature completed, trigger iteration-logger to capture what was built.
+  </commentary>
+  </example>
+user_invocable: true
 ---
 
 # Iteration Logger

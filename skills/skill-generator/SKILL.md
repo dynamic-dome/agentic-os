@@ -7,6 +7,7 @@ description: >
   wants to save a workflow as skill. Trigger: "skill aus pattern erstellen",
   "generate skill", "workflow als skill speichern", "make this a skill",
   "Skill erstellen", "neuen Skill generieren", "create skill".
+user_invocable: true
 metadata:
   author: agentic-os
   version: '3.0'

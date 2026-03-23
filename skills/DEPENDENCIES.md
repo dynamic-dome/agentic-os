@@ -69,11 +69,12 @@ SESSION END (Stop hook)
 | sync-context | local patterns, global patterns | local patterns, global patterns |
 | tdd | — | — |
 
-## Agent
+## Agents
 
 | Agent | Used By | Purpose |
 |-------|---------|---------|
 | context-detective | /agentic-os:init | Auto-detect project stack from manifests |
+| quality-gate | pre-commit, manual | Combined code review + test validation |
 
 ## Key Design Principles
 

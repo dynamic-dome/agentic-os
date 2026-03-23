@@ -1,12 +1,22 @@
 ---
 name: wrap-up
-description: >
+description: |
   Performs session wrap-up: summarizes work done, extracts learnings, updates
   session-summary.md, and optionally suggests a git commit. Also handles
   pre-compression handoff when context is getting long.
   Trigger phrases: "wrap up", "end session", "session end", "save session",
   "close session", "Session beenden", "Zusammenfassung", "fertig fuer heute",
   "kontext sichern", "session handoff", "agent handoff".
+
+  <example>
+  Context: User is done for the day
+  user: "fertig fuer heute, wrap up"
+  assistant: "Session Wrap-Up: 5 Iterationen, 2 Fehler behoben. Session-Summary aktualisiert."
+  <commentary>
+  User ends session, trigger wrap-up to save context for next session.
+  </commentary>
+  </example>
+user_invocable: true
 ---
 
 # Session Wrap-Up

@@ -9,6 +9,7 @@ description: >
   "begin work", "what was I working on", "Session starten", "Briefing laden",
   "woran habe ich gearbeitet", "wo waren wir", "was wissen wir",
   "context restore", "neue session", "Projektstand".
+user_invocable: true
 ---
 
 # Session Bootstrap
