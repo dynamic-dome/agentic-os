@@ -1,76 +1,84 @@
-# Skill Dependency Graph — Agentic OS v3
+# Skill Dependency Graph — Agentic OS v2
 
 ## Session Lifecycle (Execution Order)
 
 ```
-SESSION START
+SESSION START (SessionStart hook)
   │
   ▼
-  heartbeat ──────────► soul-and-identity (read mode)
-  │                     session-bootstrap
-  │                       ├── reads: session-summary.md
-  │                       ├── reads: patterns.md
-  │                       └── calls: sync-context (pull)
+  session-bootstrap (read-only)
+  │  ├── reads: session-summary.md
+  │  ├── reads: identity/soul.md, identity/user.md
+  │  ├── reads: context/project-context.md
+  │  ├── reads: patterns/patterns.md
+  │  └── reads: quality/quality-score.json
   │
   ▼
-WORK PHASE (repeating)
+WORK PHASE (user-driven, no auto-triggers)
   │
-  PostToolUse (Write|Edit)
+  ├── iteration-logger (after fixes/features)
+  │     └── writes: iterations/iteration-log.md, errors.json
   │
-  ▼
-  agent-orchestrator
-  │  ├── code-changed ──► code-reviewer
-  │  │                    test-validator
-  │  ├── error-fixed ───► iteration-logger
-  │  ├── decision-made ► (context logging)
-  │  ├── pattern-threshold ► pattern-extractor
-  │  └── skill-candidate ► skill-generator
+  ├── context-keeper (on architecture decisions)
+  │     └── writes: context/project-context.md, decisions.json
+  │
+  ├── code-reviewer (before commits, on request)
+  │     └── writes: quality/code-reviews.json, quality-score.json
+  │
+  ├── test-validator (before commits, on request)
+  │     └── writes: quality/test-results.json, quality-score.json
+  │
+  ├── pattern-extractor (every 5 iterations, on request)
+  │     ├── reads: iterations/errors.json, iteration-log.md
+  │     └── writes: patterns/patterns.json, patterns.md
+  │
+  ├── skill-generator (when pattern has skill_candidate=true)
+  │     ├── reads: patterns/patterns.json
+  │     └── writes: generated-skills/<name>/SKILL.md
+  │
+  ├── tdd (on feature/bugfix work)
+  │     └── (no memory writes — uses test runner directly)
+  │
+  └── sync-context (manual only, on explicit request)
+        └── reads/writes: local patterns ↔ global patterns
   │
   ▼
 SESSION END (Stop hook)
   │
   ▼
   wrap-up
-  │  ├── calls: pattern-extractor
-  │  ├── updates: soul-and-identity (user.md)
-  │  ├── calls: sync-context (push)
-  │  └── updates: session-summary.md
-  │
-  ▼
-PreCompact (if triggered)
-  │
-  ▼
-  agent-handoff
+  │  ├── reads: iterations/iteration-log.md
+  │  ├── calls: pattern-extractor (if 3+ new iterations)
+  │  ├── updates: session-summary.md
+  │  ├── updates: learnings/learnings.md
+  │  └── updates: identity/user.md (conditional, 3+ repeated signals)
 ```
 
 ## Dependency Matrix
 
-| Skill | Depends On | Depended By |
-|-------|-----------|-------------|
-| heartbeat | soul-and-identity, session-bootstrap | (entry point) |
-| session-bootstrap | sync-context | heartbeat |
-| soul-and-identity | — | heartbeat, wrap-up, agent-handoff |
-| agent-orchestrator | trigger-rules.json | (PostToolUse hook) |
-| code-reviewer | project-context.md, patterns.md | agent-orchestrator |
-| test-validator | — | agent-orchestrator |
-| iteration-logger | — | agent-orchestrator, wrap-up |
-| pattern-extractor | errors.json, iteration-log.md | agent-orchestrator, wrap-up |
-| skill-generator | patterns.json | pattern-extractor (via orchestrator) |
-| sync-context | patterns.json, global memory | session-bootstrap, wrap-up |
-| wrap-up | pattern-extractor, sync-context, soul-and-identity | Stop hook |
-| agent-handoff | session-summary.md, quality-score.json | PreCompact hook |
-| retrospective | all quality/*.json, iterations/*.json | (manual/periodic) |
-| mutation-engine | evals/*.json, benchmarks.json | (manual/periodic) |
-| init-memory | — | /agentic-os:init command |
+| Skill | Reads From | Writes To |
+|-------|-----------|----------|
+| session-bootstrap | session-summary.md, soul.md, user.md, project-context.md, patterns.md, quality-score.json, errors.json | (nothing — read-only) |
+| iteration-logger | iteration-log.md, errors.json | iteration-log.md, errors.json |
+| pattern-extractor | errors.json, iteration-log.md, patterns.json | patterns.json, patterns.md |
+| context-keeper | project-context.md, decisions.json | project-context.md, decisions.json |
+| code-reviewer | project-context.md, patterns.md | code-reviews.json, quality-score.json |
+| test-validator | test-results.json | test-results.json, quality-score.json |
+| skill-generator | patterns.json | generated-skills/ |
+| wrap-up | iteration-log.md, errors.json | session-summary.md, learnings.md, user.md |
+| sync-context | local patterns, global patterns | local patterns, global patterns |
+| tdd | — | — |
 
-## Agents
+## Agent
 
-| Agent | Used By | Depends On |
-|-------|---------|-----------|
-| context-detective | init command | project manifests |
-| memory-keeper | background tasks | .agent-memory/* |
+| Agent | Used By | Purpose |
+|-------|---------|---------|
+| context-detective | /agentic-os:init | Auto-detect project stack from manifests |
 
-## Circular Dependency Note
+## Key Design Principles
 
-`heartbeat → session-bootstrap → sync-context` and `wrap-up → sync-context` form a DAG, not a cycle.
-The potential concern is `sync-context` pulling patterns that reference `session-bootstrap`, but this is data-level, not execution-level.
+1. **No circular dependencies** — DAG only
+2. **No auto-triggers on code changes** — user/CLAUDE.md driven
+3. **session-bootstrap is read-only** — never writes during startup
+4. **wrap-up is the only skill that calls other skills** (pattern-extractor)
+5. **sync-context is manual-only** — no auto-sync

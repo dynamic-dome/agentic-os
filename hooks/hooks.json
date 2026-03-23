@@ -5,30 +5,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Phase 1 — Agentic OS Heartbeat (runs FIRST, takes priority):\nRun the agentic-os:heartbeat skill silently. Only report issues to the user if problems are found. Do not mention this health check unless there are warnings or errors.\n\nPhase 2 — Superpowers Skill Awareness (runs AFTER heartbeat):\nYou have superpowers skills available. Before every response, check if any of the available skills match the user's request. If there is even a 1% chance a skill might apply, invoke it via the Skill tool BEFORE generating any other response. Available superpowers skills include: brainstorming, writing-plans, executing-plans, test-driven-development, systematic-debugging, dispatching-parallel-agents, subagent-driven-development, verification-before-completion, using-git-worktrees, receiving-code-review, requesting-code-review, finishing-a-development-branch, writing-skills. For the full skill content, use the Skill tool to invoke superpowers:using-superpowers. Agentic OS hooks and skills always take priority over superpowers skills when both could apply.",
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Before context compression, save current session state using the agent-handoff skill. Write handoff briefing to .agent-memory/transfer/handoff-briefing.md and update .agent-memory/session-summary.md with current progress. Keep both concise.",
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Code was just changed via Write or Edit. If this was a meaningful code change (not just config/docs), note it as a code-changed signal for the agent-orchestrator. If auto_review_code or auto_run_tests are enabled in .agent-memory/orchestrator/trigger-rules.json, consider triggering code-reviewer and test-validator. Keep this lightweight — only act if the change is substantive.",
+            "prompt": "Read .agent-memory/session-summary.md and .agent-memory/identity/soul.md silently. Apply the identity settings. Only report to the user if there are warnings (declining quality scores, unresolved critical patterns). Keep the briefing under 10 lines.",
             "timeout": 15
           }
         ]
@@ -39,7 +16,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Before ending, check if any coding iterations were completed in this conversation that haven't been logged to .agent-memory/iterations/iteration-log.md yet. If there are unlogged iterations, log them now using the iteration-logger skill format. If session-summary.md hasn't been updated this session, update it with a brief summary of what was done and next steps. Keep it concise (under 30 lines). If nothing meaningful was done, skip silently.",
+            "prompt": "Check if meaningful work was done this session. If yes: update .agent-memory/session-summary.md with completed work, open items, and next steps (max 30 lines). If coding iterations were completed but not logged, log them to iteration-log.md. If nothing meaningful was done, skip silently.",
             "timeout": 30
           }
         ]

@@ -1,9 +1,8 @@
 ---
 name: test-validator
 description: >
-  Fuehrt nach Codeaenderungen automatisch Tests aus, bewertet Ergebnisse und
-  protokolliert Test-Trends. Erkennt Regressionen, fehlende Tests und Flaky Tests.
-  Wird vom agent-orchestrator nach code-changed Signalen getriggert.
+  Fuehrt nach Codeaenderungen Tests aus, bewertet Ergebnisse und protokolliert
+  Test-Trends. Erkennt Regressionen, fehlende Tests und Flaky Tests.
   Trigger: "tests laufen lassen", "validate", "test results", "regression check",
   "run tests", "check tests", "Tests ausfuehren".
 metadata:
@@ -17,7 +16,7 @@ metadata:
 
 ## When to Use This Skill
 
-- Code geaendert wurde (automatisch via agent-orchestrator)
+- Code geaendert wurde und Tests laufen sollen
 - Vor einem Commit / Push
 - Nach einem Refactoring
 - User fragt: "Funktioniert alles?" / "Regression?"

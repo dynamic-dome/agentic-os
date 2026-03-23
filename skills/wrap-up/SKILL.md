@@ -1,65 +1,158 @@
 ---
 name: wrap-up
 description: >
-  Performs session wrap-up: summarizes work done, extracts learnings,
-  syncs to global memory, updates session-summary.md.
-  Trigger phrases: "wrap up", "end session", "session end",
-  "save session", "close session", "Session beenden", "Zusammenfassung",
-  "fertig fuer heute".
-
-metadata:
-  author: agentic-os
-  version: '3.0'
-  part-of: agentic-os
-  layer: core
+  Performs session wrap-up: summarizes work done, extracts learnings, updates
+  session-summary.md, and optionally suggests a git commit. Also handles
+  pre-compression handoff when context is getting long.
+  Trigger phrases: "wrap up", "end session", "session end", "save session",
+  "close session", "Session beenden", "Zusammenfassung", "fertig fuer heute",
+  "kontext sichern", "session handoff", "agent handoff".
 ---
 
 # Session Wrap-Up
 
+End-of-session sequence. Summarizes work, extracts learnings, prepares for next session.
+
 ## When to Use
 
-At the end of every coding session, or when context is getting long.
+- At the end of every coding session
+- When context window is getting long (pre-compression)
+- User says "wrap up", "session beenden", etc.
+- Stop hook triggers this automatically
 
-## Sequence
+## Step 1: Gather Session Data
 
-1. **Summarize iterations** — read `iteration-log.md` for this session's entries
-2. **Extract patterns** — run pattern extraction on new iterations
-3. **Update user.md** — append any observed feedback patterns or error tendencies
-4. **Update session-summary.md** with:
+Collect from the current session:
+
+1. **Iteration log**: Read `.agent-memory/iterations/iteration-log.md` — find entries from today's date
+2. **Git changes**: Run `git diff --stat` and `git log --oneline -5` (if git available)
+3. **Test status**: Read `.agent-memory/quality/test-results.json` — latest entry
+4. **Code quality**: Read `.agent-memory/quality/code-reviews.json` — latest entry
+5. **Errors this session**: Read `.agent-memory/iterations/errors.json` — entries from today
+
+If iteration-log.md is empty or has no entries from today: note "Keine Iterationen in dieser Session" and proceed to Step 5 (skip Steps 2-4).
+
+## Step 2: Summarize Work Done
+
+Create a structured summary from gathered data:
+
+- Count: iterations completed, errors encountered, tests run
+- List: files changed (from git diff or iteration log)
+- Note: any quality score changes (improved/declined/stable)
+
+## Step 3: Extract Learnings
+
+Review today's iterations for genuine insights. A learning is worth recording if:
+
+- It would prevent a future mistake
+- It reveals something non-obvious about the codebase
+- It documents a decision rationale that isn't in the code
+
+**Do NOT log trivial facts** like "file X exists" or "function Y takes 2 arguments". Only log insights that a future session would genuinely benefit from knowing.
+
+Append real learnings to `.agent-memory/learnings/learnings.md`:
+
+```markdown
+## {date}
+
+- {insight with context}
+```
+
+## Step 4: Run Pattern Extraction
+
+If 3+ new iterations were logged this session, trigger pattern-extractor:
+- This is a lightweight call — just analyzing the new data
+- If fewer than 3 new iterations, skip (not enough new data)
+
+## Step 5: Update session-summary.md
+
+Overwrite `.agent-memory/session-summary.md` with:
 
 ```markdown
 # Letzte Session
 
-*Datum: {date}*
+*Datum: {YYYY-MM-DD HH:MM}*
+*Agent: Claude Code*
 
 ## Was wurde gemacht
-- {bullet points of completed work}
+- {bullet points of completed work, max 10 items}
 
 ## Offene Punkte
 - {anything left unfinished}
+- {blockers encountered}
 
-## Nächste Schritte
-1. {prioritized next actions}
+## Naechste Schritte
+1. {highest priority next action}
+2. {second priority}
+3. {third priority}
 
 ## Statistik
-- Iterationen: {count}
-- Fehler: {count}
-- Neue Patterns: {count}
+- Iterationen: {n}
+- Fehler: {n}
+- Neue Patterns: {n}
+- Test-Health: {score}/100
+- Code-Quality: {score}/100
+
+## Aktive Warnungen
+- {high-confidence patterns, if any}
+- {declining quality trends, if any}
 ```
 
-5. **Sync to global** — push new patterns/learnings to `~/.claude-memory/global/`
-6. **Update quality-score.json** if tests were run
-7. **Suggest git commit** with conventional commit message based on changes
+**Keep it under 30 lines.** This file is read at every session start — conciseness is critical.
 
-## Important
+## Step 6: Update user.md (Conditional)
 
-- Keep session-summary.md concise — it's read at every session start
-- Focus on actionable next steps, not detailed history
-- Global sync should only push patterns with confidence >= 0.6
+Only update `.agent-memory/identity/user.md` if a clear, repeated signal was observed:
+
+- User corrected the same behavior 3+ times → record the preference
+- User confirmed a non-obvious approach → record as validated pattern
+- User expressed frustration with a specific style → record as anti-preference
+
+**Do NOT update user.md for one-off corrections.** Wait for repeated signals.
+
+## Step 7: Suggest Git Commit (Optional)
+
+If there are uncommitted changes:
+
+1. Run `git status` to see what's staged/unstaged
+2. Suggest a conventional commit message based on the iteration types:
+   - `feat:` for features
+   - `fix:` for bugfixes
+   - `refactor:` for refactors
+   - `test:` for test changes
+   - `chore:` for config/tooling
+3. **Show the user** what would be committed
+4. **Wait for confirmation** — never commit without explicit approval
+
+## Handoff Mode (Pre-Compression)
+
+When triggered by context getting long (PreCompact) or explicit handoff request, add extra context to session-summary.md:
+
+Append after the standard summary:
+
+```markdown
+## Handoff Context
+- **Active task**: What was being worked on right now
+- **Current state**: Where in the task (what's done, what's next)
+- **Quality state**: Latest test/code scores
+- **Active patterns**: Top 5 high-confidence patterns to watch
+- **Open questions**: Decisions pending user input
+```
+
+This enables the next session's bootstrap to restore full context.
 
 ## Error Handling
 
-- If `iteration-log.md` is empty or missing: note "Keine Iterationen in dieser Session", skip pattern extraction
-- If any JSON file is corrupt (parse error): rename to `<file>.corrupt.bak`, create fresh with defaults, warn user
-- If global memory path is unreachable: skip sync, log warning, continue with local wrap-up
-- If `session-summary.md` is missing: create it fresh instead of appending
+- If `iteration-log.md` is missing: create it, note "No previous iterations"
+- If any JSON file has a parse error: rename to `{file}.corrupt.bak`, create fresh with `[]`, warn user
+- If `.agent-memory/` doesn't exist: suggest running `/agentic-os:init`
+- If `session-summary.md` is missing: create it fresh
+
+## What NOT to Do
+
+- Do NOT modify `errors.json` (that's iteration-logger's job)
+- Do NOT modify `patterns.json` directly (call pattern-extractor instead)
+- Do NOT modify `decisions.json` (that's context-keeper's job)
+- Do NOT write session-summary.md longer than 30 lines
+- Do NOT commit without user confirmation
+- Do NOT log trivial "learnings" that clutter the knowledge base

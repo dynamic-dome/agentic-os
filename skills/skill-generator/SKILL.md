@@ -87,15 +87,6 @@ description: >
 <Concrete example with input and expected output>
 ```
 
-## Step 3b: Skill-Creator Integration (optional)
-
-If the `/skill-creator:skill-creator` or `/superpowers:writing-skills` skill is available in the current environment, invoke it as a quality template engine before finalizing the SKILL.md. These external skills provide battle-tested patterns for:
-- Effective trigger word placement in descriptions
-- Structured step design with anti-patterns
-- Example quality and specificity
-
-This is optional — if the external skills are not available, proceed with the template from Step 3.
-
 ## Step 4: Quality Check
 
 Verify the generated skill:

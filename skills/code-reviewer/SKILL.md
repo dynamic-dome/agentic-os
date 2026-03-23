@@ -18,7 +18,6 @@ metadata:
 ## When to Use This Skill
 
 - Neuer Code geschrieben oder signifikant geaendert wurde
-- Automatisch vom agent-orchestrator nach `code-changed` Signal
 - Vor einem Commit
 - User fragt: "Ist der Code gut?" / "Was kann verbessert werden?"
 
@@ -38,7 +37,7 @@ metadata:
 Nutze Claude Code Tools:
 - `Bash`: `git diff --name-only HEAD~1` fuer letzte Aenderungen
 - `Grep`: Suche nach TODO/FIXME/HACK in geaenderten Dateien
-- Oder aus dem Orchestrator-Signal: `files_changed`
+- Oder aus dem Kontext der aktuellen Session
 
 ### Schritt 2: Konventionen laden
 

@@ -6,7 +6,31 @@
       "Read(//c/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/**)",
       "Bash(done)",
       "Bash(python -c \"import json; json.load\\(open\\(''hooks/hooks.json''\\)\\); print\\(''Valid JSON''\\)\")",
-      "Bash(python -c \"import json; json.load\\(open\\(''.claude-plugin/plugin.json''\\)\\); print\\(''Valid plugin.json''\\)\")"
+      "Bash(python -c \"import json; json.load\\(open\\(''.claude-plugin/plugin.json''\\)\\); print\\(''Valid plugin.json''\\)\")",
+      "Bash(rsync -av --delete --exclude='.git' --exclude='.claude' \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/\" \"$HOME/.claude/plugins/agentic-os/\")",
+      "Bash(rm -rf \"$HOME/.claude/plugins/agentic-os/\"*)",
+      "Bash(cp -r \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/\"* \"$HOME/.claude/plugins/agentic-os/\")",
+      "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/.gitignore\" \"$HOME/.claude/plugins/agentic-os/\")",
+      "Bash(cp -r \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/.claude-plugin\" \"$HOME/.claude/plugins/agentic-os/\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''C:/Users/domes/.claude/plugins/agentic-os/.claude-plugin/plugin.json''\\)\\); print\\(''JSON valid''\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''C:/Users/domes/.claude/plugins/agentic-os/hooks/hooks.json''\\)\\); print\\(''JSON valid''\\)\")",
+      "Bash(find C:Usersdomes.claudepluginscacheclaude-plugins-official -name plugin.json -type f -exec grep -l commands {})",
+      "Bash(2)",
+      "Bash(xargs cat:*)",
+      "Bash(while read:*)",
+      "Bash(do if:*)",
+      "Bash(then echo:*)",
+      "Bash(python3 -m json.tool)",
+      "Read(//c/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/**)",
+      "Read(//c/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/.claude-plugin/**)",
+      "Read(//c/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/agentic-os/.claude-plugin/**)",
+      "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/.claude-plugin/plugin.json\" \"$HOME/.claude/plugins/agentic-os/.claude-plugin/plugin.json\")",
+      "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/.claude-plugin/plugin.json\" \"$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/agentic-os/.claude-plugin/plugin.json\")",
+      "Bash(cp -r \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/\"* \"$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/agentic-os/\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\(''C:/Users/domes/.claude/settings.json''\\)\\); print\\(''Enabled:'', [k for k in d.get\\(''enabledPlugins'',{}\\) if ''agentic'' in k]\\); print\\(''Marketplaces:'', list\\(d.get\\(''extraKnownMarketplaces'',{}\\).keys\\(\\)\\)\\)\")",
+      "Read(//c/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/$HOME/.claude/plugins/agentic-os/.claude-plugin/**)",
+      "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/hooks/hooks.json\" \"$HOME/.claude/plugins/agentic-os/hooks/hooks.json\")",
+      "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/hooks/hooks.json\" \"$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/agentic-os/hooks/hooks.json\")"
     ]
   }
 }

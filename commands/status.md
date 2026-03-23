@@ -12,8 +12,7 @@ Display the current state of the memory system.
 1. **Memory System Health:**
    - Does `.agent-memory/` exist? List missing directories/files
    - Last session summary (first 5 lines of `session-summary.md`)
-   - Quality score from `quality-score.json`
-   - Health grade from `retrospectives/metrics.json`
+   - Quality scores from `quality-score.json`
 
 2. **Statistics:**
    - Total iterations logged (count entries in `iteration-log.md`)
@@ -21,9 +20,4 @@ Display the current state of the memory system.
    - Total errors (count in `errors.json`)
    - Total decisions (count in `decisions.json`)
 
-3. **Global Memory:**
-   - Does `~/.claude-memory/global/` exist?
-   - How many projects registered?
-   - Last sync timestamp
-
-4. **Format** as a compact table.
+3. **Format** as a compact table.

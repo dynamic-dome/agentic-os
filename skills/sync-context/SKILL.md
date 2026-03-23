@@ -1,74 +1,91 @@
 ---
 name: sync-context
 description: >
-  Synchronizes patterns and learnings between local .agent-memory/ and
-  global ~/.claude-memory/global/. Enables cross-project learning.
+  Manual cross-project sync between local .agent-memory/ and global
+  ~/.claude-memory/global/. Pulls relevant patterns from other projects,
+  pushes local learnings for reuse. NOT auto-triggered — use only when
+  explicitly requested.
   Trigger phrases: "sync memory", "pull patterns", "push learnings",
   "cross-project sync", "global memory", "Kontext synchronisieren",
   "globale Patterns holen", "Wissen teilen".
-
-metadata:
-  author: agentic-os
-  version: '3.0'
-  part-of: agentic-os
-  layer: core
 ---
 
-# Cross-Project Sync
+# Cross-Project Sync (Optional, Manual Only)
+
+Bidirectional sync between local `.agent-memory/` and `~/.claude-memory/global/`.
+
+**This skill is never auto-triggered.** It runs only when the user explicitly requests it.
 
 ## When to Use
 
-- At session start: pull global patterns relevant to this project's stack
-- At session end: push new patterns/learnings to global
-- When switching between projects and wanting accumulated knowledge
+- User wants to import patterns from other projects
+- User wants to share this project's learnings globally
+- Switching between projects and wanting accumulated knowledge
+- User has 3+ active projects and wants to leverage cross-project patterns
 
 ## Architecture
 
 ```
-Project A (.agent-memory/)  ──push──►  ~/.claude-memory/global/  ◄──push──  Project B (.agent-memory/)
-                            ◄──pull──                            ──pull──►
+Project A (.agent-memory/)  ──push──>  ~/.claude-memory/global/  <──push──  Project B
+                            <──pull──                            ──pull──>
 ```
 
-## Sync Logic
+## Step 1: Determine Direction
 
-### Pattern Merging
+From user intent:
+- "pull" / "holen" / "importieren" → pull only
+- "push" / "teilen" / "exportieren" → push only
+- "sync" / "beides" / no direction → bidirectional (pull then push)
 
-Each pattern has:
-```json
-{
-  "id": "P001",
-  "type": "pattern|anti-pattern",
-  "description": "...",
-  "confidence": 0.0-1.0,
-  "source_projects": ["dart-vision"],
-  "stack_tags": ["python", "opencv"],
-  "first_seen": "2026-03-19",
-  "occurrences": 1
-}
+## Step 2: Ensure Global Memory Exists
+
+Check `~/.claude-memory/global/` exists. If not, create:
+- `patterns.json` → `[]`
+- `learnings.json` → `[]`
+- `projects.json` → `{"projects": []}`
+
+## Step 3: Pull (if applicable)
+
+1. Read project's stack from `.agent-memory/context/project-context.md`
+2. Read `~/.claude-memory/global/patterns.json`
+3. Filter by matching `stack_tags` (only pull relevant patterns)
+4. Only pull patterns with `confidence >= 0.5`
+5. Merge into local `patterns.json`:
+   - Same `id` → keep higher confidence, merge `source_projects`
+   - Same description (fuzzy) but different `id` → deduplicate
+   - Never overwrite local with lower-confidence global
+
+## Step 4: Push (if applicable)
+
+1. Read local `.agent-memory/patterns/patterns.json`
+2. Filter: only push patterns with `confidence >= 0.6`
+3. Merge into `~/.claude-memory/global/patterns.json`:
+   - Increment `occurrences` on merge
+   - Merge `source_projects` arrays
+   - Patterns with `occurrences >= 3` across projects get confidence boost (+0.1)
+4. Push generalizable learnings from `.agent-memory/learnings/learnings.md` to global
+
+## Step 5: Update Registry
+
+Update `~/.claude-memory/global/projects.json` with:
+- Project name and path
+- Last sync timestamp
+- Pattern count
+
+## Step 6: Report
+
+```
+Cross-Project Sync Complete:
+  Direction: {pull|push|bidirectional}
+  Pulled: {n} patterns (from {n} projects)
+  Pushed: {n} patterns, {n} learnings
+  Skipped: {n} (below threshold)
+  Conflicts: {n} (resolved by higher confidence)
 ```
 
-**Merge rules:**
-- Same `id` → keep higher confidence, merge `source_projects`
-- Same description but different `id` → deduplicate, assign single ID
-- Increment `occurrences` on merge
-- Patterns with `occurrences >= 3` across projects get `confidence` boost
+## What NOT to Do
 
-### Stack-Filtered Pull
-
-When pulling global patterns into a local project:
-1. Read project's detected stack from `project-context.md`
-2. Filter global patterns by matching `stack_tags`
-3. Only pull patterns with `confidence >= 0.5`
-4. Never overwrite local patterns with lower-confidence global ones
-
-## Instructions
-
-1. Determine sync direction from user intent:
-   - "pull" / "holen" / "importieren" → pull only
-   - "push" / "teilen" / "exportieren" → push only
-   - "sync" / "beides" / no specific direction → bidirectional (default)
-2. Read both local and global pattern stores
-3. Apply merge rules with deduplication
-4. Write merged results atomically (tempfile → rename)
-5. Update sync timestamp in `projects.json`
-6. Report changes: added, updated, skipped
+- Do NOT auto-trigger this skill from hooks or other skills
+- Do NOT sync patterns with confidence < 0.5 (pull) or < 0.6 (push)
+- Do NOT overwrite local patterns with lower-confidence global ones
+- Do NOT sync if fewer than 2 projects exist globally (nothing to cross-pollinate)

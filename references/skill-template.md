@@ -1,4 +1,4 @@
-# Skill Template — Agentic OS v3
+# Skill Template — Agentic OS v2
 
 Use this template when creating new skills manually or reviewing auto-generated skills.
 
@@ -9,13 +9,8 @@ Use this template when creating new skills manually or reviewing auto-generated 
 name: <skill-name>
 description: >
   <One paragraph describing WHEN and WHY this skill should be activated.
-  Include concrete trigger phrases that users or the orchestrator might use.
+  Include concrete trigger phrases that users might use.
   Example triggers: "fix imports", "optimize query", "review security".>
-metadata:
-  author: agentic-os
-  version: '3.0'
-  part-of: agentic-os
-  layer: <identity|orchestration|core|quality|evolution|transfer>
 ---
 
 # <Skill Title>
@@ -24,7 +19,6 @@ metadata:
 
 - <Situation 1 where this skill applies>
 - <Situation 2>
-- Automatically triggered by: <orchestrator signal or hook>
 
 ## Prerequisites
 
@@ -52,7 +46,7 @@ metadata:
 <Expected output format — keep consistent across skills>
 ```
 
-## Avoid (Anti-Patterns)
+## What NOT to Do
 
 - Do not: <common mistake 1>
 - Do not: <common mistake 2>
@@ -68,20 +62,14 @@ metadata:
 
 - [ ] Name: kebab-case, 1-64 chars
 - [ ] Description: Contains trigger phrases
-- [ ] Version: 3.0 for new skills
-- [ ] Layer: Correctly assigned
 - [ ] Steps: Use explicit Claude Code tool names (Read, Write, Edit, Bash, Glob, Grep)
 - [ ] Anti-patterns: At least one "Do not" rule
 - [ ] Example: At least one concrete example
-- [ ] Output format: Consistent with other skills in same layer
+- [ ] Output format: Consistent with other skills
 
 ## Layer Guide
 
-| Layer | Purpose | Examples |
-|-------|---------|---------|
-| identity | Agent behavior, user profile | soul-and-identity |
-| orchestration | System control, health checks | heartbeat, agent-orchestrator |
-| core | Memory management, logging | iteration-logger, pattern-extractor, sync-context |
-| quality | Code and test quality | code-reviewer, test-validator, retrospective |
-| evolution | Self-improvement | mutation-engine, skill-generator |
-| transfer | Context handoff | agent-handoff, wrap-up |
+| Layer | Purpose | Skills |
+|-------|---------|--------|
+| core | Memory, logging, context | session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, sync-context, skill-generator |
+| quality | Code and test quality | code-reviewer, test-validator, tdd |
