@@ -8,10 +8,9 @@ description: |
   or after a productive session to extract reusable insights. Automatically
   identifies skill candidates when a pattern occurs 3+ times with high confidence.
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
-  "what patterns do you see", "Muster extrahieren", "Patterns analysieren",
-  "welche Muster erkennst du", "lessons learned", "retrospektive", "pattern scan",
-  "was lief heute schief", "warum passiert das immer wieder",
-  "welche fehler mache ich oft".
+  "what patterns do you see", "lessons learned", "retrospective", "pattern scan",
+  "what went wrong today", "why does this keep happening",
+  "what errors do I make often".
 
   <example>
   Context: After several debugging sessions with recurring issues

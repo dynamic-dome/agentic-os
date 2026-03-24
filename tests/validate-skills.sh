@@ -160,5 +160,27 @@ if [ -f "$CR_FILE" ]; then
 fi
 
 echo ""
+echo "-- pattern-extractor trigger language consistency --"
+PE_FILE="$SKILLS_DIR/pattern-extractor/SKILL.md"
+if [ -f "$PE_FILE" ]; then
+    if grep -q "Muster extrahieren\|Patterns analysieren\|welche Muster erkennst du\|was lief heute schief\|warum passiert das immer wieder\|welche fehler mache ich oft" "$PE_FILE"; then
+        fail "pattern-extractor: description contains German trigger phrases — triggers must use English for consistent auto-matching"
+    else
+        pass "pattern-extractor: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
+echo "-- iteration-logger trigger language consistency --"
+IL_FILE="$SKILLS_DIR/iteration-logger/SKILL.md"
+if [ -f "$IL_FILE" ]; then
+    if grep -q "Iteration loggen\|Fortschritt festhalten\|was habe ich gemacht\|ich hab gerade einen bug gefixt\|feature ist fertig\|das sollten wir festhalten" "$IL_FILE"; then
+        fail "iteration-logger: description contains German trigger phrases — triggers must use English for consistent auto-matching"
+    else
+        pass "iteration-logger: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

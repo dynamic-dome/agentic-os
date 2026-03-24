@@ -7,9 +7,8 @@ description: |
   after multi-step debugging sessions or when a fix required several attempts.
   Includes duplicate detection and recurrence tracking to spot repeated problems.
   Trigger phrases: "log iteration", "log this fix", "iteration done",
-  "document what I did", "Iteration loggen", "Fortschritt festhalten",
-  "was habe ich gemacht", "ich hab gerade einen bug gefixt",
-  "feature ist fertig", "das sollten wir festhalten".
+  "document what I did", "track progress", "record what I did",
+  "I just fixed a bug", "feature is done", "we should log this".
 
   <example>
   Context: User just fixed a bug after multiple attempts

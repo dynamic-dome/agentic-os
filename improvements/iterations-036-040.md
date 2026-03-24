@@ -1,3 +1,28 @@
+## Iteration 40 — 2026-03-24
+### Weaknesses Found
+1. [warning] pattern-extractor-german-trigger-phrases — `skills/pattern-extractor/SKILL.md` description contains German trigger phrases ("Muster extrahieren", "Patterns analysieren", "welche Muster erkennst du", "was lief heute schief", "warum passiert das immer wieder", "welche fehler mache ich oft") that prevent auto-triggering for English-speaking users — fixed
+2. [warning] iteration-logger-german-trigger-phrases — `skills/iteration-logger/SKILL.md` description contains German trigger phrases ("Iteration loggen", "Fortschritt festhalten", "was habe ich gemacht", "ich hab gerade einen bug gefixt", "feature ist fertig", "das sollten wir festhalten") inconsistent with the plugin's English convention — fixed
+
+### Fixes Applied
+1. Replaced all German trigger phrases in `skills/pattern-extractor/SKILL.md` description with English equivalents ("what went wrong today", "why does this keep happening", "what errors do I make often"). Added test in `tests/validate-skills.sh`. — Files: `skills/pattern-extractor/SKILL.md`, `tests/validate-skills.sh`
+2. Replaced all German trigger phrases in `skills/iteration-logger/SKILL.md` description with English equivalents ("track progress", "record what I did", "I just fixed a bug", "feature is done", "we should log this"). — Files: `skills/iteration-logger/SKILL.md`
+
+### Test Results
+- Plugin tests: 90/90 passed
+- Skill tests: 107/107 passed
+- Total: 197 passed
+
+### False Alarms: 0
+
+### Quality Score
+- Fixes/Findings ratio: 2/2
+- False alarm rate: 0%
+
+### Commit
+- Hash: TBD
+
+---
+
 ## Iteration 39 — 2026-03-24
 ### Weaknesses Found
 1. [warning] tdd-german-trigger-phrases — `skills/tdd/SKILL.md` description contains three German trigger phrases ("erst testen dann coden", "schreib erstmal einen test", "das muss getestet sein") that prevent auto-triggering for English-speaking users — fixed
