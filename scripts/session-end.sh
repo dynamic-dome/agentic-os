@@ -2,12 +2,12 @@
 set -euo pipefail
 
 # Agentic OS — SessionEnd Hook
-# Weist Claude an, wrap-up durchzuführen inkl. Learnings, Pattern-Extract und Skill-Generation.
-# Nur aktiv wenn .agent-memory/ im Projekt existiert.
+# Instructs Claude to perform wrap-up including learnings, pattern extraction, and skill generation.
+# Only active when .agent-memory/ exists in the project.
 
 MEMORY_DIR="${CLAUDE_PROJECT_DIR:-.}/.agent-memory"
 
-# Kein .agent-memory? → Still beenden
+# No .agent-memory? → Exit silently
 if [ ! -d "$MEMORY_DIR" ]; then
   cat <<'EOF'
 {
@@ -18,30 +18,30 @@ EOF
   exit 0
 fi
 
-# Statistiken sammeln (tr -d für Windows-Kompatibilität)
+# Gather statistics (tr -d for Windows compatibility)
 iteration_count=$(grep -c "^## Iteration" "$MEMORY_DIR/iterations/iteration-log.md" 2>/dev/null | tr -d '[:space:]' || echo "0")
 error_count=$(grep -c '"id"' "$MEMORY_DIR/iterations/errors.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
 pattern_count=$(grep -c '"id"' "$MEMORY_DIR/patterns/patterns.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
 skill_candidates=$(grep -c '"skill_candidate": true' "$MEMORY_DIR/patterns/patterns.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
 
-# systemMessage bauen
-msg="[Agentic OS] Session wird beendet. Führe jetzt das Wrap-Up durch:\n\n"
-msg="${msg}1. Aktualisiere session-summary.md (max 30 Zeilen: was wurde gemacht, offene Punkte, nächste Schritte)\n"
-msg="${msg}2. Logge alle ungeloggten Iterationen zu iteration-log.md\n"
-msg="${msg}3. Extrahiere Learnings nach learnings.md (nur echte Einsichten, keine trivialen Fakten)\n"
+# Build systemMessage
+msg="[Agentic OS] Session is ending. Perform wrap-up now:\n\n"
+msg="${msg}1. Update session-summary.md (max 30 lines: what was done, open items, next steps)\n"
+msg="${msg}2. Log all unlogged iterations to iteration-log.md\n"
+msg="${msg}3. Extract learnings to learnings.md (genuine insights only, no trivial facts)\n"
 
 if [ "${iteration_count:-0}" -ge 3 ] 2>/dev/null || [ "${error_count:-0}" -ge 3 ] 2>/dev/null; then
-  msg="${msg}4. Führe Pattern-Extract aus (agentic-os:pattern-extractor) — ${error_count} Fehler, ${iteration_count} Iterationen vorhanden\n"
+  msg="${msg}4. Run pattern extraction (agentic-os:pattern-extractor) — ${error_count} errors, ${iteration_count} iterations available\n"
 fi
 
 if [ "${skill_candidates:-0}" -gt 0 ] 2>/dev/null; then
-  msg="${msg}5. Es gibt ${skill_candidates} Skill-Kandidaten — prüfe ob neue Skills generiert werden sollten (agentic-os:skill-generator)\n"
+  msg="${msg}5. There are ${skill_candidates} skill candidates — check whether new skills should be generated (agentic-os:skill-generator)\n"
 fi
 
-msg="${msg}\nStatistiken: ${iteration_count} Iterationen, ${error_count} Fehler, ${pattern_count} Patterns, ${skill_candidates} Skill-Kandidaten"
+msg="${msg}\nStatistics: ${iteration_count} iterations, ${error_count} errors, ${pattern_count} patterns, ${skill_candidates} skill candidates"
 
-# JSON-safe escapen
-escaped_msg=$(echo -e "$msg" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" 2>/dev/null || echo "\"[Agentic OS] Session beendet. Bitte wrap-up durchführen.\"")
+# Escape for JSON
+escaped_msg=$(echo -e "$msg" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" 2>/dev/null || echo "\"[Agentic OS] Session ended. Please perform wrap-up.\"")
 
 cat <<EOJSON
 {

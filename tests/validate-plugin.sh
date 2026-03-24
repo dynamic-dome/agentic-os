@@ -1033,6 +1033,50 @@ else
 fi
 
 
+
+# 55. pre-compact.sh must use English for all Claude-facing strings
+#     pre-compact.sh injects a context restoration message into Claude's system
+#     prompt before context compression. The current script uses German strings:
+#     "KONTEXT-WIEDERHERSTELLUNG", "Session-Kontext", "Kontext wurde komprimiert.
+#     Bei Bedarf relevante Dateien neu lesen." and the fallback message
+#     "Kontext wiederhergestellt." — these directly instruct Claude in German,
+#     which is inconsistent with the plugin's English-first convention.
+echo ""
+echo "-- pre-compact.sh body language consistency --"
+PC_HOOK="$PLUGIN_ROOT/scripts/pre-compact.sh"
+if [ -f "$PC_HOOK" ]; then
+    if grep -q "KONTEXT-WIEDERHERSTELLUNG\|Session-Kontext\|Kontext wurde komprimiert\|Bei Bedarf relevante Dateien\|Kontext wiederhergestellt\|Re-injected.*Kontext\|BEVOR die Context-Komprimierung\|Weist Claude an" "$PC_HOOK"; then
+        fail "pre-compact.sh: contains German strings visible to Claude (e.g. 'KONTEXT-WIEDERHERSTELLUNG', 'Kontext wurde komprimiert') — must use English for language consistency"
+    else
+        pass "pre-compact.sh: body uses English (no German strings in Claude-facing content)"
+    fi
+else
+    echo "  SKIP: scripts/pre-compact.sh not found"
+fi
+
+
+# 56. session-end.sh must use English for all Claude-facing strings
+#     session-end.sh injects a wrap-up instruction into Claude's systemMessage
+#     at session end. The current script uses German: "Session wird beendet.
+#     Führe jetzt das Wrap-Up durch:", "Aktualisiere session-summary.md",
+#     "Logge alle ungeloggten Iterationen", "Extrahiere Learnings",
+#     "Führe Pattern-Extract aus", "Session beendet. Bitte wrap-up durchführen."
+#     These German instructions directly tell Claude what to do in German,
+#     which is inconsistent with the plugin's English-first convention.
+echo ""
+echo "-- session-end.sh body language consistency --"
+SE_HOOK="$PLUGIN_ROOT/scripts/session-end.sh"
+if [ -f "$SE_HOOK" ]; then
+    if grep -q "Session wird beendet\|Führe jetzt\|Aktualisiere session-summary\|Logge alle ungeloggten\|Extrahiere Learnings\|Führe Pattern-Extract\|Session beendet.*wrap-up durchführen\|Weist Claude an.*wrap-up\|Kein .agent-memory\|Statistiken sammeln\|systemMessage bauen\|JSON-safe escapen\|beendet\. Bitte\|Naechste Schritte\|offene Punkte\|nächste Schritte\|was wurde gemacht" "$SE_HOOK"; then
+        fail "session-end.sh: contains German strings in Claude-facing systemMessage (e.g. 'Session wird beendet', 'Führe jetzt das Wrap-Up durch') — must use English for language consistency"
+    else
+        pass "session-end.sh: body uses English (no German strings in Claude-facing content)"
+    fi
+else
+    echo "  SKIP: scripts/session-end.sh not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

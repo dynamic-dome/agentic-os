@@ -2,13 +2,13 @@
 set -euo pipefail
 
 # Agentic OS — PreCompact Hook
-# Re-injected kritischen Kontext BEVOR die Context-Komprimierung startet.
-# Ohne diesen Hook gehen Projekt-Regeln und Session-State bei langen Sessions verloren.
+# Re-injects critical context BEFORE context compression starts.
+# Without this hook, project rules and session state are lost in long sessions.
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 MEMORY_DIR="$PROJECT_DIR/.agent-memory"
 
-context="## KONTEXT-WIEDERHERSTELLUNG (Pre-Compact)\n\n"
+context="## CONTEXT RESTORATION (Pre-Compact)\n\n"
 
 # Git State
 if command -v git &> /dev/null && git rev-parse --git-dir &> /dev/null 2>&1; then
@@ -19,7 +19,7 @@ fi
 # Agent-Memory Summary
 if [ -d "$MEMORY_DIR" ] && [ -f "$MEMORY_DIR/session-summary.md" ]; then
   summary=$(head -15 "$MEMORY_DIR/session-summary.md" 2>/dev/null || true)
-  [ -n "$summary" ] && context+="### Session-Kontext\n$summary\n\n"
+  [ -n "$summary" ] && context+="### Session Context\n$summary\n\n"
 fi
 
 # Identity
@@ -28,9 +28,9 @@ if [ -d "$MEMORY_DIR" ] && [ -f "$MEMORY_DIR/identity/soul.md" ]; then
   [ -n "$soul" ] && context+="### Identity\n$soul\n\n"
 fi
 
-context+="---\nKontext wurde komprimiert. Bei Bedarf relevante Dateien neu lesen."
+context+="---\nContext was compressed. Re-read relevant files as needed."
 
-escaped=$(echo -e "$context" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" 2>/dev/null || echo "\"[Agentic OS] Kontext wiederhergestellt.\"")
+escaped=$(echo -e "$context" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" 2>/dev/null || echo "\"[Agentic OS] Context restored.\"")
 
 cat <<EOJSON
 {
