@@ -7,11 +7,11 @@ description: >
   switch frameworks or tools, or need to recall why a past decision was made.
   Also use when onboarding to a project and the context file needs updating, or
   when the project scope or direction changes.
-  Trigger phrases: "kontext aktualisieren", "entscheidung festhalten",
-  "update context", "warum haben wir X gewaehlt", "projektstand aktualisieren",
-  "decision record", "ADR erstellen", "stack change", "neue dependency",
-  "why did we choose X", "wir haben uns fuer X entschieden",
-  "ich nutze jetzt Y statt Z", "projekt hat sich geaendert".
+  Trigger phrases: "update context", "record decision",
+  "why did we choose X", "decision record", "ADR", "stack change",
+  "new dependency", "architecture decision", "we decided to use X",
+  "switching from X to Y", "project direction changed",
+  "capture this decision", "log this choice".
 user_invocable: true
 ---
 

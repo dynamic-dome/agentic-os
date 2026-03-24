@@ -7,10 +7,10 @@ description: >
   reset, or when switching between projects. Performs health checks on the
   memory system and warns about missing or outdated files.
   Trigger phrases: "start session", "session bootstrap", "session start",
-  "begin work", "what was I working on", "Session starten", "Briefing laden",
-  "woran habe ich gearbeitet", "wo waren wir", "was wissen wir",
-  "context restore", "neue session", "Projektstand",
-  "lass uns weitermachen", "wo stehen wir", "was ist der aktuelle stand".
+  "begin work", "what was I working on", "load briefing",
+  "what have I been working on", "where were we", "what do we know",
+  "context restore", "new session", "project status",
+  "let's continue", "where are we", "what is the current status".
 user_invocable: true
 ---
 
@@ -22,7 +22,7 @@ Restore full project context at the start of every coding session.
 
 - Start of every new coding session (auto-triggered by SessionStart hook)
 - After context-window reset or long pause
-- User asks "Wo waren wir?" or "Projektstand?"
+- User asks "Where were we?" or "Project status?"
 - Agent switch (Claude Code <-> other)
 
 **Note:** The SessionStart hook now handles Auto-Init automatically. If `.agent-memory/` doesn't exist, the hook creates it before this skill runs. You should never need to suggest `/agentic-os:init` manually anymore.

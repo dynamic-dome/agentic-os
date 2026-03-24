@@ -9,9 +9,9 @@ description: >
   project discovery so you can see what is available before syncing.
   NOT auto-triggered — manual only.
   Trigger phrases: "sync memory", "pull patterns", "push learnings",
-  "cross-project sync", "global memory", "Kontext synchronisieren",
-  "globale Patterns holen", "Wissen teilen", "was gibt es in anderen projekten",
-  "welche patterns kann ich importieren", "wissen uebertragen".
+  "cross-project sync", "global memory", "sync context",
+  "pull global patterns", "share knowledge", "what patterns exist in other projects",
+  "which patterns can I import", "transfer knowledge".
 user_invocable: true
 ---
 

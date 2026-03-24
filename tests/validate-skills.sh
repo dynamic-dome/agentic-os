@@ -182,5 +182,38 @@ if [ -f "$IL_FILE" ]; then
 fi
 
 echo ""
+echo "-- context-keeper trigger language consistency --"
+CK_FILE="$SKILLS_DIR/context-keeper/SKILL.md"
+if [ -f "$CK_FILE" ]; then
+    if grep -q "kontext aktualisieren\|entscheidung festhalten\|warum haben wir\|projektstand aktualisieren\|ADR erstellen\|wir haben uns fuer\|ich nutze jetzt\|projekt hat sich geaendert" "$CK_FILE"; then
+        fail "context-keeper: description contains German trigger phrases — triggers must use English for consistent auto-matching"
+    else
+        pass "context-keeper: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
+echo "-- session-bootstrap trigger language consistency --"
+SB_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
+if [ -f "$SB_FILE" ]; then
+    if grep -q "Session starten\|Briefing laden\|woran habe ich gearbeitet\|wo waren wir\|was wissen wir\|neue session\|Projektstand\|lass uns weitermachen\|wo stehen wir\|was ist der aktuelle stand" "$SB_FILE"; then
+        fail "session-bootstrap: description contains German trigger phrases — triggers must use English for consistent auto-matching"
+    else
+        pass "session-bootstrap: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
+echo "-- sync-context trigger language consistency --"
+SC_FILE="$SKILLS_DIR/sync-context/SKILL.md"
+if [ -f "$SC_FILE" ]; then
+    if grep -q "Kontext synchronisieren\|globale Patterns holen\|Wissen teilen\|was gibt es in anderen projekten\|welche patterns kann ich importieren\|wissen uebertragen" "$SC_FILE"; then
+        fail "sync-context: description contains German trigger phrases — triggers must use English for consistent auto-matching"
+    else
+        pass "sync-context: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
