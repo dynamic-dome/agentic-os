@@ -35,7 +35,7 @@ arguments:
      Changed files: {file_count}
      {brief_summary_of_changes}
 
-     Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+     Co-Authored-By: Claude <noreply@anthropic.com>
      ```
 
 5. **Push**:

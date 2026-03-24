@@ -240,6 +240,34 @@ else
     fail "improvement-scout: agent file not found"
 fi
 
+# 13. auto-commit command should not contain hardcoded model-specific co-author
+echo ""
+echo "-- auto-commit co-author portability --"
+AC_CMD="$PLUGIN_ROOT/commands/auto-commit.md"
+if [ -f "$AC_CMD" ]; then
+    if grep -q "Claude Opus 4.6\|claude-opus-4\|claude-3-opus\|Claude Opus 3" "$AC_CMD"; then
+        fail "auto-commit: has hardcoded model-specific co-author string — breaks portability across model versions"
+    else
+        pass "auto-commit: co-author string is model-portable"
+    fi
+else
+    fail "auto-commit: command file not found"
+fi
+
+# 14. quality-gate agent should have explicit trigger phrases (not just examples)
+echo ""
+echo "-- quality-gate trigger phrases --"
+QG_AGENT="$PLUGIN_ROOT/agents/quality-gate.md"
+if [ -f "$QG_AGENT" ]; then
+    if grep -qi "trigger\|Trigger\|phrases\|trigger:" "$QG_AGENT" || grep -qi "quality check\|pre-commit check\|is the code ready\|qualitaet" "$QG_AGENT"; then
+        pass "quality-gate: has trigger phrases for discoverability"
+    else
+        fail "quality-gate: missing explicit trigger phrases — agent is hard to discover without them"
+    fi
+else
+    fail "quality-gate: agent file not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
