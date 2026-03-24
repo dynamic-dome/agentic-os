@@ -268,6 +268,21 @@ else
     fail "quality-gate: agent file not found"
 fi
 
+
+# 15. self-improve skill should not have hardcoded model-specific co-author string
+echo ""
+echo "-- self-improve co-author portability --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    if grep -q "Claude Opus 4.6\|claude-opus-4\|claude-3-opus\|Claude Opus 3" "$SI_SKILL"; then
+        fail "self-improve: has hardcoded model-specific co-author string — breaks portability when model changes"
+    else
+        pass "self-improve: co-author string is model-portable"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

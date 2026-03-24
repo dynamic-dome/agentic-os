@@ -142,7 +142,7 @@ For each APPROVED fix:
    - Fixes applied: {applied_count}
    - Quality score: {before} → {after}
 
-   Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+   Co-Authored-By: Claude <noreply@anthropic.com>
    ```
 4. Push to current branch: `git push`
 5. Verify push succeeded
