@@ -283,6 +283,22 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 16. self-improve skill should not silently auto-push (commits must stay local until user decides)
+echo ""
+echo "-- self-improve no-auto-push policy --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    # The skill must explicitly state commits stay local / Do NOT push automatically
+    if grep -qi "Do NOT push\|stay local\|no.*push\|not.*push.*auto\|commits stay local" "$SI_SKILL"; then
+        pass "self-improve: explicitly states no auto-push (commits stay local)"
+    else
+        fail "self-improve: missing no-auto-push policy — Step 6 instructs 'git push' without user confirmation, risking unintended pushes"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

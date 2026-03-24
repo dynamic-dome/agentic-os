@@ -126,7 +126,7 @@ For each APPROVED fix:
    }
    ```
 
-### Step 6: Commit & Push
+### Step 6: Commit (Do NOT push)
 
 1. Run `bash tests/run-all.sh` one final time — ALL must pass
 2. Stage all changed files EXCEPT `.agent-memory/`:
@@ -144,8 +144,9 @@ For each APPROVED fix:
 
    Co-Authored-By: Claude <noreply@anthropic.com>
    ```
-4. Push to current branch: `git push`
-5. Verify push succeeded
+4. **Do NOT push.** All commits stay local until the user explicitly decides to push.
+   - Reason: auto-push without user confirmation can publish unreviewed changes to remote.
+   - If the user wants to push: they can run `git push` manually or use `/agentic-os:auto-commit`.
 
 ### Step 7: Report
 
