@@ -519,6 +519,23 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 28. self-improve SKILL.md batch_start formula must use floor() for integer division.
+#     Without floor(), agents using floating-point division compute wrong batch numbers.
+#     E.g. iteration 22: ((22-1)/5)*5+1 = 4.2*5+1 = 22 (wrong) vs floor(4.2)*5+1 = 21 (correct).
+echo ""
+echo "-- self-improve batch formula uses floor --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    if grep -qE "floor\(\(" "$SI_SKILL"; then
+        pass "self-improve: batch_start formula uses floor() for correct integer division"
+    else
+        fail "self-improve: batch_start formula missing floor() — floating-point division produces wrong batch file names (e.g. iteration 22 gives batch 22 instead of 21)"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

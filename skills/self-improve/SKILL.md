@@ -25,7 +25,7 @@ This skill is triggered by the scheduled self-improvement task or manually when 
 
 1. Read `improvements/state.json` to get current iteration number
 2. Increment iteration: `next = iteration + 1`
-3. Calculate batch file: `batch_start = ((next - 1) / 5) * 5 + 1`, `batch_end = batch_start + 4`
+3. Calculate batch file: `batch_start = floor((next - 1) / 5) * 5 + 1`, `batch_end = batch_start + 4`
 4. Target file: `improvements/iterations-{batch_start:03d}-{batch_end:03d}.md`
 5. If target file doesn't exist, create it with header:
    ```markdown
