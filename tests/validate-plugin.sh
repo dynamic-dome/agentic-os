@@ -558,6 +558,28 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 30. skill-generator SKILL.md template must include 'name:' field in generated SKILL.md frontmatter.
+#     The template at Step 3 only contains 'description:' in its frontmatter block.
+#     Skills generated from this template will be missing 'name:', failing registry identification
+#     and the validate-skills.sh 'has name' check (which all existing skills pass).
+echo ""
+echo "-- skill-generator template name field --"
+SG_SKILL="$PLUGIN_ROOT/skills/skill-generator/SKILL.md"
+if [ -f "$SG_SKILL" ]; then
+    # The SKILL.md template inside the file must include 'name:' as a template placeholder.
+    # We verify that beyond the first 'name: skill-generator' line (the skill's own frontmatter),
+    # there is a second 'name:' line inside the generated template block (e.g. 'name: <skill-name>').
+    NAME_COUNT=$(grep -c "^name:" "$SG_SKILL")
+    if [ "$NAME_COUNT" -ge 2 ]; then
+        pass "skill-generator: generated SKILL.md template includes 'name:' in frontmatter"
+    else
+        fail "skill-generator: generated SKILL.md template missing 'name:' in frontmatter — generated skills won't be identifiable by registry or pass skill validation"
+    fi
+else
+    fail "skill-generator: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

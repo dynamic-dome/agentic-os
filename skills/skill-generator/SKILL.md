@@ -63,6 +63,7 @@ Create the file using this template:
 
 ```markdown
 ---
+name: <skill-name>
 description: >
   <Description with trigger words for when the skill should be used>
 ---
