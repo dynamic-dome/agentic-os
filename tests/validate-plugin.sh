@@ -677,6 +677,24 @@ else
 fi
 
 
+# 38. session-start.sh auto-init must create knowledge/notebook-registry.md
+#     session-bootstrap health check verifies knowledge/notebook-registry.md exists.
+#     If auto-init (session-start.sh) skips this file, bootstrap always warns about
+#     a missing file after a fresh auto-init, producing spurious health alerts.
+echo ""
+echo "-- session-start.sh auto-init creates knowledge/notebook-registry.md --"
+SESSION_HOOK="$PLUGIN_ROOT/scripts/session-start.sh"
+if [ -f "$SESSION_HOOK" ]; then
+    if grep -q "knowledge" "$SESSION_HOOK" && grep -q "notebook-registry" "$SESSION_HOOK"; then
+        pass "session-start.sh: auto-init creates knowledge/notebook-registry.md"
+    else
+        fail "session-start.sh: auto-init missing knowledge/notebook-registry.md creation — session-bootstrap health check will always warn after auto-init"
+    fi
+else
+    fail "session-start.sh: not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

@@ -22,6 +22,7 @@ if [ ! -d "$MEMORY_DIR" ]; then
   mkdir -p "$MEMORY_DIR/quality"
   mkdir -p "$MEMORY_DIR/learnings"
   mkdir -p "$MEMORY_DIR/generated-skills"
+  mkdir -p "$MEMORY_DIR/knowledge"
 
   # session-summary.md
   cat > "$MEMORY_DIR/session-summary.md" << 'EOFILE'
@@ -135,6 +136,9 @@ EOFILE
   printf '# Iteration Log\n\n*Noch keine Eintraege.*\n' > "$MEMORY_DIR/iterations/iteration-log.md"
   printf '# Pattern-Katalog\n\n*Noch keine Patterns erkannt.*\n' > "$MEMORY_DIR/patterns/patterns.md"
   printf '# Learnings\n\n*Noch keine Session-Learnings.*\n' > "$MEMORY_DIR/learnings/learnings.md"
+
+  # knowledge/notebook-registry.md
+  printf '# NotebookLM Knowledge Base Registry\n\n*No notebooks registered yet. Add entries here as you create NotebookLM knowledge bases.*\n\n## Active Notebooks\n\n(none)\n\n## When to consult NotebookLM\n- For expert knowledge on topics covered by a notebook\n- When best practices or reference material is needed\n- When uncertain about the right approach\n' > "$MEMORY_DIR/knowledge/notebook-registry.md"
 
   INIT_MSG="[Agentic OS] Memory-System initialisiert fuer '${PROJECT_NAME}'. Stack: ${LANG:-?} + ${FRAMEWORK:-?}. Bitte .agent-memory/context/project-context.md pruefen."
 fi
