@@ -299,6 +299,24 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 17. auto-commit command description must not claim it "pushes" automatically
+#     (contradicts the no-auto-push policy established in iteration 8)
+echo ""
+echo "-- auto-commit no-auto-push consistency --"
+AC_CMD="$PLUGIN_ROOT/commands/auto-commit.md"
+if [ -f "$AC_CMD" ]; then
+    # The description field (first YAML line with "description:") must not promise automatic push
+    DESCRIPTION_LINE=$(grep -m1 "^description:" "$AC_CMD")
+    if echo "$DESCRIPTION_LINE" | grep -qi "pushes\|push to"; then
+        fail "auto-commit: description claims it auto-pushes — contradicts no-auto-push policy; update description to reflect push is optional"
+    else
+        pass "auto-commit: description is consistent with no-auto-push policy"
+    fi
+else
+    fail "auto-commit: command file not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

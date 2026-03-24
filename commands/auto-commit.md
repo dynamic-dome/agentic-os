@@ -1,5 +1,5 @@
 ---
-description: "Stages all changed files (excluding .agent-memory/), creates a descriptive commit, and pushes to the current branch. Used by the self-improvement loop for automated commits."
+description: "Stages all changed files (excluding .agent-memory/) and creates a descriptive commit. Push is optional and requires explicit user confirmation. Used by the self-improvement loop for automated commits."
 user_invocable: true
 arguments:
   - name: message
@@ -7,7 +7,7 @@ arguments:
     required: false
 ---
 
-# Auto-Commit & Push
+# Auto-Commit
 
 ## Procedure
 
@@ -38,16 +38,10 @@ arguments:
      Co-Authored-By: Claude <noreply@anthropic.com>
      ```
 
-5. **Push**:
-   ```bash
-   git push
-   ```
-   - If push fails (no upstream): `git push -u origin $(git branch --show-current)`
-   - If push still fails: report error but keep the local commit
-
-6. **Report**:
+5. **Report** (do NOT push automatically):
    ```
    Committed: {hash} "{message}"
-   Pushed to: {branch}
+   Branch: {branch} (local only — run 'git push' to publish)
    Files changed: {count}
    ```
+   Push is intentionally omitted. The commit stays local until the user explicitly runs `git push` or requests it.
