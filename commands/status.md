@@ -1,6 +1,6 @@
 ---
 description: Show Agentic OS memory system status and health
-allowed-tools: ["Read", "Glob", "Bash"]
+allowed_tools: ["Read", "Glob", "Bash"]
 ---
 
 # Agentic OS Status

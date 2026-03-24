@@ -1,7 +1,7 @@
 ---
 description: Initialize Agentic OS v2 memory system in the current project
 argument-hint: "[--force]"
-allowed-tools: ["Read", "Write", "Bash", "Glob", "Grep"]
+allowed_tools: ["Read", "Write", "Bash", "Glob", "Grep"]
 ---
 
 # Initialize Agentic OS

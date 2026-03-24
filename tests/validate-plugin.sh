@@ -136,6 +136,19 @@ for cmd_file in "$PLUGIN_ROOT/commands"/*.md; do
     fi
 done
 
+# 5b. Commands must use allowed_tools (underscore), not allowed-tools (hyphen)
+echo ""
+echo "-- Command allowed_tools key --"
+for cmd_file in "$PLUGIN_ROOT/commands"/*.md; do
+    [ -f "$cmd_file" ] || continue
+    cname=$(basename "$cmd_file")
+    if grep -q "^allowed-tools:" "$cmd_file"; then
+        fail "$cname uses 'allowed-tools:' instead of 'allowed_tools:' — wrong frontmatter key (hyphen vs underscore)"
+    else
+        pass "$cname uses correct allowed_tools key (underscore) or omits it"
+    fi
+done
+
 # 6. improvements/state.json
 echo ""
 echo "-- Improvements state --"
