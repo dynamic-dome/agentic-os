@@ -251,7 +251,40 @@ for skill_dir in "$PLUGIN_ROOT/skills"/*/; do
     fi
 done
 
-# 14. improvement-scout can handle plugin audit (not just .agent-memory/)
+# 14. quality-gate timeout range must match enforced minimum (10s, not 5s)
+echo ""
+echo "-- quality-gate timeout range consistency --"
+QG_AGENT="$PLUGIN_ROOT/agents/quality-gate.md"
+if [ -f "$QG_AGENT" ]; then
+    if grep -qi "5-30s\|5s-30s\|5 *- *30" "$QG_AGENT"; then
+        fail "quality-gate: references 5s as acceptable timeout lower bound, but enforced minimum is 10s"
+    else
+        pass "quality-gate: timeout range consistent with enforced minimum (10s)"
+    fi
+else
+    fail "quality-gate: agent file not found"
+fi
+
+# 15. PostToolUse hook should not instruct agent to 'remember' data (hooks are stateless)
+echo ""
+echo "-- PostToolUse hook stateless safety --"
+if [ -f "$HOOKS" ]; then
+    posttool_prompt=$(node -e "
+      const h = JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+      const ptHooks = (h.hooks.PostToolUse || []).flatMap(g => g.hooks || []);
+      const prompts = ptHooks.filter(h => h.type === 'prompt').map(h => h.prompt).join(' ');
+      console.log(prompts);
+    " "$HOOKS" 2>/dev/null)
+    if echo "$posttool_prompt" | grep -qi "remember it\|note.*in your.*memory\|keep.*in mind for later\|silently note.*for later"; then
+        fail "PostToolUse hook: instructs agent to 'remember' data, but prompt hooks are stateless"
+    else
+        pass "PostToolUse hook: no misleading stateful instructions"
+    fi
+else
+    echo "  SKIP: hooks.json not found"
+fi
+
+# 16. improvement-scout can handle plugin audit
 echo ""
 echo "-- improvement-scout plugin audit scope --"
 IS_AGENT="$PLUGIN_ROOT/agents/improvement-scout.md"

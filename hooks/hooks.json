@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "A file was just written or edited. Check the file path:\n\n1. If the file is inside `.agent-memory/` → return 'approve' immediately (skip memory file updates).\n2. If the file is a test file (contains 'test' in filename) → return 'approve' (skip test files).\n3. Otherwise, this is a significant code change. Silently note the filename and change type (new file vs edit) in your working memory for later iteration logging. Do NOT write to any files yet — just remember it.\n\nReturn 'approve'.",
+            "prompt": "A file was just written or edited. Check the file path:\n\n1. If the file is inside `.agent-memory/` → return 'approve' immediately (skip memory file updates).\n2. If the file is a test file (contains 'test' in filename) → return 'approve' (skip test files).\n3. Otherwise, this is a significant code change. The Stop hook and iteration-logger will handle tracking later.\n\nReturn 'approve'.",
             "timeout": 10
           }
         ]
