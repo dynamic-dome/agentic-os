@@ -162,6 +162,49 @@ else
     echo "  SKIP: DEPENDENCIES.md not found"
 fi
 
+
+# 8. sync-context skill has error handling guidance
+echo ""
+echo "-- sync-context error handling --"
+SYNC_SKILL="$PLUGIN_ROOT/skills/sync-context/SKILL.md"
+if [ -f "$SYNC_SKILL" ]; then
+    if grep -qi "error\|corrupt\|fail\|missing\|not exist\|does not exist\|fallback" "$SYNC_SKILL"; then
+        pass "sync-context: has error handling guidance"
+    else
+        fail "sync-context: missing error handling guidance (what to do when files are corrupt or missing)"
+    fi
+else
+    fail "sync-context: SKILL.md not found"
+fi
+
+# 9. session-start.sh has file size guard before stats counting
+echo ""
+echo "-- session-start.sh size safety --"
+SESSION_HOOK="$PLUGIN_ROOT/scripts/session-start.sh"
+if [ -f "$SESSION_HOOK" ]; then
+    if grep -q "wc -c\|wc -l\|file_size\|MAX_\|size_guard\|head -c\|-maxdepth\|stat " "$SESSION_HOOK"; then
+        pass "session-start.sh: has file size guard"
+    else
+        fail "session-start.sh: missing file size guard — large files can cause timeout on SessionStart hook"
+    fi
+else
+    fail "session-start.sh: not found"
+fi
+
+# 10. skill-generator checks for duplicate skill names in quality checklist
+echo ""
+echo "-- skill-generator duplicate check --"
+SG_SKILL="$PLUGIN_ROOT/skills/skill-generator/SKILL.md"
+if [ -f "$SG_SKILL" ]; then
+    if grep -qi "duplicate\|unique\|already exist\|conflict\|exists" "$SG_SKILL"; then
+        pass "skill-generator: has duplicate/uniqueness check"
+    else
+        fail "skill-generator: missing duplicate check — two patterns can generate the same skill name"
+    fi
+else
+    fail "skill-generator: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

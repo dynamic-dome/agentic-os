@@ -98,11 +98,13 @@ description: >
 Verify the generated skill:
 
 - [ ] Name is valid (lowercase, hyphens, 1-64 chars, no leading/trailing hyphen)
+- [ ] Name is unique — check `.agent-memory/generated-skills/` and `patterns.json` for duplicate `generated_skill` fields; if a skill with the same name already exists, append a version suffix (e.g. `-v2`) or abort and inform the user
 - [ ] Description contains trigger words
 - [ ] Steps are clear and executable without additional context
 - [ ] Anti-patterns are included (if available)
 - [ ] At least one concrete example
 - [ ] Content is actionable and specific
+- [ ] Confidence threshold met — only generate a skill if the source pattern has `confidence >= 0.5` or `occurrences >= 2`; skip low-confidence candidates and inform the user
 
 ## Step 5: Save
 
