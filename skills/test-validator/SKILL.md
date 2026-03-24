@@ -12,7 +12,7 @@ description: |
   <example>
   Context: User finished a refactoring and wants to check for regressions
   user: "run tests, check for regressions"
-  assistant: "Test-Ergebnis: 92/100 (Excellent) — 40/42 passed, 0 regressions"
+  assistant: "Test result: 92/100 (Excellent) — 40/42 passed, 0 regressions"
   <commentary>
   User wants test validation after code changes, trigger test-validator.
   </commentary>
@@ -27,79 +27,79 @@ metadata:
 
 # Test Validator
 
-## When to Use This Skill
+## When to Use
 
-- Code geaendert wurde und Tests laufen sollen
-- Vor einem Commit / Push
-- Nach einem Refactoring
-- User fragt: "Funktioniert alles?" / "Regression?"
+- After code changes when tests need to run
+- Before a commit or push
+- After a refactoring
+- When the user asks "Does everything still work?" or "Any regressions?"
 
-## Dateistruktur
+## File Structure
 
 ```
 .agent-memory/
 └── quality/
-    ├── test-results.json     # Historische Test-Ergebnisse
-    └── quality-score.json    # Aggregierte Metriken
+    ├── test-results.json     # Historical test results
+    └── quality-score.json    # Aggregated metrics
 ```
 
 ## Instructions
 
-### Schritt 1: Test-Framework erkennen
+### Step 1: Detect the test framework
 
-Nutze `Glob` und `Read` um das Test-Setup zu identifizieren:
+Use `Glob` and `Read` to identify the test setup:
 
-| Indikator | Framework | Befehl |
-|-----------|-----------|--------|
+| Indicator | Framework | Command |
+|-----------|-----------|---------|
 | `conftest.py`, `pyproject.toml [tool.pytest]` | pytest | `python -m pytest --tb=short -q` |
-| `package.json` mit `jest`/`vitest` | Jest/Vitest | `npm test` |
-| `Makefile` mit `test` Target | Custom | `make test` |
-| `go.mod` oder `*_test.go` | Go | `go test ./...` |
-| `Cargo.toml` oder `tests/` (Rust) | Cargo | `cargo test` |
-| `CMakeLists.txt` mit `ctest` | CTest | `ctest --output-on-failure` |
+| `package.json` with `jest`/`vitest` | Jest/Vitest | `npm test` |
+| `Makefile` with `test` target | Custom | `make test` |
+| `go.mod` or `*_test.go` | Go | `go test ./...` |
+| `Cargo.toml` or `tests/` (Rust) | Cargo | `cargo test` |
+| `CMakeLists.txt` with `ctest` | CTest | `ctest --output-on-failure` |
 
-Pruefe auch CLAUDE.md fuer projektspezifische Test-Befehle.
+Also check `CLAUDE.md` for project-specific test commands.
 
-### Schritt 2: Tests ausfuehren
+### Step 2: Run tests
 
-Nutze das `Bash`-Tool:
+Use the `Bash` tool:
 
 ```bash
 python -m pytest --tb=short -q 2>&1
 ```
 
-Erfasse: passed, failed, errors, skipped, duration, warnings.
+Capture: passed, failed, errors, skipped, duration, warnings.
 
-### Schritt 3: Health Score berechnen (0-100)
+### Step 3: Calculate health score (0-100)
 
 ```
 base_score = (passed / total) * 100
 Penalties:
-  - Jeder failed Test: -5
-  - Jeder error: -10
-  - Keine Tests: Score = 0
+  - Each failed test: -5
+  - Each error: -10
+  - No tests at all: Score = 0
   - Duration > 60s: -5
-  - >20% Warnungen: -5
+  - >20% warnings: -5
 
 health_score = max(0, base_score - penalties)
 ```
 
-| Score | Bewertung |
-|-------|-----------|
+| Score | Rating |
+|-------|--------|
 | 90-100 | Excellent |
 | 70-89 | Good |
 | 50-69 | Warning |
-| 0-49 | Critical — Fixes priorisieren |
+| 0-49 | Critical — prioritize fixes |
 
-### Schritt 4: Regressions-Check
+### Step 4: Regression check
 
-Lies vorherige `test-results.json` mit `Read`-Tool und vergleiche:
-- **REGRESSION**: Vorher passed, jetzt failed
-- **FIX**: Vorher failed, jetzt passed
-- **GROWTH**: Neue Tests
-- **FLAKY**: Wechselt zwischen passed/failed
+Read the previous `test-results.json` with the `Read` tool and compare:
+- **REGRESSION**: Previously passed, now failing
+- **FIX**: Previously failing, now passing
+- **GROWTH**: New tests added
+- **FLAKY**: Alternates between passed/failed
 
-### Schritt 5: test-results.json aktualisieren
+### Step 5: Update test-results.json
 
 ```json
 {
@@ -124,38 +124,38 @@ Lies vorherige `test-results.json` mit `Read`-Tool und vergleiche:
 }
 ```
 
-### Schritt 6: Ergebnis ausgeben
+### Step 6: Output result
 
 ```
-Test-Ergebnis: <health_score>/100 (<bewertung>)
+Test result: <health_score>/100 (<rating>)
    Passed: <n> | Failed: <n> | Errors: <n> | Skipped: <n>
    Duration: <n>s
 
    Regressions: <n>
-   Neue Tests: <n>
+   New tests: <n>
    Trend: <improving|stable|declining>
 
-   [Falls failed > 0:]
-   → Empfehlung: Zuerst <test_name> fixen (Regression!)
+   [If failed > 0:]
+   → Recommendation: Fix <test_name> first (Regression!)
 ```
 
-### Schritt 7: Eskalation bei Critical
+### Step 7: Escalate on Critical
 
-Wenn health_score < 50:
-- Blockiere weitere Feature-Arbeit (Empfehlung)
-- Liste fehlende/fehlgeschlagene Tests priorisiert auf
-- Schlage "Test-First" Reihenfolge vor
+When health_score < 50:
+- Recommend blocking further feature work until fixed
+- List failing/missing tests in priority order
+- Suggest a "test-first" resolution order
 
-## Coverage-Tracking (optional)
+## Coverage Tracking (optional)
 
 ```bash
 python -m pytest --cov=src --cov-report=term -q 2>&1
 ```
 
-Coverage > 80%: +5 Bonus | Coverage < 40%: -10 Penalty
+Coverage > 80%: +5 bonus | Coverage < 40%: -10 penalty
 
-## Log-Rotation
+## Log Rotation
 
-Wenn `test-results.json` mehr als 100 Eintraege enthaelt (konfigurierbar via Plugin-Setting `max_test_result_entries`):
-- Behalte die neuesten 100 Eintraege
-- Archiviere aeltere in `test-results-archive-<YYYY-MM>.json` im selben Verzeichnis
+When `test-results.json` contains more than 100 entries (configurable via plugin setting `max_test_result_entries`):
+- Keep the most recent 100 entries
+- Archive older entries to `test-results-archive-<YYYY-MM>.json` in the same directory

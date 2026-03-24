@@ -105,5 +105,16 @@ if [ -f "$SG_FILE" ]; then
 fi
 
 echo ""
+echo "-- test-validator language consistency --"
+TV_FILE="$SKILLS_DIR/test-validator/SKILL.md"
+if [ -f "$TV_FILE" ]; then
+    if grep -q "^### Schritt" "$TV_FILE"; then
+        fail "test-validator: body uses German section headers (e.g. 'Schritt') — skill bodies must use English for consistency with the rest of the plugin"
+    else
+        pass "test-validator: body section headers use English (no 'Schritt' headers)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

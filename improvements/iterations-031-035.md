@@ -1,3 +1,25 @@
+## Iteration 35 — 2026-03-24
+### Weaknesses Found
+1. [warning] test-validator-german-body — `skills/test-validator/SKILL.md` body was written in German (section headers "Schritt 1–7", "Dateistruktur", "Befehl", "Bewertung", etc.) while every other skill in the plugin uses English for its body; this inconsistency makes the plugin harder to use for English-speaking users and breaks style uniformity — fixed
+
+### Fixes Applied
+1. Translated `skills/test-validator/SKILL.md` body from German to English: renamed all "Schritt N" headings to "Step N", translated table headers, inline labels, output templates, and prose — Files: skills/test-validator/SKILL.md
+2. Added test to `tests/validate-skills.sh` checking that test-validator body has no German "Schritt" section headers — Files: tests/validate-skills.sh
+
+### Test Results
+- Plugin tests: 89/89 passed
+- Skill tests: 101/101 passed
+- Total: 190 passed
+
+### False Alarms: 0
+
+### Quality Score
+- Fixes/Findings ratio: 1/1 = 100%
+- False alarm rate: 0%
+
+### Commit
+- Hash: TBD
+
 ## Iteration 34 — 2026-03-24
 ### Weaknesses Found
 1. [warning] status-command-missing-code-reviews-count — `commands/status.md` statistics section listed iterations, patterns, errors, and decisions but omitted code reviews from `quality/code-reviews.json`, leaving users blind to how many reviews were logged — fixed
