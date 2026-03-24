@@ -405,6 +405,24 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 23. self-improve SKILL.md Step 2 analysis prompt must instruct the agent to
+#     read state.json history and skip previously-fixed weaknesses by name.
+#     Without this, improvement-scout re-identifies the same things each run
+#     and the loop wastes iterations re-fixing already-solved problems.
+echo ""
+echo "-- self-improve history dedup guidance --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    if grep -qiE "previously.fixed|skip.*history|history.*skip|state\.json.*history|already.fixed|dedup|avoid.*duplicate" "$SI_SKILL"; then
+        pass "self-improve: analysis step instructs agent to skip previously-fixed weaknesses from history"
+    else
+        fail "self-improve: analysis step missing history dedup guidance — improvement-scout will re-identify already-fixed weaknesses causing wasted iterations"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
