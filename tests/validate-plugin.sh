@@ -799,6 +799,27 @@ else
 fi
 
 
+
+# 44. init command must use English default content for initialized Markdown files
+#     The plugin uses English for all technical content (skills, agents, commands).
+#     init.md initializes iteration-log.md, patterns.md, and session-summary.md with
+#     German placeholder strings ("Noch keine Eintraege", "Pattern-Katalog", etc.).
+#     This is inconsistent with the plugin's language convention and was fixed for
+#     test-validator, code-reviewer, and wrap-up in prior iterations.
+echo ""
+echo "-- init command markdown defaults use English --"
+INIT_CMD="$PLUGIN_ROOT/commands/init.md"
+if [ -f "$INIT_CMD" ]; then
+    if grep -q "Noch keine\|Pattern-Katalog\|Letzte Session\|Erste Session\|Naechste Schritte" "$INIT_CMD"; then
+        fail "init: default Markdown file content uses German strings (e.g. 'Noch keine Eintraege', 'Pattern-Katalog') — should use English to match plugin language convention"
+    else
+        pass "init: default Markdown file content uses English (no German placeholder strings)"
+    fi
+else
+    fail "init.md not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

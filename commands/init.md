@@ -49,10 +49,10 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    - `quality-score.json` → `{"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}`
 
 4. **Initialize Markdown files:**
-   - `iteration-log.md` → `# Iteration Log\n\n*Noch keine Eintraege.*`
-   - `patterns.md` → `# Pattern-Katalog\n\n*Noch keine Patterns erkannt.*`
-   - `learnings.md` → `# Learnings\n\n*Noch keine Session-Learnings.*`
-   - `session-summary.md` → `# Letzte Session\n\n*Erste Session — System frisch initialisiert.*\n\n## Naechste Schritte\n1. Projektkontext ausfuellen\n2. Erste Coding-Iteration starten`
+   - `iteration-log.md` → `# Iteration Log\n\n*No entries yet.*`
+   - `patterns.md` → `# Pattern Catalog\n\n*No patterns detected yet.*`
+   - `learnings.md` → `# Learnings\n\n*No session learnings yet.*`
+   - `session-summary.md` → `# Last Session\n\n*First session — system freshly initialized.*\n\n## Next Steps\n1. Fill in project context\n2. Start first coding iteration`
    - `knowledge/notebook-registry.md` → see below
 
    **notebook-registry.md** (Knowledge Base Registry):
