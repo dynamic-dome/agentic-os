@@ -186,7 +186,7 @@ Self-Improve Iteration #{next} complete.
 - Found {n} weaknesses, fixed {m}
 - Quality: {before} → {after}
 - Commit: {hash}
-- Log: improvements/iterations-{batch}.md
+- Log: improvements/iterations-{batch_start:03d}-{batch_end:03d}.md
 ```
 
 ## Error Handling
@@ -200,7 +200,7 @@ Self-Improve Iteration #{next} complete.
 ## Output Format
 
 Each iteration produces:
-1. Entry in `improvements/iterations-{batch}.md`
+1. Entry in `improvements/iterations-{batch_start:03d}-{batch_end:03d}.md`
 2. Updated `improvements/state.json`
 3. Git commit with descriptive message
 4. Console summary

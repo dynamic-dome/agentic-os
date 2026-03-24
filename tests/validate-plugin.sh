@@ -536,6 +536,28 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 29. self-improve SKILL.md Step 7 report and Output Format section must use the
+#     full path placeholder {batch_start}-{batch_end}, not the abbreviated {batch}.
+#     Step 1 defines the correct filename as iterations-{batch_start:03d}-{batch_end:03d}.md
+#     but Step 7 and Output Format reference iterations-{batch}.md — agents following
+#     the report template will log the wrong filename, making iteration docs hard to find.
+echo ""
+echo "-- self-improve step 7 report uses correct batch placeholder --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    # Check that nowhere after "### Step 7" or "## Output Format" does "{batch}" appear alone
+    # (without being part of "{batch_start}" or "{batch_end}")
+    BARE_BATCH=$(grep -nE "iterations-\{batch\}" "$SI_SKILL" | grep -vE "\{batch_start\}|\{batch_end\}")
+    if [ -z "$BARE_BATCH" ]; then
+        pass "self-improve: Step 7 report uses full batch path placeholder (not bare {batch})"
+    else
+        fail "self-improve: Step 7 / Output Format uses 'iterations-{batch}.md' — should be 'iterations-{batch_start:03d}-{batch_end:03d}.md' to match Step 1's defined path"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
