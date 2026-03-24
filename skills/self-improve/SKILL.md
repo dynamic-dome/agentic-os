@@ -1,4 +1,5 @@
 ---
+name: self-improve
 description: "Orchestrates autonomous self-improvement loops: analyzes plugin structure, finds 1-3 weaknesses, fixes them via TDD, documents everything, and auto-commits. Each iteration is logged to rotating markdown files (new file every 5 iterations). Uses improvement-scout for analysis, fix-reviewer for validation, quality-gate for code checks, and existing plugin-dev skills for best-practice fixes."
 user_invocable: false
 ---

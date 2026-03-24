@@ -32,6 +32,12 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     if head -1 "$skill_file" | grep -q "^---"; then
         pass "$skill_name: has frontmatter"
 
+        if grep -q "^name:" "$skill_file"; then
+            pass "$skill_name: has name"
+        else
+            fail "$skill_name: missing name field in frontmatter — skill cannot be identified by registry"
+        fi
+
         if grep -q "^description:" "$skill_file"; then
             pass "$skill_name: has description"
             # Handle both inline and multiline (| or >) YAML descriptions
