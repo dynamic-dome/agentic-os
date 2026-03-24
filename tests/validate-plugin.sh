@@ -890,6 +890,25 @@ else
     fail "init: commands/init.md not found"
 fi
 
+
+# 49. init command soul.md template must not default to German language
+#     commands/init.md creates soul.md with "Language: de" as the default,
+#     which forces every new project to start in German. All other plugin
+#     content uses English. The default should be "en" to match the plugin's
+#     English-first convention; users can change it to "de" if desired.
+echo ""
+echo "-- init command soul.md language default consistency --"
+INIT_CMD="$PLUGIN_ROOT/commands/init.md"
+if [ -f "$INIT_CMD" ]; then
+    if grep -q "Language: de" "$INIT_CMD"; then
+        fail "init: soul.md template defaults to 'Language: de' (German) — inconsistent with the plugin's English-first convention; default should be 'en'"
+    else
+        pass "init: soul.md template language default is English (no 'Language: de')"
+    fi
+else
+    fail "init: commands/init.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

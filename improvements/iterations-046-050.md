@@ -42,3 +42,24 @@
 
 ### Commit
 - Hash: 82ad079
+
+## Iteration 48 — 2026-03-24
+### Weaknesses Found
+1. [warning] init-command-soul-german-language-default — `commands/init.md` initializes `soul.md` with `Language: de` (German) as the default, which causes every new Agentic OS project to start in German. All other plugin content enforces English; the default should be `en` so users see consistent English unless they actively choose German — fixed
+
+### Fixes Applied
+1. Changed `soul.md` template language default in `commands/init.md` from `Language: de (switch to en if user writes in English)` to `Language: en (switch to de if user writes in German)` — Files: `commands/init.md`
+2. Added test 49 to `validate-plugin.sh` to catch `Language: de` in the init soul.md template — Files: `tests/validate-plugin.sh`
+
+### Test Results
+- Plugin tests: 95/95 passed
+- Skill tests: 115/115 passed
+- Total: 210 passed
+
+### False Alarms: 0
+### Quality Score
+- Fixes/Findings ratio: 1/1 = 1.0
+- False alarm rate: 0%
+
+### Commit
+- Hash: 5cde0b7

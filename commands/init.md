@@ -84,7 +84,7 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    # Agent Identity
 
    ## Communication
-   - Language: de (switch to en if user writes in English)
+   - Language: en (switch to de if user writes in German)
    - Brevity: 3/5 (balanced — concise but explain when needed)
    - Proactivity: 3/5 (suggest when relevant, don't overdo)
 
