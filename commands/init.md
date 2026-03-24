@@ -164,7 +164,7 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
 
    **WICHTIG — Anweisung fuer JEDEN Agent (Claude Code, Subagents, Scheduled Tasks):**
    Du MUSST vor jeder Antwort auf Fachfragen die Registry pruefen.
-   Wenn ein passendes Notebook existiert, nutze `notebooklm:chat` um die Wissensbasis
+   Wenn ein passendes Notebook existiert, öffne NotebookLM im Browser um die Wissensbasis
    zu befragen und baue das Ergebnis in deine Antwort ein.
    Antworte NICHT aus dem Kopf wenn die Registry ein Notebook zum Thema hat.
 
@@ -183,7 +183,7 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    **Workflow:**
    1. Registry lesen: `.agent-memory/knowledge/notebook-registry.md`
    2. Passendes Notebook anhand der Stichwörter identifizieren
-   3. `notebooklm:chat` — Frage direkt stellen (Notebook-Name im Prompt nennen)
+   3. NotebookLM im Browser öffnen — Frage direkt stellen (Notebook-Name im Prompt nennen)
    4. Ergebnis in die Antwort einbauen
    ```
 

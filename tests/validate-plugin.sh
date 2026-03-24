@@ -595,6 +595,29 @@ else
     fail "init: command file not found"
 fi
 
+
+# 34. session-bootstrap and init must not reference notebooklm:chat as a callable command
+echo ""
+echo "-- notebooklm:chat phantom command reference --"
+SB_SKILL="$PLUGIN_ROOT/skills/session-bootstrap/SKILL.md"
+INIT_CMD2="$PLUGIN_ROOT/commands/init.md"
+NB_FAIL=0
+if [ -f "$SB_SKILL" ]; then
+    if grep -q "notebooklm:chat" "$SB_SKILL"; then
+        fail "session-bootstrap: references 'notebooklm:chat' which is not a skill in this plugin — phantom command confuses agents"
+        NB_FAIL=1
+    fi
+fi
+if [ -f "$INIT_CMD2" ]; then
+    if grep -q "notebooklm:chat" "$INIT_CMD2"; then
+        fail "init: references 'notebooklm:chat' which is not a skill in this plugin — phantom command in generated CLAUDE.md will mislead agents"
+        NB_FAIL=1
+    fi
+fi
+if [ "$NB_FAIL" -eq 0 ]; then
+    pass "session-bootstrap and init: no phantom notebooklm:chat command references"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

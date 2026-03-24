@@ -94,7 +94,7 @@ PROJECT STATUS
 
 KNOWLEDGE BASE
   {n} NotebookLM notebooks available — topics: {comma-separated list of Stichwörter}
-  Use `notebooklm:chat` for expert knowledge lookups
+  Open NotebookLM in your browser and query the relevant notebook for expert knowledge
 
 ACTIVE WARNINGS
   {high-confidence patterns (confidence >= 0.7, occurrences >= 3)}
