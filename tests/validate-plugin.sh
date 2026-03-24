@@ -370,6 +370,23 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 21. self-improve SKILL.md error handling must specify a concrete rollback command
+#     "Revert the fix" is ambiguous — agents need 'git checkout .' or 'git stash pop'
+#     to know HOW to revert, otherwise they guess and may lose work
+echo ""
+echo "-- self-improve rollback command specificity --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    if grep -qE "git checkout \.|git stash pop|git restore \." "$SI_SKILL"; then
+        pass "self-improve: error handling specifies concrete rollback command"
+    else
+        fail "self-improve: error handling says 'revert the fix' but gives no concrete git rollback command — agents will guess and may lose test file changes"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

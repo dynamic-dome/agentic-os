@@ -1,7 +1,7 @@
 {
-  "iteration": 12,
+  "iteration": 13,
   "last_run": "2026-03-24T23:59:00Z",
-  "total_fixes": 17,
+  "total_fixes": 18,
   "history": [
     {
       "iteration": 1,
@@ -129,6 +129,18 @@
       "tests_before": 153,
       "tests_after": 154,
       "tests_plugin": 65,
+      "tests_skill": 89
+    },
+    {
+      "iteration": 13,
+      "fixes": 1,
+      "date": "2026-03-24",
+      "weaknesses": ["self-improve-missing-rollback-command"],
+      "false_alarm_count": 1,
+      "quality_score": 0.5,
+      "tests_before": 154,
+      "tests_after": 155,
+      "tests_plugin": 66,
       "tests_skill": 89
     }
   ]

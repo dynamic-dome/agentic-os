@@ -171,7 +171,7 @@ Self-Improve Iteration #{next} complete.
 ## Error Handling
 
 - **Git dirty**: Abort with message "Working tree has uncommitted changes. Commit or stash first."
-- **Tests fail after fix**: Revert the fix, document as "attempted but failed", continue to next weakness
+- **Tests fail after fix**: Revert the fix with `git checkout .`, document as "attempted but failed", continue to next weakness
 - **Push fails**: Keep commit local, warn user, continue
 - **No weaknesses found**: Log "No actionable weaknesses found" and exit cleanly
 - **All fixes rejected**: Log reasoning and exit cleanly
