@@ -6,10 +6,7 @@ description: >
   or when you want to automate a workflow you just did manually. Reads the pattern
   catalog and generates properly structured SKILL.md files that can be used by
   any Claude Code agent.
-  Trigger: "skill aus pattern erstellen", "generate skill",
-  "workflow als skill speichern", "make this a skill", "Skill erstellen",
-  "neuen Skill generieren", "create skill", "das mache ich staendig",
-  "diesen workflow automatisieren", "kann man das als skill speichern",
+  Trigger: "generate skill", "make this a skill", "create skill",
   "I keep doing this", "I keep repeating this", "this is repetitive",
   "can we automate this", "same thing over and over", "automate this workflow".
 user_invocable: true

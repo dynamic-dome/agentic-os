@@ -105,6 +105,16 @@ if [ -f "$SG_FILE" ]; then
 fi
 
 echo ""
+echo "-- skill-generator trigger language consistency --"
+if [ -f "$SG_FILE" ]; then
+    if grep -qiE "skill aus pattern|workflow als skill|Skill erstellen|neuen Skill generieren|diesen workflow automatisieren|das mache ich staendig|kann man das als skill" "$SG_FILE"; then
+        fail "skill-generator: description trigger phrases contain German — triggers must use English so non-German users can invoke the skill"
+    else
+        pass "skill-generator: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
 echo "-- test-validator language consistency --"
 TV_FILE="$SKILLS_DIR/test-validator/SKILL.md"
 if [ -f "$TV_FILE" ]; then
