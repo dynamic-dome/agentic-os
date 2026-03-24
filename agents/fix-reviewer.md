@@ -1,4 +1,5 @@
 ---
+name: fix-reviewer
 description: "Reviews proposed code fixes for feasibility, minimality, and safety before implementation. Returns APPROVE or REJECT with reasoning. Used as feedback gate in the self-improvement loop to prevent regressions and scope creep."
 model: sonnet
 tools:

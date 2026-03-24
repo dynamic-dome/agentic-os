@@ -7,10 +7,12 @@ user_invocable: false
 
 ## When to Use
 
-This skill is triggered by the scheduled self-improvement task or manually when the user says:
-- "self improve", "improve yourself", "selbst verbessern"
-- "run improvement loop", "iterate on plugin"
-- "find and fix weaknesses", "Schwachstellen finden und fixen"
+This skill is triggered by the scheduled self-improvement task or by direct invocation from an orchestrating agent. It is not user-invocable — users interact with it indirectly through scheduled tasks or agent workflows.
+
+Related keywords (for internal routing, not user triggers):
+- self improve, improve yourself, selbst verbessern
+- run improvement loop, iterate on plugin
+- find and fix weaknesses, Schwachstellen finden und fixen
 
 ## Prerequisites
 

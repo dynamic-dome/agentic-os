@@ -220,7 +220,38 @@ else
     fail "context-detective: agent file not found"
 fi
 
-# 12. improvement-scout can handle plugin audit (not just .agent-memory/)
+# 12. All agents must have 'name' field in frontmatter
+echo ""
+echo "-- Agent name field --"
+for agent_file in "$PLUGIN_ROOT/agents"/*.md; do
+    [ -f "$agent_file" ] || continue
+    aname=$(basename "$agent_file")
+    if grep -q "^name:" "$agent_file"; then
+        pass "$aname has 'name' in frontmatter"
+    else
+        fail "$aname missing 'name' in frontmatter — inconsistent agent identification"
+    fi
+done
+
+# 13. Skills with user_invocable: false should not list user trigger phrases
+echo ""
+echo "-- Skill invocability consistency --"
+for skill_dir in "$PLUGIN_ROOT/skills"/*/; do
+    [ -d "$skill_dir" ] || continue
+    sname=$(basename "$skill_dir")
+    skill_file="$skill_dir/SKILL.md"
+    [ -f "$skill_file" ] || continue
+    if grep -q "user_invocable: false" "$skill_file"; then
+        # Check for user-facing trigger phrases anywhere (body or description)
+        if grep -qi "when the user says\|manually when.*says" "$skill_file"; then
+            fail "$sname: has user_invocable: false but mentions user trigger phrases — contradictory"
+        else
+            pass "$sname: user_invocable consistent (no user trigger phrases in non-invocable skill)"
+        fi
+    fi
+done
+
+# 14. improvement-scout can handle plugin audit (not just .agent-memory/)
 echo ""
 echo "-- improvement-scout plugin audit scope --"
 IS_AGENT="$PLUGIN_ROOT/agents/improvement-scout.md"
