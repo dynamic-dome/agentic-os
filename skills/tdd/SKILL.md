@@ -8,8 +8,8 @@ description: >
   cargo test, go test, etc.). Follow this when the user says "implement X" and
   tests exist, or when a bug fix should be proven with a test first.
   Trigger on: "use TDD", "test first", "test-driven", "write tests before code",
-  "red-green-refactor", "erst testen dann coden", "schreib erstmal einen test",
-  "das muss getestet sein".
+  "red-green-refactor", "write the test first", "prove it works with a test",
+  "test before implementing".
 user_invocable: true
 ---
 

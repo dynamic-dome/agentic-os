@@ -138,5 +138,27 @@ if [ -f "$WU_FILE" ]; then
 fi
 
 echo ""
+echo "-- tdd trigger language consistency --"
+TDD_FILE="$SKILLS_DIR/tdd/SKILL.md"
+if [ -f "$TDD_FILE" ]; then
+    if grep -q "erst testen dann coden\|schreib erstmal einen test\|das muss getestet sein" "$TDD_FILE"; then
+        fail "tdd: description contains German trigger phrases — triggers must use English for consistent auto-matching"
+    else
+        pass "tdd: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
+echo "-- code-reviewer JSON template language consistency --"
+CR_FILE="$SKILLS_DIR/code-reviewer/SKILL.md"
+if [ -f "$CR_FILE" ]; then
+    if grep -q "Beschreibung des Problems\|Vorgeschlagene Verbesserung\|Kurze Zusammenfassung" "$CR_FILE"; then
+        fail "code-reviewer: JSON output template uses German field values — template must use English placeholders"
+    else
+        pass "code-reviewer: JSON output template uses English field values"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

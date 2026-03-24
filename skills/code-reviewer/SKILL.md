@@ -112,11 +112,11 @@ Use `Read` to load and `Edit`/`Write` to update:
       "file": "src/example.py",
       "line": 45,
       "dimension": "testability",
-      "issue": "Beschreibung des Problems",
-      "suggestion": "Vorgeschlagene Verbesserung"
+      "issue": "Description of the problem",
+      "suggestion": "Suggested improvement"
     }
   ],
-  "summary": "Kurze Zusammenfassung"
+  "summary": "Brief summary"
 }
 ```
 
