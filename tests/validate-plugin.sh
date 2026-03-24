@@ -94,13 +94,19 @@ for agent_file in "$PLUGIN_ROOT/agents"/*.md; do
     aname=$(basename "$agent_file")
     if head -1 "$agent_file" | grep -q "^---"; then
         pass "$aname has frontmatter"
-        for field in description model; do
+        for field in name description model; do
             if grep -q "^${field}:" "$agent_file"; then
                 pass "$aname has '$field'"
             else
                 fail "$aname missing '$field'"
             fi
         done
+        # Tool restriction key must be 'allowed_tools' (not bare 'tools')
+        if grep -q "^tools:" "$agent_file"; then
+            fail "$aname uses 'tools:' instead of 'allowed_tools:' — wrong frontmatter key"
+        else
+            pass "$aname uses correct tool key (allowed_tools or none)"
+        fi
     else
         fail "$aname missing frontmatter"
     fi

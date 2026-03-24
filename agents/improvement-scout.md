@@ -11,7 +11,7 @@ description: >
   "wo gibt es probleme", "health check", "project audit".
 model: sonnet
 color: cyan
-tools:
+allowed_tools:
   - Read
   - Glob
   - Grep
