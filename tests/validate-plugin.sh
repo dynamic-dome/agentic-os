@@ -580,6 +580,21 @@ else
     fail "skill-generator: SKILL.md not found"
 fi
 
+
+# 33. init command must not reference notebooklm:navigate (nonexistent tool — should use notebooklm:chat)
+echo ""
+echo "-- init command notebooklm workflow consistency --"
+INIT_CMD="$PLUGIN_ROOT/commands/init.md"
+if [ -f "$INIT_CMD" ]; then
+    if grep -q "notebooklm:navigate" "$INIT_CMD"; then
+        fail "init: references 'notebooklm:navigate' which does not exist — the generated CLAUDE.md workflow will be broken; use 'notebooklm:chat' consistently"
+    else
+        pass "init: notebooklm workflow references valid commands only (no notebooklm:navigate)"
+    fi
+else
+    fail "init: command file not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

@@ -183,9 +183,8 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    **Workflow:**
    1. Registry lesen: `.agent-memory/knowledge/notebook-registry.md`
    2. Passendes Notebook anhand der Stichwörter identifizieren
-   3. `notebooklm:navigate` zum Notebook
-   4. `notebooklm:chat` — Frage stellen
-   5. Ergebnis in die Antwort einbauen
+   3. `notebooklm:chat` — Frage direkt stellen (Notebook-Name im Prompt nennen)
+   4. Ergebnis in die Antwort einbauen
    ```
 
 8. **Output summary:**
