@@ -51,9 +51,9 @@ Available Projects for Sync:
 Current project: {name} ({n} local patterns)
 ```
 
-3. Use `AskUserQuestion` to ask the user:
-   - "Which projects should I sync with?" (multiSelect with project list)
-   - Include an "All projects" option
+3. Ask the user (as plain text output):
+   "Which projects should I sync with? Options: [list each project by number], or 'all' for all projects."
+   Wait for the user's response before proceeding.
 
 If `projects.json` does not exist or has fewer than 2 projects, inform the user:
 "Not enough projects for cross-project sync yet. Push your local patterns first to start building the global knowledge base."

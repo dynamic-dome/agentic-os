@@ -618,6 +618,25 @@ if [ "$NB_FAIL" -eq 0 ]; then
     pass "session-bootstrap and init: no phantom notebooklm:chat command references"
 fi
 
+
+# 35. sync-context skill must not reference AskUserQuestion (nonexistent Claude Code tool)
+#     AskUserQuestion is not a real tool in Claude Code. When the skill instructs the agent
+#     to "Use AskUserQuestion", execution fails or the agent hallucinates the tool.
+#     The correct approach is to output a question as plain text and wait for user response.
+echo ""
+echo "-- sync-context no phantom AskUserQuestion tool --"
+SYNC_SKILL="$PLUGIN_ROOT/skills/sync-context/SKILL.md"
+if [ -f "$SYNC_SKILL" ]; then
+    if grep -q "AskUserQuestion" "$SYNC_SKILL"; then
+        fail "sync-context: references 'AskUserQuestion' which is not a real Claude Code tool — replace with plain text question output"
+    else
+        pass "sync-context: does not reference nonexistent AskUserQuestion tool"
+    fi
+else
+    fail "sync-context: SKILL.md not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
