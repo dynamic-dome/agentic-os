@@ -7,14 +7,14 @@ description: |
   or before switching to a different project. Ensures no progress is lost
   and the next session can pick up seamlessly.
   Trigger phrases: "wrap up", "end session", "session end", "save session",
-  "close session", "Session beenden", "Zusammenfassung", "fertig fuer heute",
-  "kontext sichern", "session handoff", "agent handoff",
-  "ich hoer jetzt auf", "schluss fuer heute", "mach mal ne zusammenfassung".
+  "close session", "finish for today", "summarize session",
+  "save context", "session handoff", "agent handoff",
+  "I'm done for today", "that's it for today", "give me a summary".
 
   <example>
   Context: User is done for the day
-  user: "fertig fuer heute, wrap up"
-  assistant: "Session Wrap-Up: 5 Iterationen, 2 Fehler behoben. Session-Summary aktualisiert."
+  user: "done for today, wrap up"
+  assistant: "Session Wrap-Up: 5 iterations completed, 2 bugs fixed. Session summary updated."
   <commentary>
   User ends session, trigger wrap-up to save context for next session.
   </commentary>
@@ -30,7 +30,7 @@ End-of-session sequence. Summarizes work, extracts learnings, prepares for next 
 
 - At the end of every coding session
 - When context window is getting long (pre-compression)
-- User says "wrap up", "session beenden", etc.
+- User says "wrap up", "end session", etc.
 - Note: this skill is manual-only — no hook triggers it automatically. The SessionEnd hook does a lightweight session-summary update, but the full wrap-up (learnings, patterns, commit suggestion) requires explicit user invocation.
 
 ## Step 1: Gather Session Data
@@ -43,7 +43,7 @@ Collect from the current session:
 4. **Code quality**: Read `.agent-memory/quality/code-reviews.json` — latest entry
 5. **Errors this session**: Read `.agent-memory/iterations/errors.json` — entries from today
 
-If iteration-log.md is empty or has no entries from today: note "Keine Iterationen in dieser Session" and proceed to Step 5 (skip Steps 2-4).
+If iteration-log.md is empty or has no entries from today: note "No iterations in this session" and proceed to Step 5 (skip Steps 2-4).
 
 ## Step 2: Summarize Work Done
 

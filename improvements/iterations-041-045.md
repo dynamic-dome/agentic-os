@@ -23,3 +23,27 @@
 
 ### Commit
 - Hash: f8297b8
+
+## Iteration 42 — 2026-03-24
+### Weaknesses Found
+1. [warning] wrap-up-german-trigger-phrases — `skills/wrap-up/SKILL.md` description trigger phrases contain German ("Session beenden", "Zusammenfassung", "fertig fuer heute", "kontext sichern", "ich hoer jetzt auf", "schluss fuer heute", "mach mal ne zusammenfassung"), the example user utterance uses German, and the body references a German inline string ("Keine Iterationen in dieser Session") — inconsistent with language policy applied to all other skills — fixed
+
+### Fixes Applied
+1. Replaced German trigger phrases in wrap-up description with English equivalents ("finish for today", "summarize session", "save context", "I'm done for today", "that's it for today", "give me a summary") — Files: skills/wrap-up/SKILL.md
+2. Translated German example user utterance and assistant response to English — Files: skills/wrap-up/SKILL.md
+3. Translated inline German body text ("Keine Iterationen in dieser Session") to English — Files: skills/wrap-up/SKILL.md
+4. Added test case for wrap-up German trigger language consistency — Files: tests/validate-skills.sh
+
+### Test Results
+- Plugin tests: 90/90 passed
+- Skill tests: 111/111 passed
+- Total: 201 passed
+
+### False Alarms: 0
+
+### Quality Score
+- Fixes/Findings ratio: 1/1 = 1.0
+- False alarm rate: 0%
+
+### Commit
+- Hash: TBD

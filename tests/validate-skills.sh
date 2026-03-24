@@ -215,5 +215,16 @@ if [ -f "$SC_FILE" ]; then
 fi
 
 echo ""
+echo "-- wrap-up trigger language consistency --"
+WU_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+if [ -f "$WU_FILE" ]; then
+    if grep -q "Session beenden\|Zusammenfassung\|fertig fuer heute\|kontext sichern\|ich hoer jetzt auf\|schluss fuer heute\|mach mal ne zusammenfassung\|session beenden\|Keine Iterationen\|Fehler behoben\|aktualisiert\." "$WU_FILE"; then
+        fail "wrap-up: description or body contains German phrases — must use English for consistent auto-matching"
+    else
+        pass "wrap-up: trigger phrases and body use English (no German phrases)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
