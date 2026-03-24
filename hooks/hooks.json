@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n1. Update `.agent-memory/session-summary.md` with:\n   - Was wurde gemacht (2-3 bullet points of this session's work)\n   - Offene Punkte (anything unfinished)\n   - Naechste Schritte (what to do next session)\n   - Keep under 30 lines total.\n2. If 3+ iterations were logged this session, note key learnings in `.agent-memory/learnings/learnings.md` (only genuine, non-trivial insights).\n3. Output a one-line summary of what was done this session.\n\nReturn 'approve'.",
+            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists, check whether the wrap-up skill already ran this session (look for a recent update to `session-summary.md` with today's date). If wrap-up already ran, skip all writes and return 'approve' — defer to wrap-up to avoid duplicate writes.\n\nOnly if wrap-up has NOT run:\n1. Update `.agent-memory/session-summary.md` with:\n   - Was wurde gemacht (2-3 bullet points of this session's work)\n   - Offene Punkte (anything unfinished)\n   - Naechste Schritte (what to do next session)\n   - Keep under 30 lines total.\n2. Output a one-line summary of what was done this session.\n\nDo NOT write to learnings.md here — that is handled by wrap-up skill exclusively.\n\nReturn 'approve'.",
             "timeout": 30
           }
         ]
@@ -79,7 +79,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "An agent just completed a significant task. Check if there are staged or unstaged changes via `git status`.\n\nIf there are meaningful code changes (not just .agent-memory/ updates):\n1. Suggest a commit message based on the changes.\n2. Ask the user: 'Soll ich diese Aenderungen committen? Vorgeschlagene Message: {message}'\n3. Only commit if the user confirms.\n\nIf only .agent-memory/ files changed, skip silently.\n\nReturn 'approve'.",
+            "prompt": "An agent just completed a significant task. Check if there are staged or unstaged changes via `git status`.\n\nIf there are meaningful code changes (not just .agent-memory/ updates):\n1. Suggest a commit message based on the changes.\n2. Add a hint in your response: 'Vorgeschlagene Commit-Message: {message}. Sag \"commit\" um die Aenderungen zu committen.'\n\nDo NOT attempt to block for user input — prompt hooks are non-interactive and cannot pause for responses. The suggestion is advisory only; the user will act on it in their next message.\n\nIf only .agent-memory/ files changed, skip silently.\n\nReturn 'approve'.",
             "timeout": 10
           }
         ]

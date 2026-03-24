@@ -298,6 +298,44 @@ else
     fail "improvement-scout: agent file not found"
 fi
 
+# 17. SessionEnd hook must defer to wrap-up (no duplication of learnings/summary writes)
+echo ""
+echo "-- SessionEnd hook wrap-up deduplication --"
+if [ -f "$HOOKS" ]; then
+    sessionend_prompt=$(node -e "
+      const h = JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+      const seHooks = (h.hooks.SessionEnd || []).flatMap(g => g.hooks || []);
+      const prompts = seHooks.filter(h => h.type === 'prompt').map(h => h.prompt).join(' ');
+      console.log(prompts);
+    " "$HOOKS" 2>/dev/null)
+    if echo "$sessionend_prompt" | grep -qi "wrap-up\|already ran\|skip if\|defer\|handled by.*wrap"; then
+        pass "SessionEnd hook: defers to wrap-up skill to avoid duplicate writes"
+    else
+        fail "SessionEnd hook: does not mention wrap-up — risks duplicating session-summary.md and learnings.md writes"
+    fi
+else
+    echo "  SKIP: hooks.json not found"
+fi
+
+# 18. SubagentStop hook must not attempt interactive user prompts (hooks cannot block for input)
+echo ""
+echo "-- SubagentStop hook no interactive blocking --"
+if [ -f "$HOOKS" ]; then
+    subagent_prompt=$(node -e "
+      const h = JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+      const saHooks = (h.hooks.SubagentStop || []).flatMap(g => g.hooks || []);
+      const prompts = saHooks.filter(h => h.type === 'prompt').map(h => h.prompt).join(' ');
+      console.log(prompts);
+    " "$HOOKS" 2>/dev/null)
+    if echo "$subagent_prompt" | grep -qi "ask the user\|wait for.*confirm\|only commit if.*confirms"; then
+        fail "SubagentStop hook: attempts interactive user prompt — prompt hooks cannot block for user input"
+    else
+        pass "SubagentStop hook: no interactive blocking prompts"
+    fi
+else
+    echo "  SKIP: hooks.json not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
