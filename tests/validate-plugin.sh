@@ -965,6 +965,30 @@ else
 fi
 
 
+
+# 52. session-start.sh runtime context messages must use English, not German
+#     session-start.sh injects context into Claude's system prompt at session start.
+#     Several runtime messages are in German: the INIT_MSG variable ("Memory-System
+#     initialisiert fuer..."), quality warning ("WARNUNG: Quality Scores declining!"),
+#     error hint ("Hinweis: Viele Fehler — Pattern-Extract empfohlen."), briefing section
+#     extractors for "Naechste Schritte" / "Offene Punkte" / "Aktive Warnungen", and the
+#     main briefing instruction to Claude ("Bei deiner ERSTEN Antwort in dieser Session...").
+#     These German strings directly instruct Claude in German, causing inconsistent
+#     behavior vs. the plugin's English-first convention established everywhere else.
+echo ""
+echo "-- session-start.sh runtime context messages use English --"
+SS_HOOK="$PLUGIN_ROOT/scripts/session-start.sh"
+if [ -f "$SS_HOOK" ]; then
+    if grep -q "Memory-System initialisiert\|Bei deiner ERSTEN Antwort\|WARNUNG:.*declining\|Hinweis: Viele Fehler\|Naechste Schritte\|Offene Punkte\|Aktive Warnungen\|Neu initialisiert\|Iterationen.*Fehler.*Patterns" "$SS_HOOK"; then
+        fail "session-start.sh: runtime context messages injected into Claude's session use German (e.g. 'Bei deiner ERSTEN Antwort', 'Memory-System initialisiert', 'Naechste Schritte') — these directly instruct Claude in German; must use English for consistency"
+    else
+        pass "session-start.sh: runtime context messages use English (no German in Claude-facing strings)"
+    fi
+else
+    fail "session-start.sh: not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
