@@ -989,6 +989,30 @@ else
 fi
 
 
+# 53. marketplace.json skill count must match actual number of skill directories
+#     marketplace.json is the public-facing listing for the Claude Code marketplace.
+#     If marketplace.json description says "10 skills" but there are 11 skill directories,
+#     potential users browsing the marketplace get an incorrect picture of plugin capabilities.
+#     The plugin.json was fixed in iteration 32 but marketplace.json was overlooked.
+echo ""
+echo "-- marketplace.json skill count accuracy --"
+MKTPLACE="$PLUGIN_ROOT/.claude-plugin/marketplace.json"
+if [ -f "$MKTPLACE" ]; then
+    ACTUAL_SKILL_COUNT=$(ls -d "$PLUGIN_ROOT/skills"/*/  2>/dev/null | wc -l | tr -d '[:space:]')
+    # Extract the number from description (e.g. "10 skills" -> 10)
+    CLAIMED_COUNT=$(grep -o '[0-9]\+ skills' "$MKTPLACE" | grep -o '[0-9]\+' | head -1)
+    if [ -z "$CLAIMED_COUNT" ]; then
+        echo "  SKIP: marketplace.json description does not mention a skill count"
+    elif [ "$CLAIMED_COUNT" -eq "$ACTUAL_SKILL_COUNT" ]; then
+        pass "marketplace.json: skill count in description ($CLAIMED_COUNT) matches actual skill directories ($ACTUAL_SKILL_COUNT)"
+    else
+        fail "marketplace.json: skill count in description ($CLAIMED_COUNT) does not match actual skill directories ($ACTUAL_SKILL_COUNT) — update description to reflect current skill count"
+    fi
+else
+    echo "  SKIP: .claude-plugin/marketplace.json not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
