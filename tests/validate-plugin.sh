@@ -334,6 +334,25 @@ for agent_file in "$PLUGIN_ROOT/agents"/*.md; do
     fi
 done
 
+
+# 19. SubagentStop prompt hook must not instruct LLM to run bash commands
+#     Prompt hooks run in LLM context without bash execution — instructing LLM
+#     to "run git status" leads to hallucinated results; use agent context instead
+echo ""
+echo "-- SubagentStop hook no-bash-in-prompt --"
+HOOKS_FILE="$PLUGIN_ROOT/hooks/hooks.json"
+if [ -f "$HOOKS_FILE" ]; then
+    # Check if SubagentStop section contains misleading bash-run instructions
+    # Use grep directly on the JSON file since the SubagentStop prompt is on one line
+    if grep -A10 '"SubagentStop"' "$HOOKS_FILE" | grep -qiE "via \`git |run \`git |execute.*git |via git status|run git "; then
+        fail "SubagentStop: prompt hook instructs LLM to run bash commands (e.g. 'via \`git status\`') — prompt hooks have no bash access, leads to hallucinated results"
+    else
+        pass "SubagentStop: prompt hook does not instruct LLM to run bash commands directly"
+    fi
+else
+    fail "hooks.json not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

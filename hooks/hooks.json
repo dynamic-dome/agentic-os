@@ -79,7 +79,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "An agent just completed a significant task. Check if there are staged or unstaged changes via `git status`.\n\nIf there are meaningful code changes (not just .agent-memory/ updates):\n1. Suggest a commit message based on the changes.\n2. Ask the user: 'Soll ich diese Aenderungen committen? Vorgeschlagene Message: {message}'\n3. Only commit if the user confirms.\n\nIf only .agent-memory/ files changed, skip silently.\n\nReturn 'approve'.",
+            "prompt": "An agent just completed a significant task. Based on the agent's output and any files it reported changing, determine if there are meaningful code changes (not just .agent-memory/ updates).\n\nIf meaningful code changes were made:\n1. Suggest a commit message based on the changes.\n2. Ask the user: 'Soll ich diese Aenderungen committen? Vorgeschlagene Message: {message}'\n3. Only commit if the user confirms.\n\nIf only .agent-memory/ files changed, or if the agent made no file changes, skip silently.\n\nReturn 'approve'.",
             "timeout": 10
           }
         ]
