@@ -33,7 +33,8 @@
       "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/hooks/hooks.json\" \"$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/agentic-os/hooks/hooks.json\")",
       "Bash(bash tests/run-all.sh)",
       "Bash(bash tests/validate-skills.sh)",
-      "Bash(bash tests/validate-plugin.sh)"
+      "Bash(bash tests/validate-plugin.sh)",
+      "Bash(claude plugin:*)"
     ]
   }
 }
