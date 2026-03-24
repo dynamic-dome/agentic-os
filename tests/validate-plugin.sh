@@ -455,6 +455,29 @@ else
     fail "quality-gate: agent file not found"
 fi
 
+
+# 25. self-improve SKILL.md must instruct agents to filter weaknesses by severity
+#     (only fix critical/warning, log suggestions without fixing) and report
+#     "DIMINISHING RETURNS" when no actionable weaknesses remain.
+#     Without this, agents waste iterations fixing cosmetic suggestions and never
+#     gracefully exit when the plugin has no critical/warning-level issues.
+echo ""
+echo "-- self-improve severity filter and diminishing returns --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    # Must explicitly instruct: only fix critical/warning severity, log suggestions without fixing
+    HAS_SEVERITY=$(grep -ciE "only fix critical|Only fix critical|fix critical.and.warning|critical.*warning.*only|suggestion.*do not fix|do not fix.*suggestion|log suggestion|suggestion.*log.*not fix" "$SI_SKILL")
+    # Must explicitly name the diminishing-returns exit condition
+    HAS_DIMINISHING=$(grep -ciE "DIMINISHING RETURNS|diminishing.returns" "$SI_SKILL")
+    if [ "$HAS_SEVERITY" -gt 0 ] && [ "$HAS_DIMINISHING" -gt 0 ]; then
+        pass "self-improve: instructs severity-based filtering and diminishing-returns exit condition"
+    else
+        fail "self-improve: missing severity filter (only fix critical/warning, log suggestions) and/or diminishing-returns exit — agents will fix trivial suggestions and never gracefully stop"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

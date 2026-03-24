@@ -58,9 +58,19 @@ This skill is triggered by the scheduled self-improvement task or manually when 
       - Proposed fix: {approach}
    ```
 
+### Severity Filter (after Step 2)
+
+Rank all findings by severity: **critical > warning > suggestion**.
+
+- **Only fix critical and warning items.** These represent real gaps or regressions.
+- **Log suggestions** in the iteration doc but do NOT fix them — they are cosmetic.
+- If all findings are suggestions (no critical or warning), report:
+  `DIMINISHING RETURNS: no actionable weaknesses found` and stop cleanly.
+- Track false alarms (things that looked like problems but weren't) — report the count.
+
 ### Step 3: Plan & Review Fixes
 
-For each weakness (max 3):
+For each weakness (max 3, critical/warning only):
 
 1. Design a minimal fix plan:
    - What files to create/modify
