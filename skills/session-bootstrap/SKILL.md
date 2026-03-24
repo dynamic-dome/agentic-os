@@ -42,9 +42,10 @@ Read files in this priority order. Skip any that don't exist:
 2. **`identity/soul.md`** — agent behavior settings, guard rails
 3. **`identity/user.md`** — user preferences and work style
 4. **`context/project-context.md`** — tech stack, architecture, constraints
-5. **`patterns/patterns.md`** — known patterns and anti-patterns (scan for high-confidence only)
-6. **`quality/quality-score.json`** — test health + code quality trends
-7. **`iterations/errors.json`** — last 5 entries only (tail, not full load)
+5. **`knowledge/notebook-registry.md`** — available NotebookLM knowledge bases (topics, keywords)
+6. **`patterns/patterns.md`** — known patterns and anti-patterns (scan for high-confidence only)
+7. **`quality/quality-score.json`** — test health + code quality trends
+8. **`iterations/errors.json`** — last 5 entries only (tail, not full load)
 
 Apply identity settings from `soul.md` silently (communication style, guard rails).
 
@@ -58,6 +59,7 @@ Verify these core files exist:
 - `identity/soul.md`
 - `identity/user.md`
 - `context/project-context.md`
+- `knowledge/notebook-registry.md`
 - `iterations/iteration-log.md`
 - `iterations/errors.json`
 - `patterns/patterns.json`
@@ -89,6 +91,10 @@ LAST SESSION
 PROJECT STATUS
   {1-2 lines from project-context.md}
   Stack: {compact tech stack}
+
+KNOWLEDGE BASE
+  {n} NotebookLM notebooks available — topics: {comma-separated list of Stichwörter}
+  Use `notebooklm:chat` for expert knowledge lookups
 
 ACTIVE WARNINGS
   {high-confidence patterns (confidence >= 0.7, occurrences >= 3)}

@@ -27,6 +27,9 @@ Complete directory and file structure created by `/agentic-os:init`.
 │   ├── code-reviews.json               # Code review history
 │   └── quality-score.json              # Aggregated quality metrics
 │
+├── knowledge/
+│   └── notebook-registry.md            # NotebookLM KB registry (topics, keywords)
+│
 ├── learnings/
 │   └── learnings.md                    # Session learnings (genuine insights only)
 │

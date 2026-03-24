@@ -34,6 +34,8 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
 │   └── quality-score.json
 ├── learnings/
 │   └── learnings.md
+├── knowledge/
+│   └── notebook-registry.md
 ├── generated-skills/
 └── session-summary.md
 ```
@@ -51,6 +53,58 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    - `patterns.md` → `# Pattern-Katalog\n\n*Noch keine Patterns erkannt.*`
    - `learnings.md` → `# Learnings\n\n*Noch keine Session-Learnings.*`
    - `session-summary.md` → `# Letzte Session\n\n*Erste Session — System frisch initialisiert.*\n\n## Naechste Schritte\n1. Projektkontext ausfuellen\n2. Erste Coding-Iteration starten`
+   - `knowledge/notebook-registry.md` → see below
+
+   **notebook-registry.md** (Knowledge Base Registry):
+   ```markdown
+   # NotebookLM Knowledge Base Registry
+
+   > Zentrales Register aller NotebookLM-Notebooks. Agents pruefen diese Datei
+   > bevor sie Wissensfragen beantworten. Siehe CLAUDE.md fuer den Workflow.
+
+   ## Aktive Notebooks
+
+   ### Claude Code Hooks & Context Injection Mastery
+   - **Thema:** Hooks-System, Context Injection, PreToolUse/PostToolUse Patterns
+   - **Staerken:** Tiefes Wissen ueber Claude Code Hook-Architektur und Context Injection
+   - **Stichwörter:** hooks, context injection, PreToolUse, PostToolUse, automation, prompt-based hooks
+
+   ### Geplante Aufgaben: Ideen, Best Practices & Kreative Ansaetze
+   - **Thema:** Scheduled Tasks, Cron-Jobs, zeitgesteuerte Automatisierung
+   - **Staerken:** Kreative Ideen und Best Practices fuer geplante Aufgaben
+   - **Stichwörter:** scheduled tasks, cron, automation, zeitgesteuert, timer
+
+   ### Claude Code: Scheduled Tasks, Automation & Kreative Ideen
+   - **Thema:** Automation-Patterns, kreative Anwendungsfaelle fuer Claude Code
+   - **Staerken:** Praxisnahe Automations-Szenarien und kreative Workflows
+   - **Stichwörter:** automation, scheduled tasks, workflows, kreativ, use cases
+
+   ### Claude Code Docs (DE)
+   - **Thema:** Offizielle Claude Code Dokumentation auf Deutsch
+   - **Staerken:** Referenz fuer alle Claude Code Features, APIs, Konfiguration
+   - **Stichwörter:** claude code, dokumentation, referenz, features, API, settings, permissions
+
+   ### Claude Code: Workflows, Skills und Automatisierung mit KI-Agenten
+   - **Thema:** Skills-Entwicklung, Workflow-Design, Agenten-Orchestrierung
+   - **Staerken:** Best Practices fuer Skills, Plugins, Multi-Agent-Workflows
+   - **Stichwörter:** skills, workflows, plugins, agenten, orchestrierung, SKILL.md, plugin.json
+
+   ### Agentic AI & Self-Improving Workflows
+   - **Thema:** Selbstverbessernde KI-Systeme, Agentic Patterns, Lernschleifen
+   - **Staerken:** Fortgeschrittene Konzepte fuer autonome KI-Agenten
+   - **Stichwörter:** agentic AI, self-improving, learning loops, autonome agenten, feedback loops
+
+   ## Wann NotebookLM konsultieren?
+   - Bei Fragen zu Themen die in einem der Notebooks abgedeckt sind
+   - Bei Bedarf an Expertenwissen, Best Practices, Recherche-Ergebnissen
+   - Wenn mehrere Quellen verglichen oder zusammengefasst werden sollen
+   - Wenn der Agent unsicher ist und eine zweite Meinung aus gesammelten Quellen braucht
+
+   ## Registry aktualisieren
+   Nach dem Erstellen neuer Notebooks oder Hinzufuegen wichtiger Quellen:
+   1. Neuen Eintrag hier hinzufuegen (Name, Thema, Staerken, Stichwörter)
+   2. Bei grossen Aenderungen bestehende Eintraege aktualisieren
+   ```
 
 5. **Create identity files:**
 
@@ -97,16 +151,55 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    - Write findings to `.agent-memory/context/project-context.md` using the context-keeper format
    - Ask the user to confirm or supplement the detected context
 
-7. **Output summary:**
+7. **Ensure CLAUDE.md contains Knowledge Base section:**
+
+   Check if a `CLAUDE.md` exists in the project root. If not, create one. If it exists, check if it already has a "Knowledge Base" section. If not, append the following section:
+
+   ```markdown
+   ## Knowledge Base (NotebookLM) — PFLICHT fuer alle Agents
+
+   Dieses Projekt verfuegt ueber eine kuratierte Wissensbasis in Google NotebookLM.
+   Die Registry unter `.agent-memory/knowledge/notebook-registry.md` listet alle
+   verfuegbaren Notebooks mit Themen und Stichwörtern.
+
+   **WICHTIG — Anweisung fuer JEDEN Agent (Claude Code, Subagents, Scheduled Tasks):**
+   Du MUSST vor jeder Antwort auf Fachfragen die Registry pruefen.
+   Wenn ein passendes Notebook existiert, nutze `notebooklm:chat` um die Wissensbasis
+   zu befragen und baue das Ergebnis in deine Antwort ein.
+   Antworte NICHT aus dem Kopf wenn die Registry ein Notebook zum Thema hat.
+
+   **Wann NotebookLM konsultieren (PFLICHT):**
+   - Fachfragen zu Themen die in Notebooks abgedeckt sind
+   - Best Practices, Referenzmaterial oder Expertenwissen benoetigt
+   - Unsicherheit ueber die richtige Vorgehensweise bei Claude Code Features
+   - User fragt nach "Expertenwissen", "was sagen die Quellen", "recherchiere"
+   - Architekturentscheidungen die von gesammeltem Wissen profitieren
+
+   **Wann NICHT konsultieren:**
+   - Reine Code-Aenderungen ohne Wissensbedarf
+   - Einfache Befehle wie "erstelle Datei X" oder "fix diesen Bug"
+   - Themen die kein Notebook in der Registry abdeckt
+
+   **Workflow:**
+   1. Registry lesen: `.agent-memory/knowledge/notebook-registry.md`
+   2. Passendes Notebook anhand der Stichwörter identifizieren
+   3. `notebooklm:navigate` zum Notebook
+   4. `notebooklm:chat` — Frage stellen
+   5. Ergebnis in die Antwort einbauen
+   ```
+
+8. **Output summary:**
 
 ```
 Agentic OS initialized!
-  Directories: 8
-  Files: 14
+  Directories: 9
+  Files: 15
   Detected stack: {language} + {framework}
+  Knowledge Base: notebook-registry.md created
 
   Next steps:
   1. Review .agent-memory/context/project-context.md
   2. Customize .agent-memory/identity/soul.md if needed
-  3. Start coding — iterations will be tracked automatically
+  3. Review .agent-memory/knowledge/notebook-registry.md
+  4. Start coding — iterations will be tracked automatically
 ```
