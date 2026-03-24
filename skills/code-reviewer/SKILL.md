@@ -31,65 +31,65 @@ metadata:
 
 ## When to Use This Skill
 
-- Neuer Code geschrieben oder signifikant geaendert wurde
-- Vor einem Commit
-- User fragt: "Ist der Code gut?" / "Was kann verbessert werden?"
+- New code written or significantly changed
+- Before a commit
+- User asks: "Is the code good?" / "What can be improved?"
 
-## Dateistruktur
+## File Structure
 
 ```
 .agent-memory/
 └── quality/
-    ├── code-reviews.json     # Alle Reviews
-    └── quality-score.json    # Aggregierte Metriken
+    ├── code-reviews.json     # All reviews
+    └── quality-score.json    # Aggregated metrics
 ```
 
 ## Instructions
 
-### Schritt 1: Geaenderte Dateien identifizieren
+### Step 1: Identify Changed Files
 
-Nutze Claude Code Tools:
-- `Bash`: `git diff --name-only HEAD~1` fuer letzte Aenderungen
-- `Grep`: Suche nach TODO/FIXME/HACK in geaenderten Dateien
-- Oder aus dem Kontext der aktuellen Session
+Use Claude Code tools:
+- `Bash`: `git diff --name-only HEAD~1` for recent changes
+- `Grep`: Search for TODO/FIXME/HACK in changed files
+- Or derive from the current session context
 
-### Schritt 2: Konventionen laden
+### Step 2: Load Conventions
 
-Lies mit dem `Read`-Tool:
-- `.agent-memory/context/project-context.md` → Tech-Stack, Konventionen
-- `.agent-memory/patterns/patterns.md` → Bekannte Anti-Patterns
-- Projektspezifische Config: `pyproject.toml`, `ruff.toml`, `.editorconfig`
+Read using the `Read` tool:
+- `.agent-memory/context/project-context.md` → tech stack, conventions
+- `.agent-memory/patterns/patterns.md` → known anti-patterns
+- Project-specific config: `pyproject.toml`, `ruff.toml`, `.editorconfig`
 
-### Schritt 3: Review nach 6 Dimensionen
+### Step 3: Review Across 6 Dimensions
 
-Bewerte jede geaenderte Datei auf einer Skala von 1-5:
+Score each changed file on a scale of 1-5:
 
-1. **Lesbarkeit** — Klare Namen, logische Struktur, konsistenter Stil
-2. **Wartbarkeit** — Single Responsibility, keine ueberlangen Funktionen (>50 Zeilen Warnung)
-3. **Korrektheit** — Edge Cases, Error Handling, Type Hints
-4. **Performance** — Effiziente Datenstrukturen, keine unnuetigen Schleifen
-5. **Security** — Keine hardcoded Secrets, Input-Validierung, sichere Pfade
-6. **Testbarkeit** — Testbare Funktionen, Dependencies injizierbar, Tests vorhanden
+1. **Readability** — Clear names, logical structure, consistent style
+2. **Maintainability** — Single Responsibility, no overly long functions (>50 lines warning)
+3. **Correctness** — Edge cases, error handling, type hints
+4. **Performance** — Efficient data structures, no unnecessary loops
+5. **Security** — No hardcoded secrets, input validation, safe paths
+6. **Testability** — Testable functions, injectable dependencies, tests present
 
-### Schritt 4: Gesamt-Score berechnen
+### Step 4: Calculate Overall Score
 
 ```
-# Formel: Dimensionen 1-5, normalisiert auf 0-100
-# (mean - 1) / 4 * 100 ergibt Bereich 0-100 (nicht 20-100)
-code_quality_score = round(((mean([alle 6 Dimensionen]) - 1) / 4) * 100)
+# Formula: dimensions 1-5, normalized to 0-100
+# (mean - 1) / 4 * 100 gives range 0-100 (not 20-100)
+code_quality_score = round(((mean([all 6 dimensions]) - 1) / 4) * 100)
 ```
 
-| Score | Bewertung | Aktion |
-|-------|-----------|--------|
-| 90-100 | Excellent | Keine Aenderungen noetig |
-| 75-89 | Good | Kleinere Verbesserungen empfohlen |
-| 60-74 | Acceptable | Verbesserungen einplanen |
-| 40-59 | Needs Work | Vor Commit ueberarbeiten |
-| 0-39 | Poor | Grundlegendes Refactoring noetig |
+| Score | Rating | Action |
+|-------|--------|--------|
+| 90-100 | Excellent | No changes needed |
+| 75-89 | Good | Minor improvements recommended |
+| 60-74 | Acceptable | Schedule improvements |
+| 40-59 | Needs Work | Revise before committing |
+| 0-39 | Poor | Fundamental refactoring needed |
 
-### Schritt 5: code-reviews.json aktualisieren
+### Step 5: Update code-reviews.json
 
-Nutze `Read` zum Laden und `Edit`/`Write` zum Aktualisieren:
+Use `Read` to load and `Edit`/`Write` to update:
 
 ```json
 {
@@ -120,11 +120,11 @@ Nutze `Read` zum Laden und `Edit`/`Write` zum Aktualisieren:
 }
 ```
 
-### Schritt 6: Ergebnis ausgeben
+### Step 6: Output Results
 
 ```
-Code Review: <score>/100 (<bewertung>)
-   Dateien: <n> reviewed
+Code Review: <score>/100 (<rating>)
+   Files: <n> reviewed
 
    Scores:
    Readability:     <n>/5
@@ -135,16 +135,16 @@ Code Review: <score>/100 (<bewertung>)
    Testability:     <n>/5
 
    Findings: <n> (critical: <n>, warning: <n>, suggestion: <n>)
-   Top-Empfehlung: <wichtigstes Finding>
+   Top recommendation: <most important finding>
 ```
 
-### Schritt 7: Cross-Referenz mit Patterns
+### Step 7: Cross-Reference with Patterns
 
-Pruefe ob Findings zu bekannten Patterns aus `patterns.json` passen.
-Falls neues wiederkehrendes Issue → markiere als Pattern-Kandidat.
+Check whether findings match known patterns from `patterns.json`.
+If a new recurring issue is found → mark as a pattern candidate.
 
-### Schritt 8: Log-Rotation
+### Step 8: Log Rotation
 
-Wenn `code-reviews.json` mehr als 100 Eintraege enthaelt:
-- Behalte die neuesten 100 Eintraege
-- Archiviere aeltere in `code-reviews-archive-<YYYY-MM>.json` im selben Verzeichnis
+When `code-reviews.json` contains more than 100 entries:
+- Keep the newest 100 entries
+- Archive older ones to `code-reviews-archive-<YYYY-MM>.json` in the same directory

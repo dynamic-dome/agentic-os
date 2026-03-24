@@ -116,5 +116,16 @@ if [ -f "$TV_FILE" ]; then
 fi
 
 echo ""
+echo "-- code-reviewer language consistency --"
+CR_FILE="$SKILLS_DIR/code-reviewer/SKILL.md"
+if [ -f "$CR_FILE" ]; then
+    if grep -q "^### Schritt" "$CR_FILE"; then
+        fail "code-reviewer: body uses German section headers (e.g. 'Schritt') — skill bodies must use English for consistency with the rest of the plugin"
+    else
+        pass "code-reviewer: body section headers use English (no 'Schritt' headers)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
