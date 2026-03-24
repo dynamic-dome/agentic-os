@@ -909,6 +909,39 @@ else
     fail "init: commands/init.md not found"
 fi
 
+
+# 50. iteration-logger and test-validator must not reference phantom plugin settings
+#     Both skills say their log-rotation thresholds are "configurable via plugin settings"
+#     (max_iterations_log_entries, max_error_log_entries, max_test_result_entries), but
+#     no such configuration file or mechanism exists in the plugin. Agents following these
+#     instructions would search for a non-existent config, causing confusion. The thresholds
+#     should be stated as hardcoded values.
+echo ""
+echo "-- iteration-logger phantom plugin settings reference --"
+IL_FILE="$PLUGIN_ROOT/skills/iteration-logger/SKILL.md"
+if [ -f "$IL_FILE" ]; then
+    if grep -q "configurable via plugin setting" "$IL_FILE"; then
+        fail "iteration-logger: references 'configurable via plugin settings' (max_iterations_log_entries, max_error_log_entries) but no such plugin config exists — agents will look for a non-existent mechanism; remove phantom setting references"
+    else
+        pass "iteration-logger: does not reference phantom plugin settings (log rotation thresholds are hardcoded)"
+    fi
+else
+    fail "iteration-logger: SKILL.md not found"
+fi
+
+echo ""
+echo "-- test-validator phantom plugin settings reference --"
+TV_FILE="$PLUGIN_ROOT/skills/test-validator/SKILL.md"
+if [ -f "$TV_FILE" ]; then
+    if grep -q "configurable via plugin setting" "$TV_FILE"; then
+        fail "test-validator: references 'configurable via plugin setting' (max_test_result_entries) but no such plugin config exists — agents will look for a non-existent mechanism; remove phantom setting reference"
+    else
+        pass "test-validator: does not reference phantom plugin settings (log rotation threshold is hardcoded)"
+    fi
+else
+    fail "test-validator: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

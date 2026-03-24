@@ -156,6 +156,6 @@ Coverage > 80%: +5 bonus | Coverage < 40%: -10 penalty
 
 ## Log Rotation
 
-When `test-results.json` contains more than 100 entries (configurable via plugin setting `max_test_result_entries`):
+When `test-results.json` contains more than 100 entries:
 - Keep the most recent 100 entries
 - Archive older entries to `test-results-archive-<YYYY-MM>.json` in the same directory

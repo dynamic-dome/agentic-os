@@ -63,3 +63,26 @@
 
 ### Commit
 - Hash: 5cde0b7
+
+## Iteration 49 — 2026-03-24
+### Weaknesses Found
+1. [warning] iteration-logger-phantom-plugin-settings — `iteration-logger` skill states log-rotation thresholds are "configurable via plugin settings (`max_iterations_log_entries`, `max_error_log_entries`)" but no such configuration file or mechanism exists anywhere in the plugin. Agents following this would search for a non-existent config — fixed
+2. [warning] test-validator-phantom-plugin-settings — `test-validator` skill states its 100-entry threshold is "configurable via plugin setting `max_test_result_entries`" but no such setting exists in the plugin — fixed
+
+### Fixes Applied
+1. Replaced "configurable via plugin settings" line in `iteration-logger/SKILL.md` with a clear statement that the thresholds are fixed hardcoded values — Files: `skills/iteration-logger/SKILL.md`
+2. Removed "configurable via plugin setting `max_test_result_entries`" parenthetical from `test-validator/SKILL.md` — Files: `skills/test-validator/SKILL.md`
+3. Added tests 50 (two assertions) to `validate-plugin.sh` to catch phantom plugin settings references — Files: `tests/validate-plugin.sh`
+
+### Test Results
+- Plugin tests: 97/97 passed
+- Skill tests: 115/115 passed
+- Total: 212 passed
+
+### False Alarms: 0
+### Quality Score
+- Fixes/Findings ratio: 2/2 = 1.0
+- False alarm rate: 0%
+
+### Commit
+- Hash: TBD

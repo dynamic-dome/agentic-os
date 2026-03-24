@@ -160,7 +160,7 @@ Then check:
 - `iteration-log.md` > 500 entries → archive older entries to `iteration-log-archive-{YYYY-MM}.md`
 - `errors.json` > 200 entries → archive older entries to `errors-archive-{YYYY-MM}.json`
 
-Thresholds are configurable via plugin settings (`max_iterations_log_entries`, `max_error_log_entries`).
+These thresholds are fixed: 500 entries for iteration-log.md, 200 entries for errors.json.
 
 ## What NOT to Do
 
