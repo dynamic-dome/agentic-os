@@ -717,6 +717,30 @@ else
 fi
 
 
+
+# 40. plugin.json skill count must match actual number of skill directories
+#     plugin.json description claims a specific number of skills. If skills are
+#     added without updating the description, the count becomes stale and misleads
+#     users about the plugin's capabilities.
+echo ""
+echo "-- plugin.json skill count accuracy --"
+MANIFEST="$PLUGIN_ROOT/.claude-plugin/plugin.json"
+if [ -f "$MANIFEST" ]; then
+    ACTUAL_SKILL_COUNT=$(ls -d "$PLUGIN_ROOT/skills"/*/  2>/dev/null | wc -l | tr -d '[:space:]')
+    # Extract the number from description (e.g. "10 skills" -> 10)
+    CLAIMED_COUNT=$(grep -o '[0-9]\+ skills' "$MANIFEST" | grep -o '[0-9]\+' | head -1)
+    if [ -z "$CLAIMED_COUNT" ]; then
+        echo "  SKIP: plugin.json description does not mention a skill count"
+    elif [ "$CLAIMED_COUNT" -eq "$ACTUAL_SKILL_COUNT" ]; then
+        pass "plugin.json: skill count in description ($CLAIMED_COUNT) matches actual skill directories ($ACTUAL_SKILL_COUNT)"
+    else
+        fail "plugin.json: skill count in description ($CLAIMED_COUNT) does not match actual directories ($ACTUAL_SKILL_COUNT) — update description to reflect current skill count"
+    fi
+else
+    fail "plugin.json not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
