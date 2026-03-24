@@ -436,6 +436,25 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 24. quality-gate agent hook timeout bounds must match the enforced policy (>= 10s)
+#     quality-gate says "5-30s" but the plugin test enforces >= 10s minimum.
+#     An agent following quality-gate could approve a hooks.json with 7s timeout
+#     that fails the actual test suite.
+echo ""
+echo "-- quality-gate hook timeout policy consistency --"
+QG_AGENT="$PLUGIN_ROOT/agents/quality-gate.md"
+if [ -f "$QG_AGENT" ]; then
+    # The quality-gate must not suggest a lower bound below 10s for hook timeouts
+    if grep -qiE "timeout.*5-30|5-30s|minimum.*5s|5s.*minimum|\(5-" "$QG_AGENT"; then
+        fail "quality-gate: specifies hook timeout range '5-30s' but plugin enforces >= 10s — quality-gate may approve hooks with 5-9s timeouts that fail tests"
+    else
+        pass "quality-gate: hook timeout lower bound is consistent with plugin policy (>= 10s)"
+    fi
+else
+    fail "quality-gate: agent file not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
