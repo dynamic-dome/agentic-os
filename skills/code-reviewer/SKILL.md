@@ -138,12 +138,35 @@ Code Review: <score>/100 (<rating>)
    Top recommendation: <most important finding>
 ```
 
-### Step 7: Cross-Reference with Patterns
+### Step 7: Update quality-score.json
+
+After saving the review, update `.agent-memory/quality/quality-score.json` with the latest code quality score:
+
+```json
+{
+  "last_updated": "<ISO 8601 timestamp>",
+  "test_health": { "<preserve existing values>" },
+  "code_quality": {
+    "current_score": 82,
+    "trend": "improving | stable | declining",
+    "last_review_id": "<YYYY-MM-DD-HH-MM>-review"
+  }
+}
+```
+
+To determine trend: compare `current_score` with the previous value in the file.
+- Score increased by 5+ → `"improving"`
+- Score decreased by 5+ → `"declining"`
+- Otherwise → `"stable"`
+
+Read the file first with `Read`, then overwrite with `Write`. Preserve the `test_health` section unchanged.
+
+### Step 8: Cross-Reference with Patterns
 
 Check whether findings match known patterns from `patterns.json`.
 If a new recurring issue is found → mark as a pattern candidate.
 
-### Step 8: Log Rotation
+### Step 9: Log Rotation
 
 When `code-reviews.json` contains more than 100 entries:
 - Keep the newest 100 entries

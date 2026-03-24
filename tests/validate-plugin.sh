@@ -1013,6 +1013,26 @@ else
 fi
 
 
+
+# 54. code-reviewer skill must have a quality-score.json update step
+#     code-reviewer's File Structure section declares quality-score.json as an output file,
+#     and DEPENDENCIES.md lists it as a write target. However, the procedure has no step
+#     that updates quality-score.json. This means the quality score trend tracking is
+#     non-functional: code reviews run but never feed into the quality dashboard.
+echo ""
+echo "-- code-reviewer skill: quality-score.json update step --"
+CR_SKILL="$PLUGIN_ROOT/skills/code-reviewer/SKILL.md"
+if [ -f "$CR_SKILL" ]; then
+    if grep -q "quality-score" "$CR_SKILL" && grep -qiE "update.*quality.score|quality.score.*update|quality-score\.json.*Step|Step.*quality-score" "$CR_SKILL"; then
+        pass "code-reviewer: skill has a quality-score.json update step"
+    else
+        fail "code-reviewer: skill declares quality-score.json as output (File Structure) but procedure has no step to update it — quality trend tracking is non-functional"
+    fi
+else
+    fail "code-reviewer: SKILL.md not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
