@@ -47,3 +47,27 @@
 
 ### Commit
 - Hash: 6cf7c0d
+
+## Iteration 43 — 2026-03-24
+### Weaknesses Found
+1. [warning] code-reviewer-german-trigger-phrases — `skills/code-reviewer/SKILL.md` description Trigger field contains German phrases ("code reviewen", "qualitaet pruefen", "selbst-review", "ist der code gut so", "schauen wir uns den code an") that hurt auto-triggering for English-speaking users — fixed
+2. [warning] session-bootstrap-german-body-strings — `skills/session-bootstrap/SKILL.md` body contains German user-facing strings: "Keine vorherige Session gefunden" (appears twice in procedure and error-handling sections) and "Stichwörter" in the output template — inconsistent with English-only language policy — fixed
+
+### Fixes Applied
+1. Replaced German trigger phrases in code-reviewer description with English equivalents ("review the code", "check my code", "is this code good", "look at this code") — Files: skills/code-reviewer/SKILL.md
+2. Replaced "Keine vorherige Session gefunden" with "No previous session found" in both occurrences, and "Stichwörter" with "keywords" — Files: skills/session-bootstrap/SKILL.md
+3. Added test cases for both fixes — Files: tests/validate-skills.sh
+
+### Test Results
+- Plugin tests: 90/90 passed
+- Skill tests: 113/113 passed
+- Total: 203 passed
+
+### False Alarms: 0
+
+### Quality Score
+- Fixes/Findings ratio: 2/2 = 1.0
+- False alarm rate: 0%
+
+### Commit
+- Hash: TBD

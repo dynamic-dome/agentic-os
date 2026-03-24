@@ -32,7 +32,7 @@ Restore full project context at the start of every coding session.
 Read `.agent-memory/session-summary.md`:
 
 - If `.agent-memory/` does not exist → this should not happen (SessionStart hook auto-creates it). If it does, output "Memory system not found. This is unexpected — the SessionStart hook should have created it. Try restarting the session." and stop.
-- If it exists but `session-summary.md` is missing → note "Keine vorherige Session gefunden", continue with other files.
+- If it exists but `session-summary.md` is missing → note "No previous session found", continue with other files.
 
 ## Step 2: Load Knowledge Files
 
@@ -93,7 +93,7 @@ PROJECT STATUS
   Stack: {compact tech stack}
 
 KNOWLEDGE BASE
-  {n} NotebookLM notebooks available — topics: {comma-separated list of Stichwörter}
+  {n} NotebookLM notebooks available — topics: {comma-separated list of keywords}
   Open NotebookLM in your browser and query the relevant notebook for expert knowledge
 
 ACTIVE WARNINGS
@@ -135,7 +135,7 @@ RECOMMENDED NEXT STEPS
 
 ## Error Handling
 
-- Missing `session-summary.md`: "Keine vorherige Session gefunden" — continue
+- Missing `session-summary.md`: "No previous session found" — continue
 - Missing `soul.md` or `user.md`: trigger `/agentic-os:init` suggestion
 - Corrupt JSON: backup + recreate + warn
 - Missing `.agent-memory/`: suggest `/agentic-os:init`

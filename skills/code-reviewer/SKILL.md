@@ -7,9 +7,9 @@ description: |
   Use after completing coding work to catch issues before they persist, or when you
   want a second opinion on code you wrote. Also triggers when preparing a commit or
   pull request and want to ensure quality standards are met.
-  Trigger: "code reviewen", "review this", "qualitaet pruefen", "selbst-review",
-  "code review", "check quality", "self-review", "ist der code gut so",
-  "before I commit", "schauen wir uns den code an".
+  Trigger: "review this", "code review", "check quality", "self-review",
+  "before I commit", "review the code", "check my code",
+  "is this code good", "look at this code".
 
   <example>
   Context: User wants to check code quality before committing

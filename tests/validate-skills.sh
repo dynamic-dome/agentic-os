@@ -226,5 +226,27 @@ if [ -f "$WU_FILE" ]; then
 fi
 
 echo ""
+echo "-- code-reviewer trigger language consistency --"
+CR_FILE="$SKILLS_DIR/code-reviewer/SKILL.md"
+if [ -f "$CR_FILE" ]; then
+    if grep -q "code reviewen\|qualitaet pruefen\|ist der code gut so\|schauen wir uns den code an" "$CR_FILE"; then
+        fail "code-reviewer: description contains German trigger phrases — triggers must use English for consistent auto-matching"
+    else
+        pass "code-reviewer: trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
+echo "-- session-bootstrap body language consistency --"
+SB_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
+if [ -f "$SB_FILE" ]; then
+    if grep -q "Keine vorherige Session gefunden\|Stichwörter" "$SB_FILE"; then
+        fail "session-bootstrap: body contains German strings — all user-facing text must use English for consistency"
+    else
+        pass "session-bootstrap: body uses English (no German strings)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
