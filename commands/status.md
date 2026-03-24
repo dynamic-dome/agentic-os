@@ -15,9 +15,9 @@ Display the current state of the memory system.
    - Quality scores from `quality-score.json`
 
 2. **Statistics:**
-   - Total iterations logged (count entries in `iteration-log.md`)
-   - Total patterns (count in `patterns.json`)
-   - Total errors (count in `errors.json`)
-   - Total decisions (count in `decisions.json`)
+   - Total iterations logged (count entries in `iterations/iteration-log.md`)
+   - Total patterns (count in `patterns/patterns.json`)
+   - Total errors (count in `iterations/errors.json`)
+   - Total decisions (count in `context/decisions.json`)
 
 3. **Format** as a compact table.

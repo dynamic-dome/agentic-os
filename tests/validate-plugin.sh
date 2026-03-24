@@ -695,6 +695,28 @@ else
 fi
 
 
+
+# 39. status command must reference full subdirectory paths for memory files
+#     status.md tells agents to count entries in bare filenames like "patterns.json",
+#     "errors.json", "decisions.json", "iteration-log.md" — without the subdirectory
+#     prefix. The actual paths are patterns/patterns.json, iterations/errors.json,
+#     context/decisions.json, iterations/iteration-log.md. An agent following the
+#     bare-name instructions will look in the wrong location and report 0 entries.
+echo ""
+echo "-- status command memory file paths --"
+STATUS_CMD="$PLUGIN_ROOT/commands/status.md"
+if [ -f "$STATUS_CMD" ]; then
+    # The statistics section should reference subdirectory paths, not bare filenames
+    if grep -qE "iterations/iteration-log|patterns/patterns\.json|iterations/errors\.json|context/decisions\.json" "$STATUS_CMD"; then
+        pass "status: memory file paths include subdirectory prefixes (agents can locate files correctly)"
+    else
+        fail "status: statistics section references bare filenames (e.g. 'patterns.json') without subdirectory paths — agents will look in wrong location and always report 0 entries"
+    fi
+else
+    fail "status: command file not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
