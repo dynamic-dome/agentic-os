@@ -86,3 +86,24 @@
 
 ### Commit
 - Hash: ce0d820
+
+## Iteration 50 — 2026-03-24
+### Weaknesses Found
+1. [warning] sync-context-german-body-direction-phrases — `skills/sync-context/SKILL.md` Step 2 (Determine Direction) contains German intent phrases ("holen", "importieren", "teilen", "exportieren", "beides", "was gibt es") as recognized user inputs. Iteration 41 previously fixed only the description/trigger phrases; the body still used German. Claude following this skill would accept German commands to direct sync operations, inconsistent with the plugin's English convention — fixed
+
+### Fixes Applied
+1. Replaced German direction-matching phrases in `sync-context/SKILL.md` Step 2 with English equivalents: "holen"→"fetch", "importieren"→"import", "teilen"→"share", "exportieren"→"export", "beides"→"both", "was gibt es"→"what's available" — Files: `skills/sync-context/SKILL.md`
+2. Added test for sync-context body language consistency to `tests/validate-skills.sh` — Files: `tests/validate-skills.sh`
+
+### Test Results
+- Plugin tests: 97/97 passed
+- Skill tests: 116/116 passed
+- Total: 213 passed
+
+### False Alarms: 0
+### Quality Score
+- Fixes/Findings ratio: 1/1 = 1.0
+- False alarm rate: 0%
+
+### Commit
+- Hash: (pending)

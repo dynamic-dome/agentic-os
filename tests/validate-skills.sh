@@ -268,5 +268,16 @@ if [ -f "$SB_FILE" ]; then
 fi
 
 echo ""
+echo "-- sync-context body language consistency --"
+SC_BODY_FILE="$SKILLS_DIR/sync-context/SKILL.md"
+if [ -f "$SC_BODY_FILE" ]; then
+    if grep -q "holen\|importieren\|teilen\|exportieren\|beides\|was gibt es" "$SC_BODY_FILE"; then
+        fail "sync-context: body contains German intent phrases — all direction-matching phrases must use English for consistency"
+    else
+        pass "sync-context: body uses English (no German direction phrases)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

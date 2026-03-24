@@ -61,10 +61,10 @@ If `projects.json` does not exist or has fewer than 2 projects, inform the user:
 ## Step 2: Determine Direction
 
 From user intent:
-- "pull" / "holen" / "importieren" → pull only
-- "push" / "teilen" / "exportieren" → push only
-- "sync" / "beides" / no direction → bidirectional (pull then push)
-- "--list" / "was gibt es" / "show projects" → discovery only (Step 1), then stop
+- "pull" / "import" / "fetch" → pull only
+- "push" / "share" / "export" → push only
+- "sync" / "both" / no direction → bidirectional (pull then push)
+- "--list" / "show projects" / "what's available" → discovery only (Step 1), then stop
 
 ## Step 3: Ensure Global Memory Exists
 
