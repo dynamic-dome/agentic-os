@@ -127,5 +127,16 @@ if [ -f "$CR_FILE" ]; then
 fi
 
 echo ""
+echo "-- wrap-up session-summary template language consistency --"
+WU_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+if [ -f "$WU_FILE" ]; then
+    if grep -q "## Was wurde gemacht\|## Offene Punkte\|## Naechste Schritte\|## Aktive Warnungen" "$WU_FILE"; then
+        fail "wrap-up: session-summary.md template uses German section headers — template must use English for consistency with the rest of the plugin"
+    else
+        pass "wrap-up: session-summary.md template uses English section headers"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

@@ -82,31 +82,31 @@ If 3+ new iterations were logged this session, trigger pattern-extractor:
 Overwrite `.agent-memory/session-summary.md` with:
 
 ```markdown
-# Letzte Session
+# Last Session
 
-*Datum: {YYYY-MM-DD HH:MM}*
+*Date: {YYYY-MM-DD HH:MM}*
 *Agent: Claude Code*
 
-## Was wurde gemacht
+## What Was Done
 - {bullet points of completed work, max 10 items}
 
-## Offene Punkte
+## Open Items
 - {anything left unfinished}
 - {blockers encountered}
 
-## Naechste Schritte
+## Next Steps
 1. {highest priority next action}
 2. {second priority}
 3. {third priority}
 
-## Statistik
-- Iterationen: {n}
-- Fehler: {n}
-- Neue Patterns: {n}
-- Test-Health: {score}/100
-- Code-Quality: {score}/100
+## Statistics
+- Iterations: {n}
+- Errors: {n}
+- New Patterns: {n}
+- Test Health: {score}/100
+- Code Quality: {score}/100
 
-## Aktive Warnungen
+## Active Warnings
 - {high-confidence patterns, if any}
 - {declining quality trends, if any}
 ```
