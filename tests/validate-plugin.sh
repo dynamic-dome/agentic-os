@@ -53,6 +53,18 @@ if [ -f "$HOOKS" ]; then
     else
         fail "hooks.json is not valid JSON"
     fi
+    # All prompt hooks must have timeout >= 10 to avoid silent failures
+    min_timeout=$(node -e "
+      const h = JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+      const hooks = Object.values(h.hooks).flat().flatMap(g => g.hooks || []);
+      const prompts = hooks.filter(h => h.type === 'prompt' && h.timeout !== undefined);
+      console.log(Math.min(...prompts.map(h => h.timeout)));
+    " "$HOOKS" 2>/dev/null)
+    if [ -n "$min_timeout" ] && [ "$min_timeout" -ge 10 ]; then
+        pass "hooks.json: all prompt hooks have timeout >= 10s (min: ${min_timeout}s)"
+    else
+        fail "hooks.json: prompt hook timeout too low (min: ${min_timeout}s) — risk of silent failure"
+    fi
 else
     fail "hooks.json not found"
 fi

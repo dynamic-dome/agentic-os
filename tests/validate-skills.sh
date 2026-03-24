@@ -86,6 +86,18 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     fi
 done
 
+# skill-generator specific: must have English intent-style trigger phrases
+echo ""
+echo "-- skill-generator specific --"
+SG_FILE="$SKILLS_DIR/skill-generator/SKILL.md"
+if [ -f "$SG_FILE" ]; then
+    if grep -qi "keep doing\|keep repeating\|repetitive\|I keep\|automate this\|same thing" "$SG_FILE"; then
+        pass "skill-generator: has English intent triggers (e.g. 'I keep doing this')"
+    else
+        fail "skill-generator: missing English intent triggers — users won't say 'generate skill', they'll say 'I keep doing this'"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

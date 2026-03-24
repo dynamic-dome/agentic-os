@@ -9,7 +9,9 @@ description: >
   Trigger: "skill aus pattern erstellen", "generate skill",
   "workflow als skill speichern", "make this a skill", "Skill erstellen",
   "neuen Skill generieren", "create skill", "das mache ich staendig",
-  "diesen workflow automatisieren", "kann man das als skill speichern".
+  "diesen workflow automatisieren", "kann man das als skill speichern",
+  "I keep doing this", "I keep repeating this", "this is repetitive",
+  "can we automate this", "same thing over and over", "automate this workflow".
 user_invocable: true
 metadata:
   author: agentic-os

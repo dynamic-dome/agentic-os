@@ -30,7 +30,10 @@
       "Bash(python -c \"import json; d=json.load\\(open\\(''C:/Users/domes/.claude/settings.json''\\)\\); print\\(''Enabled:'', [k for k in d.get\\(''enabledPlugins'',{}\\) if ''agentic'' in k]\\); print\\(''Marketplaces:'', list\\(d.get\\(''extraKnownMarketplaces'',{}\\).keys\\(\\)\\)\\)\")",
       "Read(//c/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/$HOME/.claude/plugins/agentic-os/.claude-plugin/**)",
       "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/hooks/hooks.json\" \"$HOME/.claude/plugins/agentic-os/hooks/hooks.json\")",
-      "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/hooks/hooks.json\" \"$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/agentic-os/hooks/hooks.json\")"
+      "Bash(cp \"C:/Users/domes/Downloads/darts-agentic-os-complete/agentic-os-plugin/hooks/hooks.json\" \"$HOME/.claude/plugins/marketplaces/local-desktop-app-uploads/agentic-os/hooks/hooks.json\")",
+      "Bash(bash tests/run-all.sh)",
+      "Bash(bash tests/validate-skills.sh)",
+      "Bash(bash tests/validate-plugin.sh)"
     ]
   }
 }

@@ -32,7 +32,7 @@
           {
             "type": "prompt",
             "prompt": "Scan the user's prompt for intent signals. Do NOT act on these — only add a brief internal hint if relevant:\n\n- If the prompt describes completed work (e.g. 'fixed the bug', 'feature is done', 'refactored X') → hint: 'Consider logging this iteration with iteration-logger.'\n- If the prompt mentions a decision or tech choice (e.g. 'let's use Redis', 'switching to TypeScript') → hint: 'Consider recording this decision with context-keeper.'\n- If the prompt asks about recurring problems (e.g. 'why does this keep happening', 'same error again') → hint: 'Consider running pattern-extractor.'\n\nIf no signal is detected, return 'approve' silently. Never block or delay the user. This is advisory only.\n\nReturn 'approve'.",
-            "timeout": 5
+            "timeout": 10
           }
         ]
       }
