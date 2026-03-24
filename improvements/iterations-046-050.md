@@ -22,3 +22,23 @@
 
 ### Commit
 - Hash: e1ff900
+
+## Iteration 47 — 2026-03-24
+### Weaknesses Found
+1. [warning] init-command-notebook-registry-german — `commands/init.md` initializes `knowledge/notebook-registry.md` with a fully German template ("Zentrales Register", "Aktive Notebooks", "Stichwörter", etc.) and also appends a German "Knowledge Base" section to CLAUDE.md. The equivalent `session-start.sh` auto-init already uses English for this same file. Users who run `/init` manually get German content — inconsistent with the plugin's English language convention — fixed
+
+### Fixes Applied
+1. Translated the `notebook-registry.md` default template in `commands/init.md` (Step 4) from German to English, mirroring `session-start.sh`. Also translated the CLAUDE.md "Knowledge Base" section template (Step 7) from German to English. Added test 48 to `validate-plugin.sh`. — Files: `commands/init.md`, `tests/validate-plugin.sh`
+
+### Test Results
+- Plugin tests: 94/94 passed
+- Skill tests: 115/115 passed
+- Total: 209 passed
+
+### False Alarms: 0
+### Quality Score
+- Fixes/Findings ratio: 1/1 = 1.0
+- False alarm rate: 0%
+
+### Commit
+- Hash: TBD

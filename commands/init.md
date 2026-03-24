@@ -59,51 +59,22 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    ```markdown
    # NotebookLM Knowledge Base Registry
 
-   > Zentrales Register aller NotebookLM-Notebooks. Agents pruefen diese Datei
-   > bevor sie Wissensfragen beantworten. Siehe CLAUDE.md fuer den Workflow.
+   *No notebooks registered yet. Add entries here as you create NotebookLM knowledge bases.*
 
-   ## Aktive Notebooks
+   ## Active Notebooks
 
-   ### Claude Code Hooks & Context Injection Mastery
-   - **Thema:** Hooks-System, Context Injection, PreToolUse/PostToolUse Patterns
-   - **Staerken:** Tiefes Wissen ueber Claude Code Hook-Architektur und Context Injection
-   - **Stichwörter:** hooks, context injection, PreToolUse, PostToolUse, automation, prompt-based hooks
+   (none)
 
-   ### Geplante Aufgaben: Ideen, Best Practices & Kreative Ansaetze
-   - **Thema:** Scheduled Tasks, Cron-Jobs, zeitgesteuerte Automatisierung
-   - **Staerken:** Kreative Ideen und Best Practices fuer geplante Aufgaben
-   - **Stichwörter:** scheduled tasks, cron, automation, zeitgesteuert, timer
+   ## When to consult NotebookLM
+   - For expert knowledge on topics covered by a notebook
+   - When best practices or reference material is needed
+   - When uncertain about the right approach
+   - When comparing or summarizing multiple sources
 
-   ### Claude Code: Scheduled Tasks, Automation & Kreative Ideen
-   - **Thema:** Automation-Patterns, kreative Anwendungsfaelle fuer Claude Code
-   - **Staerken:** Praxisnahe Automations-Szenarien und kreative Workflows
-   - **Stichwörter:** automation, scheduled tasks, workflows, kreativ, use cases
-
-   ### Claude Code Docs (DE)
-   - **Thema:** Offizielle Claude Code Dokumentation auf Deutsch
-   - **Staerken:** Referenz fuer alle Claude Code Features, APIs, Konfiguration
-   - **Stichwörter:** claude code, dokumentation, referenz, features, API, settings, permissions
-
-   ### Claude Code: Workflows, Skills und Automatisierung mit KI-Agenten
-   - **Thema:** Skills-Entwicklung, Workflow-Design, Agenten-Orchestrierung
-   - **Staerken:** Best Practices fuer Skills, Plugins, Multi-Agent-Workflows
-   - **Stichwörter:** skills, workflows, plugins, agenten, orchestrierung, SKILL.md, plugin.json
-
-   ### Agentic AI & Self-Improving Workflows
-   - **Thema:** Selbstverbessernde KI-Systeme, Agentic Patterns, Lernschleifen
-   - **Staerken:** Fortgeschrittene Konzepte fuer autonome KI-Agenten
-   - **Stichwörter:** agentic AI, self-improving, learning loops, autonome agenten, feedback loops
-
-   ## Wann NotebookLM konsultieren?
-   - Bei Fragen zu Themen die in einem der Notebooks abgedeckt sind
-   - Bei Bedarf an Expertenwissen, Best Practices, Recherche-Ergebnissen
-   - Wenn mehrere Quellen verglichen oder zusammengefasst werden sollen
-   - Wenn der Agent unsicher ist und eine zweite Meinung aus gesammelten Quellen braucht
-
-   ## Registry aktualisieren
-   Nach dem Erstellen neuer Notebooks oder Hinzufuegen wichtiger Quellen:
-   1. Neuen Eintrag hier hinzufuegen (Name, Thema, Staerken, Stichwörter)
-   2. Bei grossen Aenderungen bestehende Eintraege aktualisieren
+   ## How to update this registry
+   After creating a new notebook or adding important sources:
+   1. Add a new entry here (name, topic, strengths, keywords)
+   2. Update existing entries when major changes are made
    ```
 
 5. **Create identity files:**
@@ -156,35 +127,35 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    Check if a `CLAUDE.md` exists in the project root. If not, create one. If it exists, check if it already has a "Knowledge Base" section. If not, append the following section:
 
    ```markdown
-   ## Knowledge Base (NotebookLM) — PFLICHT fuer alle Agents
+   ## Knowledge Base (NotebookLM) — Required for all Agents
 
-   Dieses Projekt verfuegt ueber eine kuratierte Wissensbasis in Google NotebookLM.
-   Die Registry unter `.agent-memory/knowledge/notebook-registry.md` listet alle
-   verfuegbaren Notebooks mit Themen und Stichwörtern.
+   This project has a curated knowledge base in Google NotebookLM.
+   The registry at `.agent-memory/knowledge/notebook-registry.md` lists all
+   available notebooks with their topics and keywords.
 
-   **WICHTIG — Anweisung fuer JEDEN Agent (Claude Code, Subagents, Scheduled Tasks):**
-   Du MUSST vor jeder Antwort auf Fachfragen die Registry pruefen.
-   Wenn ein passendes Notebook existiert, öffne NotebookLM im Browser um die Wissensbasis
-   zu befragen und baue das Ergebnis in deine Antwort ein.
-   Antworte NICHT aus dem Kopf wenn die Registry ein Notebook zum Thema hat.
+   **IMPORTANT — Instruction for EVERY Agent (Claude Code, Subagents, Scheduled Tasks):**
+   You MUST check the registry before answering expert questions.
+   If a matching notebook exists, open NotebookLM in the browser to query the knowledge base
+   and incorporate the result into your answer.
+   Do NOT answer from memory when the registry has a notebook on the topic.
 
-   **Wann NotebookLM konsultieren (PFLICHT):**
-   - Fachfragen zu Themen die in Notebooks abgedeckt sind
-   - Best Practices, Referenzmaterial oder Expertenwissen benoetigt
-   - Unsicherheit ueber die richtige Vorgehensweise bei Claude Code Features
-   - User fragt nach "Expertenwissen", "was sagen die Quellen", "recherchiere"
-   - Architekturentscheidungen die von gesammeltem Wissen profitieren
+   **When to consult NotebookLM:**
+   - Expert questions on topics covered by notebooks
+   - Best practices, reference material, or expert knowledge needed
+   - Uncertainty about the right approach for Claude Code features
+   - User asks for "expert knowledge", "what do the sources say", "research this"
+   - Architecture decisions that benefit from collected knowledge
 
-   **Wann NICHT konsultieren:**
-   - Reine Code-Aenderungen ohne Wissensbedarf
-   - Einfache Befehle wie "erstelle Datei X" oder "fix diesen Bug"
-   - Themen die kein Notebook in der Registry abdeckt
+   **When NOT to consult:**
+   - Pure code changes without knowledge requirements
+   - Simple commands like "create file X" or "fix this bug"
+   - Topics not covered by any notebook in the registry
 
    **Workflow:**
-   1. Registry lesen: `.agent-memory/knowledge/notebook-registry.md`
-   2. Passendes Notebook anhand der Stichwörter identifizieren
-   3. NotebookLM im Browser öffnen — Frage direkt stellen (Notebook-Name im Prompt nennen)
-   4. Ergebnis in die Antwort einbauen
+   1. Read registry: `.agent-memory/knowledge/notebook-registry.md`
+   2. Identify matching notebook by keywords
+   3. Open NotebookLM in browser — ask question directly (mention notebook name in prompt)
+   4. Incorporate result into the answer
    ```
 
 8. **Output summary:**

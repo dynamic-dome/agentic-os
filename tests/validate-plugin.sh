@@ -870,6 +870,26 @@ else
     fail "hooks.json not found"
 fi
 
+
+# 48. init command notebook-registry.md template must use English
+#     commands/init.md initializes knowledge/notebook-registry.md with a German
+#     template ("Zentrales Register", "Aktive Notebooks", "Stichwörter", etc.).
+#     session-start.sh already uses English for the same file. When users run
+#     /init manually, they get German content — inconsistent with the plugin's
+#     English language convention applied everywhere else.
+echo ""
+echo "-- init command notebook-registry.md template language consistency --"
+INIT_CMD="$PLUGIN_ROOT/commands/init.md"
+if [ -f "$INIT_CMD" ]; then
+    if grep -q "Zentrales Register\|Aktive Notebooks\|Stichwörter\|aktualisieren\|Wann NotebookLM\|Thema:\|Staerken:" "$INIT_CMD"; then
+        fail "init: notebook-registry.md template contains German strings — must use English for language consistency (cf. session-start.sh uses English)"
+    else
+        pass "init: notebook-registry.md template uses English (no German placeholder strings)"
+    fi
+else
+    fail "init: commands/init.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
