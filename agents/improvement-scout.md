@@ -79,10 +79,30 @@ Scanned: {n} errors, {n} patterns, {n} reviews, {n} test results
 Memory health: {Good|Warning|Critical}
 ```
 
+## Plugin Audit Mode
+
+When called with a plugin path (e.g. by `self-improve` orchestrator), also scan the plugin structure:
+
+**Plugin files to check:**
+- `skills/*/SKILL.md` — verify frontmatter, description length, trigger keywords, steps section
+- `agents/*.md` — verify frontmatter (name, description, model), output format clarity
+- `hooks/hooks.json` — verify all prompt hooks have timeout >= 10s
+- `plugin.json` — verify required fields (name, version, description)
+- `skills/DEPENDENCIES.md` — verify all skill directories are listed
+
+**Plugin-specific findings to report:**
+- Skills missing required sections (frontmatter, description, steps)
+- Agents with vague or missing output format specification
+- Hooks without sufficient timeout
+- Skills listed in DEPENDENCIES.md but missing from filesystem (or vice versa)
+- Agents whose scope doesn't match how they're called by other skills
+
+Add plugin findings to the ranked report using the same format (HIGH/MEDIUM/LOW).
+
 ## Rules
 
-- Only suggest improvements backed by data from `.agent-memory/`
-- Never fabricate issues — if memory is empty, say "Not enough data yet"
+- Only suggest improvements backed by data from `.agent-memory/` or plugin file analysis
+- Never fabricate issues — if memory is empty and plugin looks good, say "Not enough data yet"
 - Rank by impact: recurring errors > quality decline > stale context > nice-to-haves
 - Keep suggestions actionable — link to specific skills that can help
 - If everything looks good, say so: "No critical improvements found. Keep going!"

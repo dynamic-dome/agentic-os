@@ -1,7 +1,7 @@
 {
-  "iteration": 3,
-  "last_run": "2026-03-24T21:00:00Z",
-  "total_fixes": 6,
+  "iteration": 4,
+  "last_run": "2026-03-24T22:00:00Z",
+  "total_fixes": 8,
   "history": [
     {
       "iteration": 1,
@@ -26,6 +26,14 @@
       "weaknesses": ["skill-generator-missing-duplicate-check"],
       "tests_before": 134,
       "tests_after": 135
+    },
+    {
+      "iteration": 4,
+      "fixes": 2,
+      "date": "2026-03-24",
+      "weaknesses": ["context-detective-output-underspecified", "improvement-scout-scope-mismatch"],
+      "tests_before": 135,
+      "tests_after": 137
     }
   ]
 }

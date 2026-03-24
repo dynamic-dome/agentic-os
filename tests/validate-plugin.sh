@@ -205,6 +205,35 @@ else
     fail "skill-generator: SKILL.md not found"
 fi
 
+
+# 11. context-detective has concrete output template
+echo ""
+echo "-- context-detective output template --"
+CD_AGENT="$PLUGIN_ROOT/agents/context-detective.md"
+if [ -f "$CD_AGENT" ]; then
+    if grep -q "# Project:" "$CD_AGENT" || grep -q "project-context.md" "$CD_AGENT" && grep -q "\`\`\`" "$CD_AGENT"; then
+        pass "context-detective: has concrete output template"
+    else
+        fail "context-detective: missing concrete output template — agents produce inconsistent context files"
+    fi
+else
+    fail "context-detective: agent file not found"
+fi
+
+# 12. improvement-scout can handle plugin audit (not just .agent-memory/)
+echo ""
+echo "-- improvement-scout plugin audit scope --"
+IS_AGENT="$PLUGIN_ROOT/agents/improvement-scout.md"
+if [ -f "$IS_AGENT" ]; then
+    if grep -qi "plugin\|skills/\|hooks.json\|SKILL.md" "$IS_AGENT"; then
+        pass "improvement-scout: supports plugin structure audit"
+    else
+        fail "improvement-scout: only scans .agent-memory/ — cannot audit plugin structure when called by self-improve"
+    fi
+else
+    fail "improvement-scout: agent file not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

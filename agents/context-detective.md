@@ -49,11 +49,41 @@ You are the Context Detective. Your job is to analyze a repository and produce a
 
 ## Output Format
 
-Write `project-context.md` with:
-- Project name and one-line description
-- Tech stack table
-- Architecture summary
-- Known constraints
-- Detected file structure (abbreviated)
+Write `.agent-memory/context/project-context.md` using this exact template:
+
+```markdown
+# Project: {name}
+
+> {one-line description}
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | {e.g. TypeScript 5.x} |
+| Framework | {e.g. React 18} |
+| Testing | {e.g. Jest, Vitest} |
+| Build | {e.g. Vite, tsc} |
+
+## Architecture
+
+{2-4 sentences describing the overall structure: monolith/monorepo/microservices, key modules, data flow}
+
+## Known Constraints
+
+- {constraint 1, e.g. "No external API calls in tests"}
+- {constraint 2, e.g. "Must support Node 18+"}
+
+## File Structure (abbreviated)
+
+{top-level dirs only, e.g. src/, tests/, docs/}
+```
+
+## Error Handling
+
+- If no manifest file found: use directory structure and README as primary sources; note "manifest: none detected" in Tech Stack
+- If `.agent-memory/context/` directory does not exist: create it before writing
+- If existing `project-context.md` is present: preserve existing entries, only add missing fields
+- Minimum acceptable output: project name + at least one tech stack entry
 
 Return the detected context summary to the calling agent.
