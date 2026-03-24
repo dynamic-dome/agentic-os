@@ -41,12 +41,12 @@ This skill is triggered by the scheduled self-improvement task or manually when 
 2. Launch the `improvement-scout` agent with this prompt:
    > Analyze the agentic-os plugin at ${CLAUDE_PLUGIN_ROOT}. Read all skills, agents, hooks, commands, and plugin.json. Compare against Claude Code plugin best practices. Find exactly 1-3 concrete weaknesses ranked by impact. SKIP any weakness whose name or category already appears in this previously-fixed list: {dedup_list_from_state_json_history}. For each new weakness provide: description, affected files, severity (critical/warning/suggestion), and a proposed fix approach. Return as structured list.
 
-2. **Feedback check**: Launch `quality-gate` agent to validate the analysis:
+3. **Feedback check**: Launch `quality-gate` agent to validate the analysis:
    > Review the weakness analysis. Are the identified issues real? Are they actionable? Is the severity rating accurate? Return APPROVE or REJECT with reasoning.
 
-3. If REJECTED: Re-run improvement-scout with adjusted focus. Max 2 retries.
+4. If REJECTED: Re-run improvement-scout with adjusted focus. Max 2 retries.
 
-4. Write analysis to iteration MD file:
+5. Write analysis to iteration MD file:
    ```markdown
    ## Iteration {next} — {YYYY-MM-DD HH:MM}
 

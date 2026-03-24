@@ -498,6 +498,27 @@ else
     fail "improvement-scout: agent file not found"
 fi
 
+
+# 27. self-improve SKILL.md Step 2 must not have duplicate step numbers.
+#     Duplicate numbering (two items labeled "2.") makes the procedure ambiguous —
+#     agents may skip or repeat the feedback-check step.
+echo ""
+echo "-- self-improve step 2 no duplicate numbering --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    # Extract the Step 2 section and count how many lines start with "2. "
+    # A correct numbered list has each number appear exactly once
+    STEP2_SECTION=$(awk '/^### Step 2:/,/^### Step [^2]:/' "$SI_SKILL")
+    DUP_COUNT=$(echo "$STEP2_SECTION" | grep -cE "^[[:space:]]*2\. ")
+    if [ "$DUP_COUNT" -le 1 ]; then
+        pass "self-improve: Step 2 has no duplicate step numbers"
+    else
+        fail "self-improve: Step 2 has $DUP_COUNT items numbered '2.' — duplicate numbering makes procedure ambiguous; renumber the feedback-check and subsequent steps"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
