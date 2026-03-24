@@ -5,9 +5,9 @@ description: |
   regressions (tests that passed before but fail now), flaky tests, and missing
   coverage. Use after finishing a feature or bugfix to make sure nothing broke,
   or periodically to track test health trends over time.
-  Trigger: "tests laufen lassen", "validate", "test results", "regression check",
-  "run tests", "check tests", "Tests ausfuehren", "ist was kaputt gegangen",
-  "funktioniert noch alles", "hab ich was kaputt gemacht".
+  Trigger: "validate", "test results", "regression check", "run tests",
+  "check tests", "did I break anything", "is everything still working",
+  "check for regressions", "run the test suite", "any tests failing".
 
   <example>
   Context: User finished a refactoring and wants to check for regressions

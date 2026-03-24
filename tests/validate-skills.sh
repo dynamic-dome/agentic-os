@@ -116,6 +116,16 @@ if [ -f "$TV_FILE" ]; then
 fi
 
 echo ""
+echo "-- test-validator trigger language consistency --"
+if [ -f "$TV_FILE" ]; then
+    if grep -qE "laufen lassen|ausfuehren|kaputt gemacht|funktioniert noch|ist was kaputt" "$TV_FILE"; then
+        fail "test-validator: description trigger phrases contain German — all triggers must use English for correct auto-triggering"
+    else
+        pass "test-validator: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
 echo "-- code-reviewer language consistency --"
 CR_FILE="$SKILLS_DIR/code-reviewer/SKILL.md"
 if [ -f "$CR_FILE" ]; then
