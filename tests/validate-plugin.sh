@@ -838,6 +838,38 @@ else
     fail "context-detective.md not found"
 fi
 
+
+# 46. hooks.json SessionEnd prompt must use English, not German
+#     SessionEnd hook prompt uses German section headers: "Was wurde gemacht",
+#     "Offene Punkte", "Naechste Schritte". All hook prompts should be in English.
+echo ""
+echo "-- hooks.json SessionEnd prompt language consistency --"
+HOOKS_FILE="$PLUGIN_ROOT/hooks/hooks.json"
+if [ -f "$HOOKS_FILE" ]; then
+    if grep -A20 '"SessionEnd"' "$HOOKS_FILE" | grep -q "Was wurde gemacht\|Offene Punkte\|Naechste Schritte"; then
+        fail "hooks.json SessionEnd: prompt uses German headers (e.g. 'Was wurde gemacht', 'Offene Punkte', 'Naechste Schritte') — should use English"
+    else
+        pass "hooks.json SessionEnd: prompt uses English (no German headers)"
+    fi
+else
+    fail "hooks.json not found"
+fi
+
+# 47. hooks.json SubagentStop prompt must use English, not German
+#     SubagentStop hook prompts user with German question: "Soll ich diese
+#     Aenderungen committen?" — should be English for plugin language consistency.
+echo ""
+echo "-- hooks.json SubagentStop prompt language consistency --"
+if [ -f "$HOOKS_FILE" ]; then
+    if grep -A10 '"SubagentStop"' "$HOOKS_FILE" | grep -q "Soll ich\|Aenderungen\|committen\|Vorgeschlagene"; then
+        fail "hooks.json SubagentStop: prompt uses German dialog (e.g. 'Soll ich diese Aenderungen committen?') — should use English"
+    else
+        pass "hooks.json SubagentStop: prompt uses English (no German dialog)"
+    fi
+else
+    fail "hooks.json not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
