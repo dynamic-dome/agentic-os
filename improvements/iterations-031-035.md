@@ -1,3 +1,28 @@
+## Iteration 33 — 2026-03-24
+### Weaknesses Found
+1. [warning] dependencies-md-stale-batch-placeholder — `DEPENDENCIES.md` used the old `{batch}.md` placeholder (lines 49, 77) for self-improve output paths; the correct format is `{batch_start:03d}-{batch_end:03d}.md` as defined in self-improve SKILL.md — fixed
+2. [warning] dependencies-md-context-detective-claim — `DEPENDENCIES.md` claimed context-detective is called by `/agentic-os:init` but init.md does auto-detection inline without invoking the agent; misleading for developers reading the dependency map — fixed
+
+### Fixes Applied
+1. Updated `skills/DEPENDENCIES.md` lines 49 and 77: `iterations-{batch}.md` → `iterations-{batch_start:03d}-{batch_end:03d}.md` — Files: skills/DEPENDENCIES.md
+2. Updated `skills/DEPENDENCIES.md` line 83: clarified context-detective is optional/advanced use, not the default init path — Files: skills/DEPENDENCIES.md
+3. Added test #41 to `tests/validate-plugin.sh`: verifies DEPENDENCIES.md uses correct batch filename placeholder — Files: tests/validate-plugin.sh
+
+### Test Results
+- Plugin tests: 87/87 passed
+- Skill tests: 100/100 passed
+- Total: 187 passed
+
+### False Alarms: 1
+- `session-bootstrap` health check remediation mapping — the file already had `/agentic-os:init` suggestions in Error Handling section; initial read of generic line 68 was misleading but the file was actually adequate
+
+### Quality Score
+- Fixes/Findings ratio: 2/2 = 100%
+- False alarm rate: 33% (1 false alarm out of 3 total findings examined)
+
+### Commit
+- Hash: TBD
+
 ## Iteration 32 — 2026-03-24
 ### Weaknesses Found
 1. [warning] plugin-json-skill-count-stale — `.claude-plugin/plugin.json` description claimed "10 skills" but the plugin has 11 skill directories (tdd was added) — fixed

@@ -46,7 +46,7 @@ WORK PHASE (user-driven, no auto-triggers)
         ├── calls: improvement-scout (analysis)
         ├── calls: fix-reviewer (validation)
         ├── calls: quality-gate (code checks)
-        └── writes: improvements/iterations-{batch}.md, state.json
+        └── writes: improvements/iterations-{batch_start:03d}-{batch_end:03d}.md, state.json
   │
   ▼
 SESSION END (Stop hook)
@@ -74,13 +74,13 @@ SESSION END (Stop hook)
 | wrap-up | iteration-log.md, errors.json | session-summary.md, learnings.md, user.md |
 | sync-context | local patterns, global patterns | local patterns, global patterns |
 | tdd | — | — |
-| self-improve | improvements/state.json, DEPENDENCIES.md | improvements/iterations-{batch}.md, state.json |
+| self-improve | improvements/state.json, DEPENDENCIES.md | improvements/iterations-{batch_start:03d}-{batch_end:03d}.md, state.json |
 
 ## Agents
 
 | Agent | Used By | Purpose |
 |-------|---------|---------|
-| context-detective | /agentic-os:init | Auto-detect project stack from manifests |
+| context-detective | /agentic-os:init (optional, advanced use) | Auto-detect project stack from manifests (init.md does this inline by default) |
 | quality-gate | pre-commit, manual, self-improve | Combined code review + test validation |
 | improvement-scout | self-improve | Analyze plugin for actionable improvements |
 | fix-reviewer | self-improve | Validate proposed fixes before implementation |

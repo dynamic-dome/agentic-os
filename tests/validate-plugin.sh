@@ -741,6 +741,26 @@ else
 fi
 
 
+
+# 41. DEPENDENCIES.md must use the correct batch filename placeholder for self-improve output.
+#     iterations-{batch}.md is the old/wrong format. The correct format (as defined in
+#     self-improve SKILL.md) is iterations-{batch_start:03d}-{batch_end:03d}.md.
+#     Stale DEPENDENCIES.md misleads developers and agents about where iteration docs are stored.
+echo ""
+echo "-- DEPENDENCIES.md self-improve batch filename accuracy --"
+DEPS="$PLUGIN_ROOT/skills/DEPENDENCIES.md"
+if [ -f "$DEPS" ]; then
+    # The bare {batch}.md pattern (without batch_start/batch_end) should not appear
+    if grep -qE "iterations-\{batch\}\.md" "$DEPS"; then
+        fail "DEPENDENCIES.md: self-improve output path uses stale '{batch}.md' placeholder — should be '{batch_start:03d}-{batch_end:03d}.md' to match actual file naming"
+    else
+        pass "DEPENDENCIES.md: self-improve batch filename placeholder is accurate (no stale '{batch}.md')"
+    fi
+else
+    fail "DEPENDENCIES.md not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
