@@ -1,0 +1,38 @@
+[
+  {
+    "id": "err-001",
+    "date": "2026-03-24",
+    "category": "bash-compatibility",
+    "tags": ["bash", "windows", "set-e", "arithmetic"],
+    "description": "Bash test scripts failed silently on Windows/Git Bash due to set -e combined with ((TESTS++)) which returns exit code 1 when incrementing from 0",
+    "root_cause": "In bash, ((expr)) returns exit code 1 when result is 0. ((0++)) evaluates to 0 before increment, triggering set -e",
+    "solution": "Replaced ((VAR++)) with VAR=$((VAR + 1)) and removed set -euo pipefail",
+    "failed_approaches": [],
+    "confidence": 0.9,
+    "severity": "warning"
+  },
+  {
+    "id": "err-002",
+    "date": "2026-03-24",
+    "category": "path-handling",
+    "tags": ["windows", "node", "paths", "spaces"],
+    "description": "Node.js JSON parsing failed when file paths contained spaces (OneDrive/Desktop)",
+    "root_cause": "String interpolation in node -e put unquoted paths with spaces into JS code",
+    "solution": "Used process.argv[1] instead of string interpolation: node -e '...' \"$filepath\"",
+    "failed_approaches": ["python3 fallback (same issue)"],
+    "confidence": 0.9,
+    "severity": "warning"
+  },
+  {
+    "id": "err-003",
+    "date": "2026-03-24",
+    "category": "yaml-parsing",
+    "tags": ["yaml", "multiline", "frontmatter", "description"],
+    "description": "Skill description length check measured 2 chars for multiline YAML descriptions (| syntax)",
+    "root_cause": "grep '^description:' only captures the line with '|', not the actual content on following lines",
+    "solution": "Added detection for | and > YAML multiline indicators, then used sed to extract content between description: and next frontmatter key",
+    "failed_approaches": ["Matching '\"$' as multiline indicator (matched inline quoted strings too)"],
+    "confidence": 0.8,
+    "severity": "suggestion"
+  }
+]

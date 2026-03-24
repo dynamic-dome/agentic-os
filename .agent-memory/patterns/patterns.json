@@ -1,0 +1,16 @@
+[
+  {
+    "id": "pattern-001",
+    "type": "anti-pattern",
+    "title": "Windows/Git Bash path and shell compatibility",
+    "description": "Shell scripts fail on Windows/Git Bash due to: (1) set -e + arithmetic, (2) paths with spaces in string interpolation, (3) git pathspec syntax differences",
+    "occurrences": 3,
+    "confidence": 0.7,
+    "tags": ["bash", "windows", "paths", "compatibility"],
+    "error_ids": ["err-001", "err-002", "err-003"],
+    "prevention": "Always use $((VAR + 1)) instead of ((VAR++)), pass file paths via process.argv not interpolation, test scripts on Windows before committing",
+    "skill_candidate": false,
+    "first_seen": "2026-03-24",
+    "last_seen": "2026-03-24"
+  }
+]
