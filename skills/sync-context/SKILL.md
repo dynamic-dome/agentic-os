@@ -112,6 +112,22 @@ Cross-Project Sync Complete:
   Conflicts: {n} (resolved by higher confidence)
 ```
 
+## Examples
+
+### Example 1: Pull patterns from another project
+User: "sync memory from project-alpha"
+1. Discovery shows: "project-alpha (15 patterns, stack: python/fastapi)"
+2. Stack-match filter: 8 of 15 patterns match current stack
+3. Confidence filter: 6 of 8 above threshold (0.5)
+4. Result: "Pulled 6 patterns from project-alpha"
+
+### Example 2: Push learnings globally
+User: "push learnings to global"
+1. Reads local patterns.json: 12 patterns total
+2. Confidence filter: 9 of 12 above push threshold (0.6)
+3. Dedup: 2 already exist globally
+4. Result: "Pushed 7 new patterns to global store"
+
 ## What NOT to Do
 
 - Do NOT auto-trigger this skill from hooks or other skills

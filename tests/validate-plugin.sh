@@ -94,6 +94,17 @@ for agent_file in "$PLUGIN_ROOT/agents"/*.md; do
     fi
 done
 
+# 4b. Reviewer agents must have plugin-specific rules
+for agent_file in "$PLUGIN_ROOT/agents"/*reviewer*.md "$PLUGIN_ROOT/agents"/*gate*.md; do
+    [ -f "$agent_file" ] || continue
+    aname=$(basename "$agent_file")
+    if grep -qi "hook\|skill.*dependenc\|plugin-specific\|tdd\|circular" "$agent_file"; then
+        pass "$aname has plugin-specific review rules"
+    else
+        fail "$aname missing plugin-specific review rules"
+    fi
+done
+
 # 5. Command frontmatter
 echo ""
 echo "-- Command frontmatter --"
@@ -119,6 +130,24 @@ if [ -f "$STATE" ]; then
     fi
 else
     echo "  SKIP: improvements/state.json not yet created"
+fi
+
+# 7. All skills referenced in DEPENDENCIES.md
+echo ""
+echo "-- DEPENDENCIES.md completeness --"
+DEPS="$PLUGIN_ROOT/skills/DEPENDENCIES.md"
+if [ -f "$DEPS" ]; then
+    for skill_dir in "$PLUGIN_ROOT/skills"/*/; do
+        [ -d "$skill_dir" ] || continue
+        sname=$(basename "$skill_dir")
+        if grep -q "$sname" "$DEPS"; then
+            pass "$sname documented in DEPENDENCIES.md"
+        else
+            fail "$sname missing from DEPENDENCIES.md"
+        fi
+    done
+else
+    echo "  SKIP: DEPENDENCIES.md not found"
 fi
 
 echo ""

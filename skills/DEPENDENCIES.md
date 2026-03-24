@@ -39,8 +39,14 @@ WORK PHASE (user-driven, no auto-triggers)
   ├── tdd (on feature/bugfix work)
   │     └── (no memory writes — uses test runner directly)
   │
-  └── sync-context (manual only, on explicit request)
-        └── reads/writes: local patterns ↔ global patterns
+  ├── sync-context (manual only, on explicit request)
+  │     └── reads/writes: local patterns ↔ global patterns
+  │
+  └── self-improve (scheduled/manual, orchestrates improvement loop)
+        ├── calls: improvement-scout (analysis)
+        ├── calls: fix-reviewer (validation)
+        ├── calls: quality-gate (code checks)
+        └── writes: improvements/iterations-{batch}.md, state.json
   │
   ▼
 SESSION END (Stop hook)
@@ -68,18 +74,22 @@ SESSION END (Stop hook)
 | wrap-up | iteration-log.md, errors.json | session-summary.md, learnings.md, user.md |
 | sync-context | local patterns, global patterns | local patterns, global patterns |
 | tdd | — | — |
+| self-improve | improvements/state.json, DEPENDENCIES.md | improvements/iterations-{batch}.md, state.json |
 
 ## Agents
 
 | Agent | Used By | Purpose |
 |-------|---------|---------|
 | context-detective | /agentic-os:init | Auto-detect project stack from manifests |
-| quality-gate | pre-commit, manual | Combined code review + test validation |
+| quality-gate | pre-commit, manual, self-improve | Combined code review + test validation |
+| improvement-scout | self-improve | Analyze plugin for actionable improvements |
+| fix-reviewer | self-improve | Validate proposed fixes before implementation |
 
 ## Key Design Principles
 
 1. **No circular dependencies** — DAG only
 2. **No auto-triggers on code changes** — user/CLAUDE.md driven
 3. **session-bootstrap is read-only** — never writes during startup
-4. **wrap-up is the only skill that calls other skills** (pattern-extractor)
+4. **wrap-up and self-improve are the only skills that call other skills/agents**
 5. **sync-context is manual-only** — no auto-sync
+6. **self-improve calls agents, not skills** — avoids skill-level circular deps

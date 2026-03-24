@@ -98,3 +98,12 @@ Write results to `.agent-memory/quality/`:
 - Update `quality-score.json` with new scores and trend
 
 Return the verdict to the calling context.
+
+### Plugin-Specific Checks
+
+When reviewing agentic-os plugin files specifically:
+
+- **Hooks**: Verify hook timeouts are reasonable (5-30s), matcher patterns don't overlap
+- **Skills**: Check DEPENDENCIES.md for circular dependency risks before approving skill changes
+- **TDD tests**: Ensure tests in `tests/` are idempotent (no state leaking between runs)
+- **Agents**: Verify allowed_tools in frontmatter match what the agent prompt actually uses
