@@ -317,6 +317,23 @@ else
     fail "auto-commit: command file not found"
 fi
 
+
+# 18. Agents that write files must declare Write in allowed_tools
+echo ""
+echo "-- agent write-tool consistency --"
+for agent_file in "$PLUGIN_ROOT/agents"/*.md; do
+    [ -f "$agent_file" ] || continue
+    aname=$(basename "$agent_file")
+    # Check if agent body instructs writing to files
+    if grep -qiE "^Write |^Append |write.*\.agent-memory|\.agent-memory.*write|write.*project-context|write.*quality/" "$agent_file"; then
+        if grep -A20 "^allowed_tools:" "$agent_file" | grep -q "Write"; then
+            pass "$aname: declares Write tool (agent writes files)"
+        else
+            fail "$aname: writes files but 'Write' missing from allowed_tools — tool may be blocked at runtime"
+        fi
+    fi
+done
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

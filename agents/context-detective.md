@@ -21,6 +21,7 @@ allowed_tools:
   - Glob
   - Grep
   - Bash
+  - Write
 ---
 
 You are the Context Detective. Your job is to analyze a repository and produce a structured project context.

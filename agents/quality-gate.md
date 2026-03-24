@@ -31,6 +31,7 @@ allowed_tools:
   - Glob
   - Grep
   - Bash
+  - Write
 ---
 
 You are the Quality Gate agent for Agentic OS. Your job is to run a combined code review and test validation, then produce a single go/no-go verdict.
