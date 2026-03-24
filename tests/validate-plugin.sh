@@ -353,6 +353,23 @@ else
     fail "hooks.json not found"
 fi
 
+
+# 20. self-improve SKILL.md state.json history entry template must include
+#     the extended tracking fields added since iteration 5
+#     (false_alarm_count, quality_score, tests_plugin, tests_skill)
+echo ""
+echo "-- self-improve state history entry completeness --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    if grep -q "false_alarm_count" "$SI_SKILL" && grep -q "quality_score" "$SI_SKILL" && grep -q "tests_plugin" "$SI_SKILL"; then
+        pass "self-improve: state.json history entry template includes extended tracking fields"
+    else
+        fail "self-improve: state.json history entry template missing extended fields (false_alarm_count, quality_score, tests_plugin, tests_skill) — agents following this template produce incomplete history entries"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

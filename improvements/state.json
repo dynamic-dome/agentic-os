@@ -1,7 +1,7 @@
 {
-  "iteration": 11,
+  "iteration": 12,
   "last_run": "2026-03-24T23:59:00Z",
-  "total_fixes": 16,
+  "total_fixes": 17,
   "history": [
     {
       "iteration": 1,
@@ -117,6 +117,18 @@
       "tests_before": 152,
       "tests_after": 153,
       "tests_plugin": 64,
+      "tests_skill": 89
+    },
+    {
+      "iteration": 12,
+      "fixes": 1,
+      "date": "2026-03-24",
+      "weaknesses": ["self-improve-state-history-incomplete-fields"],
+      "false_alarm_count": 1,
+      "quality_score": 0.5,
+      "tests_before": 153,
+      "tests_after": 154,
+      "tests_plugin": 65,
       "tests_skill": 89
     }
   ]

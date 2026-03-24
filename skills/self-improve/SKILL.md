@@ -122,7 +122,16 @@ For each APPROVED fix:
      "iteration": {next},
      "last_run": "{ISO_timestamp}",
      "total_fixes": {previous + fixes_applied},
-     "history": [...previous, {"iteration": {next}, "fixes": {count}, "date": "{date}"}]
+     "history": [...previous, {
+       "iteration": {next},
+       "fixes": {count},
+       "date": "{date}",
+       "weaknesses": ["{weakness_name_1}", "..."],
+       "false_alarm_count": {n},
+       "quality_score": {fixes / total_findings},
+       "tests_plugin": {plugin_passed},
+       "tests_skill": {skill_passed}
+     }]
    }
    ```
 
