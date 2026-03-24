@@ -637,6 +637,27 @@ else
 fi
 
 
+
+# 36. skill-generator template must include user_invocable field
+#     All user-facing skills in this plugin have user_invocable: true in their frontmatter.
+#     The skill-generator template is what agents use to generate new skills — if the
+#     template is missing user_invocable, every generated skill will lack this field,
+#     making them appear non-invocable (or rely on defaults that may differ by runtime).
+echo ""
+echo "-- skill-generator template user_invocable field --"
+SG_SKILL="$PLUGIN_ROOT/skills/skill-generator/SKILL.md"
+if [ -f "$SG_SKILL" ]; then
+    if grep -qA5 "^name: <skill-name>" "$SG_SKILL" | grep -q "user_invocable" 2>/dev/null || \
+       awk '/^```markdown/{p=1} p && /user_invocable/{found=1} /^```$/{p=0} END{exit !found}' "$SG_SKILL"; then
+        pass "skill-generator: generated SKILL.md template includes 'user_invocable' field"
+    else
+        fail "skill-generator: generated SKILL.md template missing 'user_invocable' field — generated skills will lack invocability declaration"
+    fi
+else
+    fail "skill-generator: SKILL.md not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

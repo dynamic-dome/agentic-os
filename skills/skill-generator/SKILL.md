@@ -66,6 +66,7 @@ Create the file using this template:
 name: <skill-name>
 description: >
   <Description with trigger words for when the skill should be used>
+user_invocable: true
 ---
 
 # <Skill Title>
