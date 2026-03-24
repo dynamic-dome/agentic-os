@@ -317,6 +317,40 @@ else
     echo "  SKIP: hooks.json not found"
 fi
 
+# 18.5. Stop hook must defer iteration-log writes to iteration-logger skill
+echo ""
+echo "-- Stop hook iteration-log deduplication --"
+if [ -f "$HOOKS" ]; then
+    stop_prompt=$(node -e "
+      const h = JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+      const sHooks = (h.hooks.Stop || []).flatMap(g => g.hooks || []);
+      const prompts = sHooks.filter(h => h.type === 'prompt').map(h => h.prompt).join(' ');
+      console.log(prompts);
+    " "$HOOKS" 2>/dev/null)
+    if echo "$stop_prompt" | grep -qi "iteration-logger\|already logged\|defer.*iteration\|skip.*if.*logged"; then
+        pass "Stop hook: defers to iteration-logger to avoid duplicate log entries"
+    else
+        fail "Stop hook: writes to iteration-log.md without checking if iteration-logger already logged — duplicate entries risk"
+    fi
+else
+    echo "  SKIP: hooks.json not found"
+fi
+
+# 18.6. All skills must have 'name' field in frontmatter
+echo ""
+echo "-- Skill name field --"
+for skill_dir in "$PLUGIN_ROOT/skills"/*/; do
+    [ -d "$skill_dir" ] || continue
+    sname=$(basename "$skill_dir")
+    skill_file="$skill_dir/SKILL.md"
+    [ -f "$skill_file" ] || continue
+    if grep -q "^name:" "$skill_file"; then
+        pass "$sname: has 'name' in frontmatter"
+    else
+        fail "$sname: missing 'name' in frontmatter — inconsistent skill identification"
+    fi
+done
+
 # 18. SubagentStop hook must not attempt interactive user prompts (hooks cannot block for input)
 echo ""
 echo "-- SubagentStop hook no interactive blocking --"

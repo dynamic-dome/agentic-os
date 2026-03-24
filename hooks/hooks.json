@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "You are the Agentic OS Stop hook (lightweight). Check if `.agent-memory/` exists. If not, return 'approve' immediately.\n\nIf it exists and meaningful code changes were made this turn:\n1. Append a brief iteration entry to `.agent-memory/iterations/iteration-log.md` (date, type, 1-line summary).\n2. If errors occurred, append to `.agent-memory/iterations/errors.json`.\n\nDo NOT update session-summary.md here — that is handled by SessionEnd.\nDo NOT trigger pattern-extractor — that is handled by wrap-up skill.\n\nReturn 'approve'.",
+            "prompt": "You are the Agentic OS Stop hook (lightweight). Check if `.agent-memory/` exists. If not, return 'approve' immediately.\n\nIf it exists and meaningful code changes were made this turn:\n1. Check if iteration-logger already logged this work (look for a recent entry in `.agent-memory/iterations/iteration-log.md` matching today's date and the current changes). If iteration-logger already logged it, skip the log write to avoid duplicate entries.\n2. Only if NOT already logged: append a brief iteration entry to `.agent-memory/iterations/iteration-log.md` (date, type, 1-line summary).\n3. If errors occurred, append to `.agent-memory/iterations/errors.json`.\n\nDo NOT update session-summary.md here — that is handled by SessionEnd.\nDo NOT trigger pattern-extractor — that is handled by wrap-up skill.\n\nReturn 'approve'.",
             "timeout": 15
           }
         ]
