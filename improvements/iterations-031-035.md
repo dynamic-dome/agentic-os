@@ -1,3 +1,27 @@
+## Iteration 34 — 2026-03-24
+### Weaknesses Found
+1. [warning] status-command-missing-code-reviews-count — `commands/status.md` statistics section listed iterations, patterns, errors, and decisions but omitted code reviews from `quality/code-reviews.json`, leaving users blind to how many reviews were logged — fixed
+2. [warning] code-reviewer-phantom-plugin-setting — `skills/code-reviewer/SKILL.md` log-rotation step claimed the 100-entry limit was "konfigurierbar via Plugin-Setting `max_review_entries`" but `plugin.json` has no settings block; this is a false affordance that misleads users — fixed
+
+### Fixes Applied
+1. Added "Total code reviews (count in `quality/code-reviews.json`)" to statistics section in `commands/status.md` — Files: commands/status.md
+2. Removed parenthetical phantom plugin-setting claim from log-rotation step in `skills/code-reviewer/SKILL.md` — Files: skills/code-reviewer/SKILL.md
+3. Added tests #42 and #43 to `tests/validate-plugin.sh` to catch both regressions — Files: tests/validate-plugin.sh
+
+### Test Results
+- Plugin tests: 89/89 passed
+- Skill tests: 100/100 passed
+- Total: 189 passed
+
+### False Alarms: 0
+
+### Quality Score
+- Fixes/Findings ratio: 2/2 = 100%
+- False alarm rate: 0%
+
+### Commit
+- Hash: TBD
+
 ## Iteration 33 — 2026-03-24
 ### Weaknesses Found
 1. [warning] dependencies-md-stale-batch-placeholder — `DEPENDENCIES.md` used the old `{batch}.md` placeholder (lines 49, 77) for self-improve output paths; the correct format is `{batch_start:03d}-{batch_end:03d}.md` as defined in self-improve SKILL.md — fixed

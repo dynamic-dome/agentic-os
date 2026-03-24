@@ -145,6 +145,6 @@ Falls neues wiederkehrendes Issue → markiere als Pattern-Kandidat.
 
 ### Schritt 8: Log-Rotation
 
-Wenn `code-reviews.json` mehr als 100 Eintraege enthaelt (konfigurierbar via Plugin-Setting `max_review_entries`):
+Wenn `code-reviews.json` mehr als 100 Eintraege enthaelt:
 - Behalte die neuesten 100 Eintraege
 - Archiviere aeltere in `code-reviews-archive-<YYYY-MM>.json` im selben Verzeichnis

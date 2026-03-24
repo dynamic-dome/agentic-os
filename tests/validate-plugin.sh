@@ -761,6 +761,44 @@ else
 fi
 
 
+
+# 42. status command must show code-reviews count in statistics
+#     The status command tracks iterations, patterns, errors, and decisions.
+#     code-reviews.json is a key quality metric — omitting it leaves users blind
+#     to how many reviews have been logged. All four tracked quality assets should
+#     appear together for a complete health picture.
+echo ""
+echo "-- status command code-reviews count --"
+STATUS_CMD="$PLUGIN_ROOT/commands/status.md"
+if [ -f "$STATUS_CMD" ]; then
+    if grep -qi "code.review\|reviews" "$STATUS_CMD"; then
+        pass "status: includes code-reviews count in statistics"
+    else
+        fail "status: missing code-reviews count — statistics section tracks iterations/patterns/errors/decisions but omits code-reviews.json, leaving review history invisible to the user"
+    fi
+else
+    fail "status.md not found"
+fi
+
+
+# 43. code-reviewer must not reference a nonexistent plugin-setting 'max_review_entries'
+#     plugin.json has no settings/configuration block. Claiming 'konfigurierbar via
+#     Plugin-Setting max_review_entries' is a false affordance that misleads users into
+#     searching for a setting that cannot be configured.
+echo ""
+echo "-- code-reviewer no phantom plugin-setting reference --"
+CR_SKILL="$PLUGIN_ROOT/skills/code-reviewer/SKILL.md"
+if [ -f "$CR_SKILL" ]; then
+    if grep -q "Plugin-Setting\|plugin-setting\|plugin setting" "$CR_SKILL"; then
+        fail "code-reviewer: references a nonexistent plugin-setting (max_review_entries) — plugin.json has no settings block, so this is a false affordance"
+    else
+        pass "code-reviewer: does not reference nonexistent plugin-settings"
+    fi
+else
+    fail "code-reviewer: SKILL.md not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
