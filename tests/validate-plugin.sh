@@ -942,6 +942,29 @@ else
     fail "test-validator: SKILL.md not found"
 fi
 
+
+# 51. session-start.sh auto-init must use English for all initialized markdown file content
+#     session-start.sh creates iteration-log.md, patterns.md, learnings.md, and
+#     session-summary.md during auto-init. The current content uses German strings
+#     ("Noch keine Eintraege", "Pattern-Katalog", "Erste Session — frisch initialisiert",
+#     "Naechste Schritte"). The init.md command was fixed (iteration 38) to use English
+#     for the same files, but session-start.sh was never updated. This means auto-init
+#     (SessionStart hook) still creates German content, while /init creates English content —
+#     a language inconsistency depending on how the memory system is initialized.
+echo ""
+echo "-- session-start.sh auto-init markdown content uses English --"
+SS_HOOK="$PLUGIN_ROOT/scripts/session-start.sh"
+if [ -f "$SS_HOOK" ]; then
+    if grep -q "Noch keine Eintraege\|Pattern-Katalog\|Noch keine Patterns\|Noch keine Session-Learnings\|Erste Session.*frisch initialisiert\|frisch initialisiert\|Language: de" "$SS_HOOK"; then
+        fail "session-start.sh: auto-init creates markdown files with German content (e.g. 'Noch keine Eintraege', 'Pattern-Katalog', 'Language: de') — inconsistent with /init command which uses English; fix to match init.md"
+    else
+        pass "session-start.sh: auto-init markdown file content uses English (language-consistent with /init command)"
+    fi
+else
+    fail "session-start.sh: not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

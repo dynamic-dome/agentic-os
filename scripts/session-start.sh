@@ -26,13 +26,13 @@ if [ ! -d "$MEMORY_DIR" ]; then
 
   # session-summary.md
   cat > "$MEMORY_DIR/session-summary.md" << 'EOFILE'
-# Letzte Session
+# Last Session
 
-*Erste Session — System frisch initialisiert.*
+*First session — system freshly initialized.*
 
-## Naechste Schritte
-1. Projektkontext pruefen
-2. Erste Coding-Iteration starten
+## Next Steps
+1. Review project context
+2. Start first coding iteration
 EOFILE
 
   # identity/soul.md
@@ -40,7 +40,7 @@ EOFILE
 # Agent Identity
 
 ## Communication
-- Language: de (switch to en if user writes in English)
+- Language: en (switch to de if user writes in German)
 - Brevity: 3/5 (balanced)
 - Proactivity: 3/5
 
@@ -133,9 +133,9 @@ EOFILE
 EOFILE
 
   # Markdown-Dateien
-  printf '# Iteration Log\n\n*Noch keine Eintraege.*\n' > "$MEMORY_DIR/iterations/iteration-log.md"
-  printf '# Pattern-Katalog\n\n*Noch keine Patterns erkannt.*\n' > "$MEMORY_DIR/patterns/patterns.md"
-  printf '# Learnings\n\n*Noch keine Session-Learnings.*\n' > "$MEMORY_DIR/learnings/learnings.md"
+  printf '# Iteration Log\n\n*No entries yet.*\n' > "$MEMORY_DIR/iterations/iteration-log.md"
+  printf '# Pattern Catalog\n\n*No patterns detected yet.*\n' > "$MEMORY_DIR/patterns/patterns.md"
+  printf '# Learnings\n\n*No session learnings yet.*\n' > "$MEMORY_DIR/learnings/learnings.md"
 
   # knowledge/notebook-registry.md
   printf '# NotebookLM Knowledge Base Registry\n\n*No notebooks registered yet. Add entries here as you create NotebookLM knowledge bases.*\n\n## Active Notebooks\n\n(none)\n\n## When to consult NotebookLM\n- For expert knowledge on topics covered by a notebook\n- When best practices or reference material is needed\n- When uncertain about the right approach\n' > "$MEMORY_DIR/knowledge/notebook-registry.md"
@@ -202,7 +202,7 @@ if [ -d "$MEMORY_DIR" ]; then
   fi
 fi
 
-# Init-Message voranstellen falls frisch initialisiert
+# Prepend init message if freshly initialized
 if [ -n "${INIT_MSG:-}" ]; then
   context="$INIT_MSG\n\n$context"
 fi
