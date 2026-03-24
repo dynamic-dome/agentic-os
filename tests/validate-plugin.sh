@@ -820,6 +820,24 @@ else
 fi
 
 
+
+# 45. context-detective agent example response must use English, not German
+#     context-detective.md has an example where the assistant says
+#     "Ich analysiere das Repository..." (German). All skill examples and agent
+#     content should be in English for consistency with the plugin's language convention.
+echo ""
+echo "-- context-detective agent example uses English --"
+CTX_DET="$PLUGIN_ROOT/agents/context-detective.md"
+if [ -f "$CTX_DET" ]; then
+    if grep -q "Ich analysiere\|Ich überprüfe\|Ich starte\|Das Repository" "$CTX_DET"; then
+        fail "context-detective: example assistant response uses German (e.g. 'Ich analysiere das Repository...') — should use English"
+    else
+        pass "context-detective: example assistant response uses English (no German phrases)"
+    fi
+else
+    fail "context-detective.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

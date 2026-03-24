@@ -8,7 +8,7 @@ description: |
   <example>
   Context: User runs /agentic-os:init in a new repo
   user: "/agentic-os:init"
-  assistant: "Ich analysiere das Repository..."
+  assistant: "Analyzing the repository..."
   <commentary>
   Init command needs project context — spawn context-detective to analyze repo.
   </commentary>
