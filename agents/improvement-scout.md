@@ -66,18 +66,26 @@ Output a ranked list of **max 5 improvements**, ordered by impact:
 ```
 ## Improvement Scout Report
 
-### 1. [HIGH] {Title}
+### 1. [critical] {Title}
    Problem: {what's wrong}
    Evidence: {data points from memory}
    Suggestion: {concrete action}
 
-### 2. [MEDIUM] {Title}
+### 2. [warning] {Title}
+   ...
+
+### 3. [suggestion] {Title}
    ...
 
 ---
 Scanned: {n} errors, {n} patterns, {n} reviews, {n} test results
 Memory health: {Good|Warning|Critical}
 ```
+
+**Severity definitions:**
+- `[critical]` — broken functionality, missing required fields, regressions
+- `[warning]` — inconsistencies, mismatch between components, suboptimal behavior
+- `[suggestion]` — cosmetic improvements, nice-to-haves, minor refinements
 
 ## Plugin Audit Mode
 
@@ -97,7 +105,7 @@ When called with a plugin path (e.g. by `self-improve` orchestrator), also scan 
 - Skills listed in DEPENDENCIES.md but missing from filesystem (or vice versa)
 - Agents whose scope doesn't match how they're called by other skills
 
-Add plugin findings to the ranked report using the same format (HIGH/MEDIUM/LOW).
+Add plugin findings to the ranked report using the same format (critical/warning/suggestion).
 
 ## Rules
 

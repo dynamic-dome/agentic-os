@@ -478,6 +478,26 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 26. improvement-scout agent must use critical/warning/suggestion severity labels
+#     to match the self-improve severity filter. improvement-scout currently uses
+#     HIGH/MEDIUM/LOW which causes label mismatch when self-improve interprets output.
+#     Even though self-improve overrides the prompt for severity labels, the agent's
+#     own output template should match the ecosystem standard to avoid confusion
+#     when improvement-scout is called independently.
+echo ""
+echo "-- improvement-scout severity label consistency --"
+IS_AGENT="$PLUGIN_ROOT/agents/improvement-scout.md"
+if [ -f "$IS_AGENT" ]; then
+    if grep -qiE "\[critical\]|\[warning\]|\[suggestion\]|severity.*critical|critical.*warning.*suggestion" "$IS_AGENT"; then
+        pass "improvement-scout: uses critical/warning/suggestion severity labels consistent with self-improve filter"
+    else
+        fail "improvement-scout: uses HIGH/MEDIUM/LOW severity labels — mismatches self-improve's critical/warning/suggestion filter; update to use consistent labels"
+    fi
+else
+    fail "improvement-scout: agent file not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
