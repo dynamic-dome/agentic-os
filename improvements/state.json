@@ -1,7 +1,7 @@
 {
-  "iteration": 13,
+  "iteration": 14,
   "last_run": "2026-03-24T23:59:00Z",
-  "total_fixes": 18,
+  "total_fixes": 19,
   "history": [
     {
       "iteration": 1,
@@ -141,6 +141,18 @@
       "tests_before": 154,
       "tests_after": 155,
       "tests_plugin": 66,
+      "tests_skill": 89
+    },
+    {
+      "iteration": 14,
+      "fixes": 1,
+      "date": "2026-03-24",
+      "weaknesses": ["self-improve-tdd-missing-pre-fix-stash"],
+      "false_alarm_count": 1,
+      "quality_score": 0.5,
+      "tests_before": 155,
+      "tests_after": 156,
+      "tests_plugin": 67,
       "tests_skill": 89
     }
   ]

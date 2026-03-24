@@ -387,6 +387,24 @@ else
     fail "self-improve: SKILL.md not found"
 fi
 
+
+# 22. self-improve SKILL.md Step 4 (TDD Fix) must instruct to create a safety
+#     git stash checkpoint BEFORE making changes. Without this, git checkout .
+#     cannot recover newly-added test files (untracked), leaving the test suite
+#     in a broken state after a failed fix attempt.
+echo ""
+echo "-- self-improve pre-fix stash checkpoint --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    if grep -qE "git stash push|stash.*checkpoint|safety checkpoint" "$SI_SKILL"; then
+        pass "self-improve: TDD Fix step includes safety stash checkpoint before making changes"
+    else
+        fail "self-improve: TDD Fix step missing git stash checkpoint — git checkout . cannot recover newly-added test files; use 'git stash push' before changes and 'git stash pop' on failure"
+    fi
+else
+    fail "self-improve: SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

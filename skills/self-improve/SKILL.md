@@ -74,6 +74,14 @@ For each weakness (max 3):
 
 For each APPROVED fix:
 
+#### Safety Checkpoint (before any changes)
+
+Create a stash checkpoint so you can fully restore the repo if the fix fails:
+```bash
+git stash push -m "self-improve-checkpoint-iteration-N"
+```
+If the stash reports "No local changes to save", that is fine — proceed.
+
 #### RED Phase
 1. Write a failing test that captures the weakness:
    - Add a test case to `tests/validate-plugin.sh` or `tests/validate-skills.sh`
@@ -171,7 +179,7 @@ Self-Improve Iteration #{next} complete.
 ## Error Handling
 
 - **Git dirty**: Abort with message "Working tree has uncommitted changes. Commit or stash first."
-- **Tests fail after fix**: Revert the fix with `git checkout .`, document as "attempted but failed", continue to next weakness
+- **Tests fail after fix**: Run `git checkout .` then `git stash pop` (if stash exists) to fully restore — `git checkout .` alone cannot remove newly-created test files; the stash pop is needed to recover those. Document as "attempted but failed", continue to next weakness
 - **Push fails**: Keep commit local, warn user, continue
 - **No weaknesses found**: Log "No actionable weaknesses found" and exit cleanly
 - **All fixes rejected**: Log reasoning and exit cleanly
