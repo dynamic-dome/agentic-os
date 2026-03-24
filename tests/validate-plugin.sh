@@ -658,6 +658,25 @@ else
 fi
 
 
+
+# 37. wrap-up skill must not claim "Stop hook triggers this automatically"
+#     The hooks.json Stop hook only does lightweight iteration logging — it does NOT
+#     trigger the wrap-up skill. Claiming it does misleads users into thinking wrap-up
+#     runs automatically when it is actually manual-only.
+echo ""
+echo "-- wrap-up hook trigger accuracy --"
+WU_SKILL="$PLUGIN_ROOT/skills/wrap-up/SKILL.md"
+if [ -f "$WU_SKILL" ]; then
+    if grep -qiE "Stop hook triggers this automatically|Stop hook.*triggers.*wrap.?up|automatically.*Stop hook" "$WU_SKILL"; then
+        fail "wrap-up: claims 'Stop hook triggers this automatically' but hooks.json Stop hook only does lightweight logging — this misleads users; wrap-up is manual-only"
+    else
+        pass "wrap-up: does not claim false automatic Stop hook trigger"
+    fi
+else
+    fail "wrap-up: SKILL.md not found"
+fi
+
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

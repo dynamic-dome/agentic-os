@@ -31,7 +31,7 @@ End-of-session sequence. Summarizes work, extracts learnings, prepares for next 
 - At the end of every coding session
 - When context window is getting long (pre-compression)
 - User says "wrap up", "session beenden", etc.
-- Stop hook triggers this automatically
+- Note: this skill is manual-only — no hook triggers it automatically. The SessionEnd hook does a lightweight session-summary update, but the full wrap-up (learnings, patterns, commit suggestion) requires explicit user invocation.
 
 ## Step 1: Gather Session Data
 
