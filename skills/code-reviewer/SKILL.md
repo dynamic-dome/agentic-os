@@ -25,6 +25,9 @@ metadata:
   version: '3.0'
   part-of: agentic-os
   layer: quality
+  depends-on:
+    - agentic-os:pattern-extractor
+    - agentic-os:context-keeper
 ---
 
 # Code Reviewer

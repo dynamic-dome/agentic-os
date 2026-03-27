@@ -47,6 +47,7 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    - `test-results.json` → `[]`
    - `code-reviews.json` → `[]`
    - `quality-score.json` → `{"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}`
+   - `open-tasks.json` → `[]`  **(MANDATORY — Task Persistence Guard)**
 
 4. **Initialize Markdown files:**
    - `iteration-log.md` → `# Iteration Log\n\n*No entries yet.*`

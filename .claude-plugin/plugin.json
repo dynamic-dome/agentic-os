@@ -1,9 +1,4 @@
 {
   "name": "agentic-os",
-  "version": "2.0.0",
-  "description": "Self-improving agent memory system with 11 skills across 4 layers: Identity, Core, Quality, Evolution. Bootstraps .agent-memory/ in any project. Tracks iterations, extracts patterns, reviews code, validates tests, and generates skills from recurring workflows.",
-  "author": {
-    "name": "domes",
-    "email": "noreply@local"
-  }
+  "description": "Self-improving agent memory system with 11 skills. Tracks iterations, extracts patterns, reviews code, validates tests, and generates skills from recurring workflows."
 }

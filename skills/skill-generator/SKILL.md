@@ -21,6 +21,12 @@ metadata:
 
 Generate new skills from recurring patterns and save them to `.agent-memory/generated-skills/`.
 
+## When to Use
+
+- Pattern-extractor identified a `skill_candidate: true` pattern
+- User wants to save a recurring workflow as a reusable skill
+- User explicitly requests skill generation from a pattern or workflow description
+
 ## Step 1: Identify Source
 
 Determine the basis for the new skill:
