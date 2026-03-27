@@ -3,14 +3,14 @@ name: loop-orchestrator
 description: Orchestrates the full self-improvement loop. Runs N sequential iterations with circuit breaker, dedup, and final push. Use when "run self-improve loop", "improve skills", "start improvement cycle", "self-improve", "improve the plugin", "Verbesserungsschleife starten".
 metadata:
   author: agentic-os
-  version: '1.0'
-  part-of: self-improve-loop
+  version: '2.0'
+  part-of: agentic-os
   layer: orchestration
   depends-on:
-    - self-improve-loop:research-phase
-    - self-improve-loop:analysis-phase
-    - self-improve-loop:improvement-phase
-    - self-improve-loop:validation-phase
+    - agentic-os:research-phase
+    - agentic-os:analysis-phase
+    - agentic-os:improvement-phase
+    - agentic-os:validation-phase
 ---
 
 # Loop Orchestrator
@@ -73,22 +73,22 @@ Run ONE self-improve iteration #{N} for the plugin at {TARGET_DIR}.
 Dedup history (skip these): {PREVIOUSLY_FIXED_WEAKNESSES}
 
 Phase 1 — RESEARCH:
-Invoke the Skill tool with skill: "self-improve-loop:research-phase".
+Invoke the Skill tool with skill: "agentic-os:research-phase".
 Pass the target skill name and content as context.
 Collect research findings.
 
 Phase 2 — ANALYSIS:
-Invoke the Skill tool with skill: "self-improve-loop:analysis-phase".
+Invoke the Skill tool with skill: "agentic-os:analysis-phase".
 Pass the dedup history and research findings.
 Collect ranked weaknesses.
 
 Phase 3 — IMPROVEMENT:
-Invoke the Skill tool with skill: "self-improve-loop:improvement-phase".
+Invoke the Skill tool with skill: "agentic-os:improvement-phase".
 Pass the weaknesses and research findings.
 Apply TDD fixes.
 
 Phase 4 — VALIDATION:
-Invoke the Skill tool with skill: "self-improve-loop:validation-phase".
+Invoke the Skill tool with skill: "agentic-os:validation-phase".
 Run tests, evaluate changes.
 
 Report status: completed / diminishing-returns / rollback

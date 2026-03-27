@@ -22,7 +22,7 @@ Invoke the `Skill` tool with skill: `agentic-os:loop-orchestrator`.
 The orchestrator handles:
 1. **Research** — NotebookLM RAG + web search for best practices (with headless fallback)
 2. **Analysis** — pattern-extractor + direct skill analysis with severity ranking and dedup
-3. **Improvement** — TDD (Red/Green/Refactor) with max 20% mutation per skill, git-stash safety
+3. **Improvement** — TDD (Red/Green/Refactor) with max 20% mutation per skill, commit-hash checkpoint rollback
 4. **Validation** — test suite + optional NotebookLM quality evaluation, git-revert on failure
 5. **Circuit Breaker** — stops on diminishing returns or rollback failures
 6. **Scheduling** — adaptive frequency via schedule-manager on convergence

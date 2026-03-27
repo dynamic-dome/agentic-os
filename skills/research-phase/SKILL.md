@@ -1,27 +1,22 @@
 ---
 name: research-phase
-description: Uses NotebookLM to research best practices before skill improvement. Creates notebooks, adds sources, runs RAG queries. Use when "research skill improvement", "find best practices", "NotebookLM recherchieren", "Recherche starten", "best practices for skill".
+description: Researches best practices before skill improvement. Analyzes local sources (patterns, iterations, architecture), applies built-in quality checklist, optionally uses WebSearch. NotebookLM is an optional enhancement, not required. Use when "research skill improvement", "find best practices", "Recherche starten", "best practices for skill".
 metadata:
   author: agentic-os
-  version: '1.0'
-  part-of: self-improve-loop
+  version: '2.0'
+  part-of: agentic-os
   layer: research
-  depends-on:
-    - notebooklm:navigate
-    - notebooklm:create-notebook
-    - notebooklm:add-source
-    - notebooklm:chat
+  depends-on: []
 ---
 
 # Research Phase
 
-Uses NotebookLM for research and RAG to gather best practices before improving skills. Creates a knowledge base that grows with each iteration.
+Gathers best practices and identifies weaknesses before improving skills. Works fully offline with local analysis; optionally enhanced by WebSearch or NotebookLM.
 
 ## When to Use This Skill
 
 - Called by loop-orchestrator at the start of each iteration
 - When skill improvements need to be informed by best practices
-- When the loop needs external knowledge
 
 ## Instructions
 
@@ -33,78 +28,43 @@ Expect as input:
 - `target_dir`: Plugin directory
 - `iteration_number`: Current iteration
 
-### Step 2: Check NotebookLM Availability
+### Step 2: Local Analysis (always runs)
 
-Try to invoke `notebooklm:navigate`. If NotebookLM is **not available** (skill not found, MCP error, or timeout), skip to **Step 5 (Fallback)** below.
+1. **Read local sources**: Use `Glob` and `Read` to check for:
+   - `{target_dir}/.agent-memory/patterns/patterns.json` — recurring issues
+   - `{target_dir}/.agent-memory/iterations/` — recent iteration logs
+   - `{target_dir}/improvements/` — previous improvement results
+   - `{target_dir}/ARCHITECTURE.md` or `{target_dir}/CLAUDE.md` — project context
 
-If NotebookLM IS available, proceed with Steps 3-4.
+2. **Analyze the skill content directly** against this checklist:
+   - [ ] Steps are numbered with clear tool calls
+   - [ ] Edge cases and error paths are specified
+   - [ ] Description contains enough keywords for accurate triggering
+   - [ ] Safety guards (rollback, abort conditions) are present
+   - [ ] Frontmatter is complete (name, description, metadata)
+   - [ ] No circular or broken dependencies
+   - [ ] Consistent formatting with other skills in the plugin
 
-### Step 3: Add Sources (NotebookLM path)
+3. **Cross-reference with patterns**: If patterns.json exists, check whether the skill exhibits known anti-patterns or misses known best practices.
 
-Check if a notebook named `self-improve-{plugin-name}` already exists.
-- If it exists: navigate to it
-- If not: invoke `notebooklm:create-notebook` with name `self-improve-{plugin-name}`
+### Step 3: Optional WebSearch Enhancement
 
-Use `notebooklm:add-source` to add relevant sources to the notebook:
+If the skill has structural issues that local analysis cannot resolve, use `WebSearch` to find:
+- "Claude Code SKILL.md best practices"
+- "prompt engineering for agent skills"
+- Specific topics related to the identified weaknesses
 
-1. **Current SKILL.md content** (as text source)
-2. **Pattern data** from `{target_dir}/.agent-memory/patterns/patterns.json` (if exists)
-3. **Previous iteration results** from `{target_dir}/improvements/` (if exists)
-4. **ARCHITECTURE.md** from target plugin (if exists)
+Skip this step if local analysis already produces 3+ actionable findings.
 
-Also search for and add external best-practice sources:
-5. Use web search to find relevant articles about:
-   - "Claude Code skill best practices"
-   - "prompt engineering for agent skills"
-   - "SKILL.md optimization"
-   Add found URLs via `notebooklm:add-source`
+### Step 4: Optional NotebookLM Enhancement
 
-### Step 4: RAG Queries (NotebookLM path)
+Only if the user has explicitly requested NotebookLM integration OR if a notebook named `self-improve-{plugin-name}` already exists:
+- Use the `notebooklm` user-skill (Python API) to query the existing knowledge base
+- Do NOT create new notebooks automatically during the loop
 
-Use `notebooklm:chat` with targeted questions:
+### Step 5: Synthesize Findings
 
-**Query 1 — Weakness Detection:**
-```
-Analyze the skill "{target_skill_name}" from its SKILL.md content.
-What are the top 3 structural weaknesses?
-Focus on: trigger accuracy, instruction clarity, error handling, completeness.
-```
-
-**Query 2 — Best Practices:**
-```
-What prompt engineering best practices apply to this skill's instructions?
-Consider: step decomposition, tool usage patterns, safety guards, edge cases.
-```
-
-**Query 3 — Improvement Suggestions:**
-```
-Based on all sources in this notebook, suggest 3 concrete improvements
-for this skill. Each suggestion should include:
-- What to change
-- Why it improves the skill
-- Expected impact (high/medium/low)
-```
-
-Then skip to Step 6.
-
-### Step 5: Fallback Research (no NotebookLM)
-
-When NotebookLM is unavailable, perform research directly:
-
-1. **Read local sources**: Read `{target_dir}/.agent-memory/patterns/patterns.json`, `{target_dir}/improvements/`, and `ARCHITECTURE.md` if they exist.
-2. **Analyze the skill content directly**: Evaluate the target SKILL.md for structural weaknesses (trigger accuracy, instruction clarity, error handling, completeness).
-3. **Apply built-in best practices**: Check against these known patterns:
-   - Steps should be numbered and have clear tool calls
-   - Edge cases and error paths must be specified
-   - Descriptions should contain enough keywords for accurate triggering
-   - Safety guards (rollback, abort conditions) should be present
-4. **Use WebSearch if available**: Search for "Claude Code SKILL.md best practices" to supplement.
-
-Proceed to Step 6.
-
-### Step 6: Synthesize Findings
-
-Combine all NotebookLM responses into a structured research report:
+Output a structured research report:
 
 ```json
 {
@@ -114,14 +74,13 @@ Combine all NotebookLM responses into a structured research report:
   "suggestions": [
     {"change": "...", "reason": "...", "impact": "high|medium|low"}
   ],
-  "sources_added": 5,
-  "notebook_name": "self-improve-..."
+  "sources": "local|local+web|local+notebooklm"
 }
 ```
 
-### Step 6.5: Persist Findings to .agent-memory/research/
+### Step 6: Persist Findings to .agent-memory/research/
 
-After synthesizing findings, write the report to disk so future iterations and other plugins can consume it without re-running research:
+After synthesizing findings, write the report to disk so future iterations can skip re-running research:
 
 ```bash
 mkdir -p {target_dir}/.agent-memory/research
@@ -137,19 +96,12 @@ Write to `{target_dir}/.agent-memory/research/research-cache.json`:
   "weaknesses": ["..."],
   "best_practices": ["..."],
   "suggestions": [{"change": "...", "reason": "...", "impact": "high|medium|low"}],
-  "sources_added": 5,
-  "notebook_name": "self-improve-..."
+  "sources": "local|local+web|local+notebooklm"
 }
 ```
 
 **TTL**: Cache is considered fresh for 7 days. Consumers should check `cached_at` before re-running research.
 
-### Step 7: Skip Studio Output (Do Not Call notebooklm:studio)
-
-Do NOT invoke `notebooklm:studio` or `notebooklm:save-note` automatically. These calls write persistent notes to the user's NotebookLM account and are disruptive when run on every iteration without explicit user consent.
-
-Only generate studio output if the user has explicitly requested it (e.g., "save findings to NotebookLM", "generate studio summary") — and in that case invoke it directly, not as part of the automated loop.
-
-### Step 8: Report
+### Step 7: Report
 
 Output the structured research findings for the analysis and improvement phases to consume.

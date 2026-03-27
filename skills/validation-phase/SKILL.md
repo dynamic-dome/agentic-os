@@ -3,8 +3,8 @@ name: validation-phase
 description: Validates skill improvements by running tests and optionally using NotebookLM for quality evaluation. Handles rollback on failure. Use when "validate improvements", "test skill changes", "check quality", "Verbesserungen validieren".
 metadata:
   author: agentic-os
-  version: '1.0'
-  part-of: self-improve-loop
+  version: '2.0'
+  part-of: agentic-os
   layer: quality
   depends-on:
     - agentic-os:iteration-logger

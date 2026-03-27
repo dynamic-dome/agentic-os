@@ -3,8 +3,8 @@ name: improvement-phase
 description: Applies TDD-based improvements to SKILL.md files with commit-hash checkpoint rollback. Use when "apply skill improvement", "fix skill weaknesses", "improve skill", "TDD fix", "Skill verbessern".
 metadata:
   author: agentic-os
-  version: '1.0'
-  part-of: self-improve-loop
+  version: '2.0'
+  part-of: agentic-os
   layer: core
   depends-on:
     - agentic-os:iteration-logger
