@@ -1,26 +1,14 @@
 ---
 name: pattern-extractor
-description: |
-  Discovers recurring themes in your coding history — repeated errors, common
-  debugging approaches, anti-patterns, and best practices. Analyzes iteration
-  logs and error data to surface what keeps happening and why. Use when you
-  notice the same problem appearing again, want to understand your error trends,
-  or after a productive session to extract reusable insights. Automatically
-  identifies skill candidates when a pattern occurs 3+ times with high confidence.
+description: >
+  Analyzes iteration history and error logs to extract recurring patterns,
+  anti-patterns, and best practices into a searchable pattern catalog.
+  Uses deterministic clustering on category, tags, and file paths.
+  Run periodically (every 5 iterations), at session end, when a problem
+  occurs 3+ times, or on explicit request.
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
-  "what patterns do you see", "lessons learned", "retrospective", "pattern scan",
-  "what went wrong today", "why does this keep happening",
-  "what errors do I make often".
-
-  <example>
-  Context: After several debugging sessions with recurring issues
-  user: "what patterns do you see in my errors?"
-  assistant: "Pattern Extraction: 2 new anti-patterns found, 1 skill candidate"
-  <commentary>
-  User wants to analyze recurring issues, trigger pattern-extractor.
-  </commentary>
-  </example>
-user_invocable: true
+  "what patterns do you see", "Muster extrahieren", "Patterns analysieren",
+  "welche Muster erkennst du", "lessons learned", "retrospektive", "pattern scan".
 ---
 
 # Pattern Extractor
@@ -101,9 +89,28 @@ confidence = min(1.0, base_confidence + boosters)
 
 Before adding a new pattern, compare against existing `patterns.json`:
 
-- Same `description` (fuzzy) → update existing: merge evidence, recalculate confidence
+- Same `description` (fuzzy — see algorithm below) → update existing: merge evidence, recalculate confidence
 - Same `tags` overlap (>= 3 shared tags) → potential duplicate, review manually
 - If duplicate: increment `occurrences`, update `last_seen`, merge `evidence` arrays
+
+### Fuzzy Description Matching Algorithm
+
+Use **Jaccard similarity on word tokens** to determine if two descriptions refer to the same pattern:
+
+1. **Normalize** each description: lowercase, strip punctuation (`[^a-z0-9\s]`), collapse whitespace
+2. **Tokenize**: split into a set of words (tokens)
+3. **Jaccard similarity**: `|intersection| / |union|`
+4. **Threshold**: similarity `>= 0.6` → treat as duplicate
+5. **Category+tags shortcut**: if both patterns share the same `category` AND have `>= 2` overlapping `tags` → treat as duplicate regardless of description similarity
+
+**Example:**
+- Description A: `"Circular import error in Python modules"`
+- Description B: `"Circular import error when loading Python modules"`
+- Tokens A: `{circular, import, error, in, python, modules}`
+- Tokens B: `{circular, import, error, when, loading, python, modules}`
+- Intersection: `{circular, import, error, python, modules}` → 5
+- Union: `{circular, import, error, in, python, modules, when, loading}` → 8
+- Jaccard: `5/8 = 0.625` → `>= 0.6` → **duplicate**
 
 ## Step 5: Write Pattern Entry
 
