@@ -1,33 +1,17 @@
 ---
 name: iteration-logger
-description: |
-  Logs completed coding work — bug fixes, features, refactors, config changes —
-  to the memory system. Use after finishing any meaningful coding task to capture
-  what was done, what errors occurred, and what was learned. Especially valuable
-  after multi-step debugging sessions or when a fix required several attempts.
-  Includes duplicate detection and recurrence tracking to spot repeated problems.
+description: >
+  Logs every coding iteration (feature, bugfix, refactor) to the memory system.
+  Captures what was done, what errors occurred, and what was learned. Includes
+  duplicate detection, recurrence tracking, and structured tagging.
   Trigger phrases: "log iteration", "log this fix", "iteration done",
-  "document what I did", "track progress", "record what I did",
-  "I just fixed a bug", "feature is done", "we should log this".
-
-  <example>
-  Context: User just fixed a bug after multiple attempts
-  user: "log this fix"
-  assistant: "Iteration #12 logged: bugfix — fixed circular import in auth module"
-  <commentary>
-  User completed a debugging cycle, trigger iteration-logger to record the fix.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User finished implementing a new feature
-  user: "done with the API endpoint, log it"
-  assistant: "Iteration #13 logged: feature — added /api/users endpoint"
-  <commentary>
-  Feature completed, trigger iteration-logger to capture what was built.
-  </commentary>
-  </example>
-user_invocable: true
+  "document what I did", "Iteration loggen", "Fortschritt festhalten",
+  "was habe ich gemacht".
+metadata:
+  author: agentic-os
+  version: '3.0'
+  part-of: agentic-os
+  layer: core
 ---
 
 # Iteration Logger
@@ -160,7 +144,7 @@ Then check:
 - `iteration-log.md` > 500 entries → archive older entries to `iteration-log-archive-{YYYY-MM}.md`
 - `errors.json` > 200 entries → archive older entries to `errors-archive-{YYYY-MM}.json`
 
-These thresholds are fixed: 500 entries for iteration-log.md, 200 entries for errors.json.
+Thresholds are configurable via plugin settings (`max_iterations_log_entries`, `max_error_log_entries`).
 
 ## What NOT to Do
 

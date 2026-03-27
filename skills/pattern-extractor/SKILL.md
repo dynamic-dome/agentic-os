@@ -9,6 +9,11 @@ description: >
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
   "what patterns do you see", "Muster extrahieren", "Patterns analysieren",
   "welche Muster erkennst du", "lessons learned", "retrospektive", "pattern scan".
+metadata:
+  author: agentic-os
+  version: '3.0'
+  part-of: agentic-os
+  layer: analysis
 ---
 
 # Pattern Extractor

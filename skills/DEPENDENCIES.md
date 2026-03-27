@@ -43,10 +43,18 @@ WORK PHASE (user-driven, no auto-triggers)
   │     └── reads/writes: local patterns ↔ global patterns
   │
   └── self-improve (scheduled/manual, orchestrates improvement loop)
-        ├── calls: improvement-scout (analysis)
-        ├── calls: fix-reviewer (validation)
+        ├── delegates to: loop-orchestrator
+        │     ├── spawns: improvement-agent (per iteration)
+        │     │     ├── calls: research-phase (NotebookLM RAG + web fallback)
+        │     │     ├── calls: analysis-phase (pattern-extractor + direct analysis)
+        │     │     ├── calls: improvement-phase (TDD + git-stash safety)
+        │     │     └── calls: validation-phase (tests + NotebookLM eval)
+        │     ├── calls: schedule-manager (on convergence)
+        │     └── calls: meta-improve (1x per run, optional)
+        ├── calls: improvement-scout (legacy analysis agent)
+        ├── calls: fix-reviewer (legacy validation agent)
         ├── calls: quality-gate (code checks)
-        └── writes: improvements/iterations-{batch_start:03d}-{batch_end:03d}.md, state.json
+        └── writes: improvements/iterations-*.md, state.json
   │
   ▼
 SESSION END (Stop hook)
@@ -74,22 +82,34 @@ SESSION END (Stop hook)
 | wrap-up | iteration-log.md, errors.json | session-summary.md, learnings.md, user.md |
 | sync-context | local patterns, global patterns | local patterns, global patterns |
 | tdd | — | — |
-| self-improve | improvements/state.json, DEPENDENCIES.md | improvements/iterations-{batch_start:03d}-{batch_end:03d}.md, state.json |
+| self-improve | improvements/state.json | improvements/iterations-*.md, state.json |
+| loop-orchestrator | improvements/state.json, skills/*/SKILL.md | improvements/state.json |
+| research-phase | .agent-memory/research-cache.json, patterns.json, session-summary.md | research-cache.json |
+| analysis-phase | iteration-log.md, errors.json, skills/*/SKILL.md | (output only) |
+| improvement-phase | skills/*/SKILL.md, tests/ | skills/*/SKILL.md, tests/validate-skills.sh |
+| validation-phase | tests/ | improvements/iterations-*.md, state.json |
+| meta-improve | improvements/state.json | improvements/state.json (metaHistory) |
+| schedule-manager | improvements/state.json | (MCP scheduled tasks) |
 
 ## Agents
 
 | Agent | Used By | Purpose |
 |-------|---------|---------|
-| context-detective | /agentic-os:init (optional, advanced use) | Auto-detect project stack from manifests (init.md does this inline by default) |
+| context-detective | /agentic-os:init (optional) | Auto-detect project stack from manifests |
 | quality-gate | pre-commit, manual, self-improve | Combined code review + test validation |
-| improvement-scout | self-improve | Analyze plugin for actionable improvements |
-| fix-reviewer | self-improve | Validate proposed fixes before implementation |
+| improvement-scout | self-improve (legacy path) | Analyze plugin for actionable improvements |
+| fix-reviewer | self-improve (legacy path) | Validate proposed fixes before implementation |
+| improvement-agent | loop-orchestrator | Run single iteration (research→analysis→improvement→validation) |
+| research-agent | research-phase (optional) | Deep web + NotebookLM research |
 
 ## Key Design Principles
 
 1. **No circular dependencies** — DAG only
 2. **No auto-triggers on code changes** — user/CLAUDE.md driven
 3. **session-bootstrap is read-only** — never writes during startup
-4. **wrap-up and self-improve are the only skills that call other skills/agents**
+4. **wrap-up, self-improve, and loop-orchestrator are the only skills that call other skills/agents**
 5. **sync-context is manual-only** — no auto-sync
-6. **self-improve calls agents, not skills** — avoids skill-level circular deps
+6. **loop-orchestrator uses explicit delegation contracts** — all phase inputs/outputs documented
+7. **P9 safety: git revert over git stash pop** — stash may already be dropped
+8. **Max 20% mutation per skill per iteration** — prevents scope creep
+9. **Circuit breaker stops on diminishing returns** — adaptive scheduling via schedule-manager
