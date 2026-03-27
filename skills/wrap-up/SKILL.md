@@ -77,6 +77,18 @@ If 3+ new iterations were logged this session, trigger pattern-extractor:
 - This is a lightweight call — just analyzing the new data
 - If fewer than 3 new iterations, skip (not enough new data)
 
+## Step 4.5: Optional NotebookLM Sync (if learnings recorded)
+
+If Step 3 produced any new learnings AND `notebooklm:add-source` is available, offer to sync:
+
+1. Check `.agent-memory/knowledge/notebook-registry.md` — find the notebook for this project (if any)
+2. If a notebook exists: offer to add today's `learnings.md` entry as a source via `notebooklm:add-source`
+3. **Only do this with explicit user confirmation** — never auto-sync to NotebookLM
+
+This closes the bidirectional flow: agentic-os memory → NotebookLM knowledge base → future research phases.
+
+**Skip entirely** if: no new learnings, NotebookLM not available, or running in headless/scheduled context.
+
 ## Step 5: Update session-summary.md
 
 Overwrite `.agent-memory/session-summary.md` with:

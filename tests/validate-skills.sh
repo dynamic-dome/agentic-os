@@ -279,5 +279,27 @@ if [ -f "$SC_BODY_FILE" ]; then
 fi
 
 echo ""
+echo "-- research-phase: findings persistence --"
+RP_FILE="$SKILLS_DIR/research-phase/SKILL.md"
+if [ -f "$RP_FILE" ]; then
+    if grep -q "agent-memory/research\|research-cache" "$RP_FILE"; then
+        pass "research-phase: persists findings to .agent-memory/research/ for cross-session reuse"
+    else
+        fail "research-phase: missing findings persistence — findings are ephemeral and lost after each session (P7: cache intermediate outputs)"
+    fi
+fi
+
+echo ""
+echo "-- wrap-up: optional NotebookLM sync --"
+WU2_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+if [ -f "$WU2_FILE" ]; then
+    if grep -qi "notebooklm\|notebook.*sync\|sync.*notebook" "$WU2_FILE"; then
+        pass "wrap-up: has optional NotebookLM sync step to close learnings feedback loop"
+    else
+        fail "wrap-up: missing optional NotebookLM sync — session learnings never reach NotebookLM knowledge base (P1: close bidirectional flows)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

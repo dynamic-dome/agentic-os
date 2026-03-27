@@ -119,6 +119,31 @@ Combine all NotebookLM responses into a structured research report:
 }
 ```
 
+### Step 6.5: Persist Findings to .agent-memory/research/
+
+After synthesizing findings, write the report to disk so future iterations and other plugins can consume it without re-running research:
+
+```bash
+mkdir -p {target_dir}/.agent-memory/research
+```
+
+Write to `{target_dir}/.agent-memory/research/research-cache.json`:
+
+```json
+{
+  "skill_name": "...",
+  "cached_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "iteration_number": N,
+  "weaknesses": ["..."],
+  "best_practices": ["..."],
+  "suggestions": [{"change": "...", "reason": "...", "impact": "high|medium|low"}],
+  "sources_added": 5,
+  "notebook_name": "self-improve-..."
+}
+```
+
+**TTL**: Cache is considered fresh for 7 days. Consumers should check `cached_at` before re-running research.
+
 ### Step 7: Skip Studio Output (Do Not Call notebooklm:studio)
 
 Do NOT invoke `notebooklm:studio` or `notebooklm:save-note` automatically. These calls write persistent notes to the user's NotebookLM account and are disruptive when run on every iteration without explicit user consent.
