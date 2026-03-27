@@ -8,6 +8,12 @@ description: >
   Trigger phrases: "sync memory", "pull patterns", "push learnings",
   "cross-project sync", "global memory", "Kontext synchronisieren",
   "globale Patterns holen", "Wissen teilen".
+user_invocable: true
+metadata:
+  author: agentic-os
+  version: '1.0'
+  part-of: agentic-os
+  layer: utility
 ---
 
 # Cross-Project Sync (Optional, Manual Only)
@@ -52,14 +58,22 @@ Project A (.agent-memory/)  ──push──>  ~/.claude-memory/global/  <──
                             <──pull──                            ──pull──>
 ```
 
-## Step 1: Determine Direction
+## Step 1: Check Minimum Project Count
+
+Before any sync, verify there are at least 2 projects registered globally:
+
+1. Read `~/.claude-memory/global/projects.json` (create if missing — see Prerequisites)
+2. Count entries in the `projects` array
+3. If fewer than 2 projects exist → abort with: "SYNC SKIPPED: cross-project sync requires at least 2 projects. Currently only {n} project(s) registered. Run sync again after a second project has been set up."
+
+## Step 2: Determine Direction
 
 From user intent:
 - "pull" / "holen" / "importieren" → pull only
 - "push" / "teilen" / "exportieren" → push only
 - "sync" / "beides" / no direction → bidirectional (pull then push)
 
-## Step 2: Ensure Global Memory Exists (with Error Handling)
+## Step 3: Ensure Global Memory Exists (with Error Handling)
 
 Run the auto-setup from Prerequisites:
 1. Create `~/.claude-memory/global/` if missing
@@ -67,11 +81,11 @@ Run the auto-setup from Prerequisites:
    - If missing → create with default (`[]`, `[]`, `{"projects": []}`)
    - If exists → validate JSON parse
    - If corrupt → backup as `<file>.corrupt.bak`, reinitialize, warn user:
-     `"⚠ ~/.claude-memory/global/<file> was corrupt. Backed up as <file>.corrupt.bak and reinitialized."`
+     `"WARNING: ~/.claude-memory/global/<file> was corrupt. Backed up as <file>.corrupt.bak and reinitialized."`
 3. If `mkdir` or `write` fails → print error, abort:
-   `"✗ Cannot create global memory dir: <error>. Sync aborted. Check permissions on ~/.claude-memory/."`
+   `"ERROR: Cannot create global memory dir: <error>. Sync aborted. Check permissions on ~/.claude-memory/."`
 
-## Step 3: Pull (if applicable)
+## Step 4: Pull (if applicable)
 
 1. Read project's stack from `.agent-memory/context/project-context.md`
 2. Read `~/.claude-memory/global/patterns.json`
@@ -83,7 +97,7 @@ Run the auto-setup from Prerequisites:
    - Never overwrite local with lower-confidence global
    - On any merge conflict (same id, different content) → keep higher confidence version, log conflict in report (Step 6)
 
-## Step 4: Push (if applicable)
+## Step 5: Push (if applicable)
 
 1. Read local `.agent-memory/patterns/patterns.json`
 2. Filter: only push patterns with `confidence >= 0.6`
@@ -93,14 +107,14 @@ Run the auto-setup from Prerequisites:
    - Patterns with `occurrences >= 3` across projects get confidence boost (+0.1)
 4. Push generalizable learnings from `.agent-memory/learnings/learnings.md` to global
 
-## Step 5: Update Registry
+## Step 6: Update Registry
 
 Update `~/.claude-memory/global/projects.json` with:
 - Project name and path
 - Last sync timestamp
 - Pattern count
 
-## Step 6: Report
+## Step 7: Report
 
 ```
 Cross-Project Sync Complete:

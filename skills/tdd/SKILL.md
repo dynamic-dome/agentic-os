@@ -11,6 +11,11 @@ description: >
   "red-green-refactor", "write the test first", "prove it works with a test",
   "test before implementing".
 user_invocable: true
+metadata:
+  author: agentic-os
+  version: '1.0'
+  part-of: agentic-os
+  layer: practice
 ---
 
 # Test-Driven Development (TDD)

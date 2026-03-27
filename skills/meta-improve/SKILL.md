@@ -3,13 +3,17 @@ name: meta-improve
 description: The loop improves its own skills — meta-level self-improvement. Limited to 1 iteration per run to prevent infinite recursion. Use when "improve the improver", "meta-improvement", "optimize the loop", "Meta-Verbesserung", "Loop optimieren".
 metadata:
   author: agentic-os
-  version: '2.0'
+  version: '1.0'
+  part-of: self-improve-loop
   layer: evolution
+  depends-on:
+    - agentic-os:pattern-extractor
+    - agentic-os:iteration-logger
 ---
 
 # Meta-Improve
 
-The loop improves its own skills. Uses the same research/analysis/improvement/validation pipeline but targets the agentic-os plugin itself.
+The loop improves its own skills. Uses the same research/analysis/improvement/validation pipeline but targets the self-improve-loop plugin itself.
 
 ## When to Use This Skill
 
@@ -26,7 +30,7 @@ If the last meta-improvement was in the current run (same date), abort with: "ME
 
 ### Step 2: Set Target to Self
 
-Set the target directory to the agentic-os plugin directory itself:
+Set the target directory to the self-improve-loop plugin directory itself:
 ```
 target_dir = {PLUGIN_ROOT}  (this plugin's root)
 ```
@@ -36,7 +40,7 @@ target_dir = {PLUGIN_ROOT}  (this plugin's root)
 Spawn ONE Agent (subagent_type: "general-purpose") with:
 
 ```
-Run ONE self-improve iteration for the agentic-os plugin itself.
+Run ONE self-improve iteration for the self-improve-loop plugin itself.
 Target: {PLUGIN_ROOT}
 
 This is a META-IMPROVEMENT — you are improving the improvement loop.
@@ -48,10 +52,8 @@ Focus on:
 4. Are safety mechanisms comprehensive?
 
 Phase 1 — RESEARCH:
-Invoke `agentic-os:research-phase` (which handles NotebookLM availability checks and
-automated/headless fallback automatically). If running in a scheduled/headless context,
-the research-phase fallback uses WebSearch + local file reads — no manual NotebookLM call needed.
-Add this plugin's own ARCHITECTURE.md as source if available.
+Invoke skill "self-improve-loop:research-phase" to research best practices for self-improving agent loops.
+It will use NotebookLM if available, or fall back to local analysis.
 
 Phase 2 — ANALYSIS:
 Read all skills in this plugin. Compare against best practices.
@@ -78,12 +80,10 @@ After meta-improvement, run all tests again:
 bash tests/run-all.sh
 ```
 
-If tests fail, rollback the meta-improvement entirely:
+If tests fail, rollback the meta-improvement entirely using the commit hash recorded before changes:
 ```bash
-cd {PLUGIN_ROOT} && git revert --no-edit HEAD
+git reset --hard {checkpoint_sha}
 ```
-
-Note: The improvement-phase already dropped the stash on success (P9 pattern), so the stash is gone. Use `git revert` to create a revert commit rather than attempting to restore a non-existent stash.
 
 ### Step 6: Report
 
