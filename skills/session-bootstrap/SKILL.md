@@ -1,17 +1,19 @@
 ---
 name: session-bootstrap
 description: >
-  Loads everything you need to continue working — last session's summary,
-  project context, active patterns, quality scores, and open items. Use at the
-  start of any coding session to pick up where you left off, after a context
-  reset, or when switching between projects. Performs health checks on the
-  memory system and warns about missing or outdated files.
+  Bootstraps full project context at session start. Reads session-summary,
+  identity files, patterns, and quality scores. Performs health checks on
+  the memory system. Produces a compact briefing with warnings and next steps.
+  Use at the beginning of every coding session.
   Trigger phrases: "start session", "session bootstrap", "session start",
-  "begin work", "what was I working on", "load briefing",
-  "what have I been working on", "where were we", "what do we know",
-  "context restore", "new session", "project status",
-  "let's continue", "where are we", "what is the current status".
-user_invocable: true
+  "begin work", "what was I working on", "Session starten", "Briefing laden",
+  "woran habe ich gearbeitet", "wo waren wir", "was wissen wir",
+  "context restore", "neue session", "Projektstand".
+metadata:
+  author: agentic-os
+  version: '3.0'
+  part-of: agentic-os
+  layer: core
 ---
 
 # Session Bootstrap
@@ -22,7 +24,7 @@ Restore full project context at the start of every coding session.
 
 - Start of every new coding session (auto-triggered by SessionStart hook)
 - After context-window reset or long pause
-- User asks "Where were we?" or "Project status?"
+- User asks "Wo waren wir?" or "Projektstand?"
 - Agent switch (Claude Code <-> other)
 
 **Note:** The SessionStart hook now handles Auto-Init automatically. If `.agent-memory/` doesn't exist, the hook creates it before this skill runs. You should never need to suggest `/agentic-os:init` manually anymore.
@@ -32,7 +34,7 @@ Restore full project context at the start of every coding session.
 Read `.agent-memory/session-summary.md`:
 
 - If `.agent-memory/` does not exist → this should not happen (SessionStart hook auto-creates it). If it does, output "Memory system not found. This is unexpected — the SessionStart hook should have created it. Try restarting the session." and stop.
-- If it exists but `session-summary.md` is missing → note "No previous session found", continue with other files.
+- If it exists but `session-summary.md` is missing → note "Keine vorherige Session gefunden", continue with other files.
 
 ## Step 2: Load Knowledge Files
 
@@ -42,10 +44,9 @@ Read files in this priority order. Skip any that don't exist:
 2. **`identity/soul.md`** — agent behavior settings, guard rails
 3. **`identity/user.md`** — user preferences and work style
 4. **`context/project-context.md`** — tech stack, architecture, constraints
-5. **`knowledge/notebook-registry.md`** — available NotebookLM knowledge bases (topics, keywords)
-6. **`patterns/patterns.md`** — known patterns and anti-patterns (scan for high-confidence only)
-7. **`quality/quality-score.json`** — test health + code quality trends
-8. **`iterations/errors.json`** — last 5 entries only (tail, not full load)
+5. **`patterns/patterns.md`** — known patterns and anti-patterns (scan for high-confidence only)
+6. **`quality/quality-score.json`** — test health + code quality trends
+7. **`iterations/errors.json`** — last 5 entries only (tail, not full load)
 
 Apply identity settings from `soul.md` silently (communication style, guard rails).
 
@@ -59,7 +60,6 @@ Verify these core files exist:
 - `identity/soul.md`
 - `identity/user.md`
 - `context/project-context.md`
-- `knowledge/notebook-registry.md`
 - `iterations/iteration-log.md`
 - `iterations/errors.json`
 - `patterns/patterns.json`
@@ -91,10 +91,6 @@ LAST SESSION
 PROJECT STATUS
   {1-2 lines from project-context.md}
   Stack: {compact tech stack}
-
-KNOWLEDGE BASE
-  {n} NotebookLM notebooks available — topics: {comma-separated list of keywords}
-  Open NotebookLM in your browser and query the relevant notebook for expert knowledge
 
 ACTIVE WARNINGS
   {high-confidence patterns (confidence >= 0.7, occurrences >= 3)}
@@ -135,7 +131,7 @@ RECOMMENDED NEXT STEPS
 
 ## Error Handling
 
-- Missing `session-summary.md`: "No previous session found" — continue
+- Missing `session-summary.md`: "Keine vorherige Session gefunden" — continue
 - Missing `soul.md` or `user.md`: trigger `/agentic-os:init` suggestion
 - Corrupt JSON: backup + recreate + warn
 - Missing `.agent-memory/`: suggest `/agentic-os:init`

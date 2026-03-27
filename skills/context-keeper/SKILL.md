@@ -1,18 +1,19 @@
 ---
 name: context-keeper
 description: >
-  Maintains the living project context — tech stack, architecture decisions,
-  dependencies, constraints, and current status. Use whenever you make a significant
-  technical choice (picked a library, changed the architecture, added a constraint),
-  switch frameworks or tools, or need to recall why a past decision was made.
-  Also use when onboarding to a project and the context file needs updating, or
-  when the project scope or direction changes.
-  Trigger phrases: "update context", "record decision",
-  "why did we choose X", "decision record", "ADR", "stack change",
-  "new dependency", "architecture decision", "we decided to use X",
-  "switching from X to Y", "project direction changed",
-  "capture this decision", "log this choice".
-user_invocable: true
+  Maintains the living project context: tech stack, architecture decisions,
+  dependencies, constraints, and current project status. Called whenever an
+  important decision is made or the architecture changes. Enables full context
+  restoration across session switches.
+  Trigger phrases: "kontext aktualisieren", "entscheidung festhalten",
+  "update context", "warum haben wir X gewaehlt", "projektstand aktualisieren",
+  "decision record", "ADR erstellen", "stack change", "neue dependency",
+  "why did we choose X".
+metadata:
+  author: agentic-os
+  version: '3.0'
+  part-of: agentic-os
+  layer: core
 ---
 
 # Context Keeper
