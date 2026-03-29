@@ -279,6 +279,19 @@ if [ -f "$SC_BODY_FILE" ]; then
 fi
 
 echo ""
+echo "-- research-pipeline trigger language consistency --"
+RPL_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
+if [ -f "$RPL_FILE" ]; then
+    # Check the triggers: YAML list for German entries
+    TRIGGERS_BLOCK=$(awk '/^triggers:/{p=1;next} p && /^[a-z_-]*:|^---/{p=0} p{print}' "$RPL_FILE")
+    if echo "$TRIGGERS_BLOCK" | grep -qi "recherchiere\|quellen suchen\|recherche starten\|suche\|finde quellen"; then
+        fail "research-pipeline: triggers: field contains German phrases — all triggers must use English for consistent auto-matching"
+    else
+        pass "research-pipeline: trigger phrases use English (no German triggers in triggers: field)"
+    fi
+fi
+
+echo ""
 echo "-- research-phase: findings persistence --"
 RP_FILE="$SKILLS_DIR/research-phase/SKILL.md"
 if [ -f "$RP_FILE" ]; then

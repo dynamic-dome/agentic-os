@@ -3,12 +3,12 @@ name: research-pipeline
 description: Token-optimierte Research-Pipeline via Perplexity → NotebookLM → Claude. Spart ~95% Claude-Tokens bei Web-Recherche.
 triggers:
   - "research"
-  - "recherchiere"
   - "find sources"
-  - "quellen suchen"
   - "web research"
   - "deep research"
-  - "recherche starten"
+  - "search for sources"
+  - "gather references"
+  - "look up sources"
 depends-on: notebooklm (user-skill, notebooklm-py Python API — IMMER bevorzugen)
 ---
 
