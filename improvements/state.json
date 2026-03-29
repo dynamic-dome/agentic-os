@@ -1,10 +1,9 @@
 {
-  "iteration": 55,
-  "currentIteration": 55,
-  "status": "running",
-  "running_since": "2026-03-30T00:00:00Z",
+  "iteration": 59,
+  "currentIteration": 59,
+  "status": "idle",
   "lastRun": "2026-03-30T00:00:00Z",
-  "total_fixes": 71,
+  "total_fixes": 75,
   "metaHistory": [
     {
       "date": "2026-03-28",
@@ -646,6 +645,54 @@
       "tests_after": 219,
       "tests_plugin": 103,
       "tests_skill": 116
+    },
+    {
+      "iteration": 56,
+      "fixes": 2,
+      "date": "2026-03-30",
+      "weaknesses": ["agents-wrong-tools-key-v2"],
+      "false_alarm_count": 0,
+      "quality_score": 1.0,
+      "tests_before": 199,
+      "tests_after": 199,
+      "tests_plugin": 126,
+      "tests_skill": 199
+    },
+    {
+      "iteration": 57,
+      "fixes": 1,
+      "date": "2026-03-30",
+      "weaknesses": ["schedule-manager-stale-plugin-reference"],
+      "false_alarm_count": 0,
+      "quality_score": 1.0,
+      "tests_before": 199,
+      "tests_after": 199,
+      "tests_plugin": 127,
+      "tests_skill": 199
+    },
+    {
+      "iteration": 58,
+      "fixes": 1,
+      "date": "2026-03-30",
+      "weaknesses": ["research-pipeline-german-trigger-field"],
+      "false_alarm_count": 0,
+      "quality_score": 1.0,
+      "tests_before": 199,
+      "tests_after": 200,
+      "tests_plugin": 127,
+      "tests_skill": 200
+    },
+    {
+      "iteration": 59,
+      "fixes": 1,
+      "date": "2026-03-30",
+      "weaknesses": ["meta-improve-stale-plugin-body-reference"],
+      "false_alarm_count": 0,
+      "quality_score": 1.0,
+      "tests_before": 200,
+      "tests_after": 200,
+      "tests_plugin": 128,
+      "tests_skill": 200
     }
   ]
 }
