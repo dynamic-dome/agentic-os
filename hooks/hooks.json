@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "You are the Agentic OS Stop hook (lightweight). Check if `.agent-memory/` exists. If not, return 'approve' immediately.\n\nIf it exists and meaningful code changes were made this turn:\n1. Append a brief iteration entry to `.agent-memory/iterations/iteration-log.md` (date, type, 1-line summary).\n2. If errors occurred, append to `.agent-memory/iterations/errors.json`.\n\nDo NOT update session-summary.md here — that is handled by SessionEnd.\nDo NOT trigger pattern-extractor — that is handled by wrap-up skill.\n\nReturn 'approve'.",
+            "prompt": "You are the Agentic OS Stop hook (lightweight). Check if `.agent-memory/` exists. If not, return 'approve' immediately.\n\nIf it exists and meaningful code changes were made this turn:\n1. Append a brief iteration entry to `.agent-memory/iterations/iteration-log.md` (date, type, 1-line summary).\n2. If errors occurred, append to `.agent-memory/iterations/errors.json`.\n3. Check if `improvements/state.json` exists and has `status: \"running\"`. If so, warn: 'Self-improvement loop is still active — wait for completion or check /agentic-os:status'.\n\nDo NOT update session-summary.md here — that is handled by SessionEnd.\nDo NOT trigger pattern-extractor — that is handled by wrap-up skill.\n\nReturn 'approve'.",
             "timeout": 15
           }
         ]

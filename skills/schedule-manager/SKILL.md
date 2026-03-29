@@ -4,7 +4,10 @@ description: Creates and manages scheduled tasks for automated self-improvement 
 metadata:
   author: agentic-os
   version: '2.0'
+  part-of: self-improve-loop
   layer: automation
+  depends-on:
+    - self-improve-loop:loop-orchestrator
 ---
 
 # Schedule Manager
@@ -22,7 +25,7 @@ Creates, updates, and manages scheduled tasks for automated self-improvement loo
 
 ### Step 1: Check Existing Tasks
 
-Use `mcp__scheduled-tasks__list_scheduled_tasks` to list all current scheduled tasks.
+Use `CronList` to list all current scheduled tasks. If `CronList` is not available, fall back to `mcp__scheduled-tasks__list_scheduled_tasks`.
 
 Check if a task with ID `self-improve-loop-v2` already exists.
 
@@ -30,7 +33,7 @@ Check if a task with ID `self-improve-loop-v2` already exists.
 
 **If task does NOT exist — Create:**
 
-Use `mcp__scheduled-tasks__create_scheduled_task` with:
+Use `CronCreate` (preferred) or `mcp__scheduled-tasks__create_scheduled_task` (fallback) with:
 - `taskId`: `"self-improve-loop-v2"`
 - `description`: `"Automated self-improvement loop for plugin skills"`
 - `cronExpression`: `"0 3 * * 1"` (Monday 3am, or user-specified)
@@ -39,7 +42,9 @@ Use `mcp__scheduled-tasks__create_scheduled_task` with:
 
 **If task EXISTS — Update as needed:**
 
-Use `mcp__scheduled-tasks__update_scheduled_task` with the taskId and changed fields.
+Update the task with the changed fields. Use the same tool that successfully listed the tasks in Step 1.
+
+**If NEITHER tool is available**, report: "SCHEDULE SKIPPED: no scheduling tools available — run the loop manually or set up an external cron job."
 
 ### Step 3: Orchestrator Prompt for Scheduled Task
 

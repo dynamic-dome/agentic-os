@@ -22,6 +22,15 @@ Tests improved skills, evaluates quality via NotebookLM, and handles rollback if
 
 ## Instructions
 
+### Step 0: Receive Input
+
+Expect as input:
+- `target_dir`: Path to the plugin being validated
+- `checkpoint_sha`: Git commit hash from improvement-phase Step 2 (used for rollback)
+- `original_content`: Original SKILL.md content before changes (for quality comparison)
+- `modified_content`: Modified SKILL.md content after changes
+- `iteration_number`: Current iteration number
+
 ### Step 1: Run Test Suite
 
 Execute all tests in the target plugin:
