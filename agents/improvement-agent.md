@@ -2,7 +2,7 @@
 name: improvement-agent
 model: sonnet
 description: Subagent that runs a single self-improvement iteration with full research, analysis, improvement, and validation phases. Spawned by the loop-orchestrator for each iteration.
-tools:
+allowed_tools:
   - Skill
   - Read
   - Write
