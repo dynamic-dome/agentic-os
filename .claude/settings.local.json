@@ -34,7 +34,10 @@
       "Bash(bash tests/run-all.sh)",
       "Bash(bash tests/validate-skills.sh)",
       "Bash(bash tests/validate-plugin.sh)",
-      "Bash(claude plugin:*)"
+      "Bash(claude plugin:*)",
+      "Bash(find /c/Users/domes/OneDrive/Desktop/agentic-os-plugin -type f -name *cron* -o -name *trigger* -o -name *schedule*)",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(d.get\\(''''status'''',''''unknown''''\\)\\)\")",
+      "Bash(ls skills/*/SKILL.md)"
     ]
   }
 }
