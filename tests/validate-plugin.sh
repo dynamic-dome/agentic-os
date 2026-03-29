@@ -1077,6 +1077,23 @@ else
 fi
 
 
+
+# 57. schedule-manager must reference agentic-os, not self-improve-loop (deprecated plugin)
+echo ""
+echo "-- schedule-manager plugin reference --"
+SM_SKILL="$PLUGIN_ROOT/skills/schedule-manager/SKILL.md"
+if [ -f "$SM_SKILL" ]; then
+    # Only check frontmatter metadata (part-of and depends-on), not body text like task IDs
+    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$SM_SKILL")
+    if echo "$FRONTMATTER" | grep -q "self-improve-loop"; then
+        fail "schedule-manager: frontmatter references deprecated 'self-improve-loop' plugin — must use 'agentic-os'"
+    else
+        pass "schedule-manager: frontmatter correctly references 'agentic-os' (no stale self-improve-loop refs)"
+    fi
+else
+    echo "  SKIP: skills/schedule-manager/SKILL.md not found"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

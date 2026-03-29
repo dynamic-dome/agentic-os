@@ -4,10 +4,10 @@ description: Creates and manages scheduled tasks for automated self-improvement 
 metadata:
   author: agentic-os
   version: '2.0'
-  part-of: self-improve-loop
+  part-of: agentic-os
   layer: automation
   depends-on:
-    - self-improve-loop:loop-orchestrator
+    - agentic-os:loop-orchestrator
 ---
 
 # Schedule Manager
