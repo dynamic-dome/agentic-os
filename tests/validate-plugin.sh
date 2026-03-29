@@ -1094,6 +1094,21 @@ else
     echo "  SKIP: skills/schedule-manager/SKILL.md not found"
 fi
 
+
+# 58. meta-improve body must not reference deprecated 'self-improve-loop' plugin name
+echo ""
+echo "-- meta-improve body reference --"
+MI_SKILL="$PLUGIN_ROOT/skills/meta-improve/SKILL.md"
+if [ -f "$MI_SKILL" ]; then
+    # Extract body (after second ---)
+    BODY=$(awk 'BEGIN{c=0} /^---/{c++; next} c>=2{print}' "$MI_SKILL")
+    if echo "$BODY" | grep -q "self-improve-loop plugin"; then
+        fail "meta-improve: body references 'self-improve-loop plugin' — should say 'agentic-os plugin'"
+    else
+        pass "meta-improve: body correctly references agentic-os plugin (no stale self-improve-loop)"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

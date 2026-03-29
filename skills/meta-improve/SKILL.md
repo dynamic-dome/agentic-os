@@ -30,7 +30,7 @@ If the last meta-improvement was in the current run (same date), abort with: "ME
 
 ### Step 2: Set Target to Self
 
-Set the target directory to the self-improve-loop plugin directory itself:
+Set the target directory to the agentic-os plugin directory itself:
 ```
 target_dir = {PLUGIN_ROOT}  (this plugin's root)
 ```
