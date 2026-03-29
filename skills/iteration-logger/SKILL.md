@@ -5,8 +5,7 @@ description: >
   Captures what was done, what errors occurred, and what was learned. Includes
   duplicate detection, recurrence tracking, and structured tagging.
   Trigger phrases: "log iteration", "log this fix", "iteration done",
-  "document what I did", "Iteration loggen", "Fortschritt festhalten",
-  "was habe ich gemacht".
+  "document what I did", "record progress", "what did I do".
 metadata:
   author: agentic-os
   version: '3.0'
@@ -144,7 +143,7 @@ Then check:
 - `iteration-log.md` > 500 entries → archive older entries to `iteration-log-archive-{YYYY-MM}.md`
 - `errors.json` > 200 entries → archive older entries to `errors-archive-{YYYY-MM}.json`
 
-Thresholds are configurable via plugin settings (`max_iterations_log_entries`, `max_error_log_entries`).
+Default thresholds: 500 entries for iteration-log.md, 200 entries for errors.json.
 
 ## What NOT to Do
 

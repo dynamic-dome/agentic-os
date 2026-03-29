@@ -65,6 +65,8 @@ For each iteration (1 to 4), run sequentially. **Before spawning each iteration 
 
 If the circuit breaker does not trigger, spawn an Agent (subagent_type: "general-purpose") with the following prompt. **Wait for each agent to complete before spawning the next.**
 
+**Important:** If running in acceptEdits mode, subagents may lack Bash access. In that case, run the iteration inline (without spawning a subagent) to ensure git and test commands can execute.
+
 The agent prompt for each iteration:
 
 ```

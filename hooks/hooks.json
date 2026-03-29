@@ -1,18 +1,6 @@
 {
   "description": "Agentic OS Lifecycle Hooks v5: Auto-Init, Briefing, Lightweight Logging, Smart Routing, Session Wrap-Up, Auto-Commit",
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "A file was just written or edited. Check the file path:\n\n1. If the file is inside `.agent-memory/` → return 'approve' immediately (skip memory file updates).\n2. If the file is a test file (contains 'test' in filename) → return 'approve' (skip test files).\n3. Otherwise, this is a significant code change. Silently note the filename and change type (new file vs edit) in your working memory for later iteration logging. Do NOT write to any files yet — just remember it.\n\nReturn 'approve'.",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
     "SessionStart": [
       {
         "matcher": "*",
@@ -55,7 +43,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Context is about to be compressed. If `.agent-memory/` exists, quickly re-read these files and keep their content in mind:\n1. `.agent-memory/session-summary.md`\n2. `.agent-memory/identity/soul.md`\n3. `.agent-memory/context/project-context.md`\n4. `.agent-memory/open-tasks.json` — **CRITICAL: memorize ALL open/blocked tasks. These must survive compression and never be lost.**\n\nAlso note the current git branch. This ensures critical context survives compression. Return 'approve'.",
+            "prompt": "Context is about to be compressed. If `.agent-memory/` exists, read these files and OUTPUT a compact survival summary (this text will persist after compression):\n\n1. Read `.agent-memory/session-summary.md` → output: 'LAST SESSION: {1-line summary}'\n2. Read `.agent-memory/context/project-context.md` → output: 'PROJECT: {name} | STACK: {compact stack}'\n3. Read `.agent-memory/open-tasks.json` → output: 'OPEN TASKS: {list each task ID + title on one line}' — **CRITICAL: every open/blocked task MUST appear here. These must survive compression.**\n4. Read `.agent-memory/identity/soul.md` → output: 'IDENTITY: {language preference}, {brevity level}'\n5. Note current git branch → output: 'BRANCH: {branch name}'\n\nThe goal is to produce a readable text block (not just read files silently) so the compressed context retains this information. Return 'approve'.",
             "timeout": 15
           }
         ]
@@ -67,7 +55,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n1. **TASK PERSISTENCE GUARD (MANDATORY):** Read `.agent-memory/open-tasks.json`. If it exists, read ALL tasks with status 'open' or 'blocked'. These MUST appear in the 'Offene Punkte' section of session-summary.md. Never drop, skip, or summarize them away. If open-tasks.json does not exist, check the current session-summary.md for 'Offene Punkte' and create open-tasks.json from them.\n2. Update `.agent-memory/session-summary.md` with:\n   - What was done (2-3 bullet points of this session's work)\n   - Open items: MUST include ALL open/blocked tasks from open-tasks.json\n   - Next steps (what to do next session)\n   - Keep under 30 lines total (but never sacrifice task completeness for brevity).\n3. If any new unfinished work was identified this session, append it to open-tasks.json with a new ID.\n4. If 3+ iterations were logged this session, note key learnings in `.agent-memory/learnings/learnings.md` (only genuine, non-trivial insights).\n5. Output a one-line summary of what was done this session.\n\nReturn 'approve'.",
+            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n0. **WRAP-UP CHECK:** Read `.agent-memory/session-summary.md`. If the *Date* line contains today's date, wrap-up already ran this session — skip Step 2 (summary update) and only do the Task Persistence Guard and open-tasks check.\n1. **TASK PERSISTENCE GUARD (MANDATORY):** Read `.agent-memory/open-tasks.json`. If it exists, read ALL tasks with status 'open' or 'blocked'. These MUST appear in the 'Open Items' section of session-summary.md. Never drop, skip, or summarize them away. If open-tasks.json does not exist, check the current session-summary.md for 'Open Items' and create open-tasks.json from them.\n2. Update `.agent-memory/session-summary.md` with:\n   - What was done (2-3 bullet points of this session's work)\n   - Open items: MUST include ALL open/blocked tasks from open-tasks.json\n   - Next steps (what to do next session)\n   - Keep under 30 lines total (but never sacrifice task completeness for brevity).\n3. If any new unfinished work was identified this session, append it to open-tasks.json with a new ID.\n4. If 3+ iterations were logged this session, note key learnings in `.agent-memory/learnings/learnings.md` (only genuine, non-trivial insights).\n5. Output a one-line summary of what was done this session.\n\nReturn 'approve'.",
             "timeout": 30
           }
         ]

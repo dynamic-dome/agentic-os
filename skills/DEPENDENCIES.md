@@ -85,6 +85,8 @@ SESSION END (Stop hook)
 | self-improve | improvements/state.json | improvements/iterations-*.md, state.json |
 | loop-orchestrator | improvements/state.json, skills/*/SKILL.md | improvements/state.json |
 | research-phase | .agent-memory/research-cache.json, patterns.json, session-summary.md | research-cache.json |
+| research-pipeline | (external: Perplexity, NotebookLM) | research/<topic>-*.md |
+| memory-janitor | all .agent-memory/ files (read) | archives in same dirs |
 | analysis-phase | iteration-log.md, errors.json, skills/*/SKILL.md | (output only) |
 | improvement-phase | skills/*/SKILL.md, tests/ | skills/*/SKILL.md, tests/validate-skills.sh |
 | validation-phase | tests/ | improvements/iterations-*.md, state.json |

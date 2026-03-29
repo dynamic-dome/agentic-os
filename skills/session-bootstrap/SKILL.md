@@ -6,9 +6,8 @@ description: >
   the memory system. Produces a compact briefing with warnings and next steps.
   Use at the beginning of every coding session.
   Trigger phrases: "start session", "session bootstrap", "session start",
-  "begin work", "what was I working on", "Session starten", "Briefing laden",
-  "woran habe ich gearbeitet", "wo waren wir", "was wissen wir",
-  "context restore", "neue session", "Projektstand".
+  "begin work", "what was I working on", "context restore", "new session",
+  "project status", "where were we", "what do we know".
 metadata:
   author: agentic-os
   version: '3.0'
@@ -24,7 +23,7 @@ Restore full project context at the start of every coding session.
 
 - Start of every new coding session (auto-triggered by SessionStart hook)
 - After context-window reset or long pause
-- User asks "Wo waren wir?" or "Projektstand?"
+- User asks "Where were we?" or "Project status?"
 - Agent switch (Claude Code <-> other)
 
 **Note:** The SessionStart hook now handles Auto-Init automatically. If `.agent-memory/` doesn't exist, the hook creates it before this skill runs. You should never need to suggest `/agentic-os:init` manually anymore.
@@ -34,7 +33,7 @@ Restore full project context at the start of every coding session.
 Read `.agent-memory/session-summary.md`:
 
 - If `.agent-memory/` does not exist → this should not happen (SessionStart hook auto-creates it). If it does, output "Memory system not found. This is unexpected — the SessionStart hook should have created it. Try restarting the session." and stop.
-- If it exists but `session-summary.md` is missing → note "Keine vorherige Session gefunden", continue with other files.
+- If it exists but `session-summary.md` is missing → note "No previous session found", continue with other files.
 
 ## Step 2: Load Knowledge Files
 
@@ -131,7 +130,7 @@ RECOMMENDED NEXT STEPS
 
 ## Error Handling
 
-- Missing `session-summary.md`: "Keine vorherige Session gefunden" — continue
+- Missing `session-summary.md`: "No previous session found" — continue
 - Missing `soul.md` or `user.md`: trigger `/agentic-os:init` suggestion
 - Corrupt JSON: backup + recreate + warn
 - Missing `.agent-memory/`: suggest `/agentic-os:init`

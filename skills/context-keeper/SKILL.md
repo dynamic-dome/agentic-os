@@ -5,10 +5,9 @@ description: >
   dependencies, constraints, and current project status. Called whenever an
   important decision is made or the architecture changes. Enables full context
   restoration across session switches.
-  Trigger phrases: "kontext aktualisieren", "entscheidung festhalten",
-  "update context", "warum haben wir X gewaehlt", "projektstand aktualisieren",
-  "decision record", "ADR erstellen", "stack change", "neue dependency",
-  "why did we choose X".
+  Trigger phrases: "update context", "record decision", "why did we choose X",
+  "update project status", "decision record", "create ADR", "stack change",
+  "new dependency".
 metadata:
   author: agentic-os
   version: '3.0'

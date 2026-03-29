@@ -120,7 +120,19 @@ Verify the generated skill:
    "skill_generated_at": "<ISO 8601>"
    ```
 
-## Step 6: Confirmation
+## Step 6: Install as User Skill (Optional)
+
+After saving to `.agent-memory/generated-skills/`, offer to install the skill globally:
+
+1. Ask the user: "Install as global user skill under `~/.claude/skills/<skill-name>/`?"
+2. If user confirms:
+   - Copy the SKILL.md to `~/.claude/skills/<skill-name>/SKILL.md`
+   - The skill becomes immediately available as `/<skill-name>` in all projects
+3. If user declines: skill stays in `.agent-memory/generated-skills/` for reference only
+
+**Auto-install mode:** When called by the self-improve loop (not interactively), skip the confirmation and install automatically. The loop orchestrator is responsible for quality validation before reaching this point.
+
+## Step 7: Confirmation
 
 Output:
 ```
@@ -130,10 +142,9 @@ New skill generated: "<skill-name>"
   Anti-patterns: <n>
 
   Saved: .agent-memory/generated-skills/<skill-name>/SKILL.md
+  Installed: ~/.claude/skills/<skill-name>/ (or: "not installed — use Step 6 to install")
 
-  Next steps:
-  - Review skill and adjust if needed
-  - Skill is now available as reference in future sessions
+  The skill is now available as /<skill-name> in all projects.
 ```
 
 ## Example: Generated Skill from Pattern

@@ -128,7 +128,17 @@ Only update `.agent-memory/identity/user.md` if a clear, repeated signal was obs
 
 **Do NOT update user.md for one-off corrections.** Wait for repeated signals.
 
-## Step 7: Suggest Git Commit (Optional)
+## Step 7: Optional NotebookLM Sync
+
+If a NotebookLM notebook exists for this project (check `.agent-memory/knowledge/notebook-registry.md`), optionally sync session learnings:
+
+1. Use the `notebooklm` user-skill (Python API) to add key learnings as a text source
+2. Only sync if 3+ meaningful learnings were extracted in Step 3
+3. Skip if NotebookLM CLI is not installed or authentication has expired
+
+This closes the bidirectional feedback loop: NotebookLM informs work → work produces learnings → learnings feed back to NotebookLM.
+
+## Step 8: Suggest Git Commit (Optional)
 
 If there are uncommitted changes:
 

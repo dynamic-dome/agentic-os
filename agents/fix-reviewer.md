@@ -1,6 +1,6 @@
 ---
 name: fix-reviewer
-description: "Reviews proposed code fixes for feasibility, minimality, and safety before implementation. Returns APPROVE or REJECT with reasoning. Used as feedback gate in the self-improvement loop to prevent regressions and scope creep."
+description: "DEPRECATED: validation-phase + TDD tests now handle this. Reviews proposed code fixes for feasibility, minimality, and safety before implementation. Returns APPROVE or REJECT with reasoning."
 model: sonnet
 allowed_tools:
   - Read

@@ -1,7 +1,8 @@
 ---
 name: improvement-scout
 description: >
-  Proactively analyzes the project's memory system to find actionable improvement
+  DEPRECATED: Prefer analysis-phase skill for self-improve loop, or run manually
+  for one-off health checks. Proactively analyzes the project's memory system to find actionable improvement
   opportunities. Scans error logs for unresolved recurring issues, identifies
   patterns that haven't been turned into skills yet, checks for stale context
   or outdated decisions, and spots gaps in test coverage or code quality trends.

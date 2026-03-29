@@ -6,8 +6,8 @@ description: >
   pushes local learnings for reuse. NOT auto-triggered — use only when
   explicitly requested.
   Trigger phrases: "sync memory", "pull patterns", "push learnings",
-  "cross-project sync", "global memory", "Kontext synchronisieren",
-  "globale Patterns holen", "Wissen teilen".
+  "cross-project sync", "global memory", "sync context",
+  "get global patterns", "share knowledge".
 user_invocable: true
 metadata:
   author: agentic-os
@@ -69,9 +69,9 @@ Before any sync, verify there are at least 2 projects registered globally:
 ## Step 2: Determine Direction
 
 From user intent:
-- "pull" / "holen" / "importieren" → pull only
-- "push" / "teilen" / "exportieren" → push only
-- "sync" / "beides" / no direction → bidirectional (pull then push)
+- "pull" / "import" / "get" → pull only
+- "push" / "share" / "export" → push only
+- "sync" / "both" / no direction → bidirectional (pull then push)
 
 ## Step 3: Ensure Global Memory Exists (with Error Handling)
 

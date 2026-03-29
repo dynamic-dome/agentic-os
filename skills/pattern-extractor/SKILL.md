@@ -7,8 +7,7 @@ description: >
   Run periodically (every 5 iterations), at session end, when a problem
   occurs 3+ times, or on explicit request.
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
-  "what patterns do you see", "Muster extrahieren", "Patterns analysieren",
-  "welche Muster erkennst du", "lessons learned", "retrospektive", "pattern scan".
+  "what patterns do you see", "lessons learned", "retrospective", "pattern scan".
 metadata:
   author: agentic-os
   version: '3.0'

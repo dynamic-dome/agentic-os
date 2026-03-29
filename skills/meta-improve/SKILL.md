@@ -4,7 +4,7 @@ description: The loop improves its own skills — meta-level self-improvement. L
 metadata:
   author: agentic-os
   version: '1.0'
-  part-of: self-improve-loop
+  part-of: agentic-os
   layer: evolution
   depends-on:
     - agentic-os:pattern-extractor
@@ -13,7 +13,7 @@ metadata:
 
 # Meta-Improve
 
-The loop improves its own skills. Uses the same research/analysis/improvement/validation pipeline but targets the self-improve-loop plugin itself.
+The loop improves its own skills. Uses the same research/analysis/improvement/validation pipeline but targets the agentic-os plugin itself.
 
 ## When to Use This Skill
 
@@ -40,7 +40,7 @@ target_dir = {PLUGIN_ROOT}  (this plugin's root)
 Spawn ONE Agent (subagent_type: "general-purpose") with:
 
 ```
-Run ONE self-improve iteration for the self-improve-loop plugin itself.
+Run ONE self-improve iteration for the agentic-os plugin itself.
 Target: {PLUGIN_ROOT}
 
 This is a META-IMPROVEMENT — you are improving the improvement loop.
@@ -51,9 +51,10 @@ Focus on:
 3. Is the loop lifecycle efficient?
 4. Are safety mechanisms comprehensive?
 
-Phase 1 — RESEARCH:
-Invoke skill "self-improve-loop:research-phase" to research best practices for self-improving agent loops.
-It will use NotebookLM if available, or fall back to local analysis.
+Phase 1 — RESEARCH (local only, skip external research):
+Read ALL skill SKILL.md files in the target's skills/ directory.
+Compare skill descriptions against their actual trigger phrases and instructions.
+Look for stale references, missing trigger phrases, inconsistent patterns, missing safety guards.
 
 Phase 2 — ANALYSIS:
 Read all skills in this plugin. Compare against best practices.

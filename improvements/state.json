@@ -2,10 +2,17 @@
   "iteration": 55,
   "currentIteration": 55,
   "status": "idle",
-  "last_run": "2026-03-27T00:00:00Z",
   "lastRun": "2026-03-27T00:00:00Z",
   "total_fixes": 71,
-  "metaHistory": [],
+  "metaHistory": [
+    {
+      "date": "2026-03-28",
+      "changes": ["meta-improve: fixed 3 stale self-improve-loop references to agentic-os", "loop-orchestrator: added acceptEdits-mode safety note for subagent Bash access"],
+      "quality_score": 1.0,
+      "tests_before": 181,
+      "tests_after": 181
+    }
+  ],
   "history": [
     {
       "iteration": 1,

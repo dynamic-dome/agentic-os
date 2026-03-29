@@ -40,3 +40,46 @@ The orchestrator handles:
 - Never modify `.agent-memory/` files directly (use iteration-logger, pattern-extractor)
 - Circuit breaker stops on 2+ consecutive diminishing-returns
 - Meta-improve limited to 1x per run (recursion guard)
+- Do NOT push automatically — commits stay local until user confirms
+- Only fix critical and warning severity weaknesses; log suggestions without fixing. Report "DIMINISHING RETURNS" when no actionable weaknesses remain after dedup.
+- Skip previously-fixed weaknesses: read `state.json` history and avoid duplicate fixes
+
+## Batch File Naming
+
+Iteration results are written to batch files. Calculate the batch start with integer division:
+```
+batch_start = floor((iteration - 1) / 5) * 5 + 1
+batch_end = batch_start + 4
+filename = iterations-{batch_start:03d}-{batch_end:03d}.md
+```
+
+## Safety & Rollback
+
+Before making changes, create a safety checkpoint:
+```bash
+git stash push -m "self-improve-checkpoint"
+```
+
+If tests fail after a fix, rollback with:
+```bash
+git stash pop
+```
+
+## State History Entry Format
+
+Each iteration records an entry in `state.json` history with these fields:
+
+```json
+{
+  "iteration": 55,
+  "fixes": 2,
+  "date": "YYYY-MM-DD",
+  "weaknesses": ["name-1", "name-2"],
+  "false_alarm_count": 0,
+  "quality_score": 1.0,
+  "tests_before": 171,
+  "tests_after": 173,
+  "tests_plugin": 73,
+  "tests_skill": 100
+}
+```
