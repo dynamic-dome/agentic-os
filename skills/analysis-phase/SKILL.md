@@ -1,6 +1,6 @@
 ---
 name: analysis-phase
-description: Identifies skill weaknesses using Agentic-OS pattern-extractor and iteration-logger. Ranks findings by severity and applies dedup. Use when "analyze skill weaknesses", "what needs improving", "find problems", "Schwachstellen analysieren".
+description: Identifies skill weaknesses using Agentic-OS pattern-extractor and iteration-logger. Ranks findings by severity and applies dedup. Use when "analyze skill weaknesses", "what needs improving", "find problems", "identify weaknesses".
 metadata:
   author: agentic-os
   version: '2.0'

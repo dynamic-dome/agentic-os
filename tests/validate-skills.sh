@@ -326,6 +326,18 @@ if [ -f "$SI2_FILE" ]; then
 fi
 
 echo ""
+echo "-- analysis-phase trigger language consistency --"
+AP2_FILE="$SKILLS_DIR/analysis-phase/SKILL.md"
+if [ -f "$AP2_FILE" ]; then
+    AP2_DESC=$(awk '/^description:/{found=1} found{print; if(/^[^ ]/ && !/^description:/){exit}}' "$AP2_FILE" | head -5)
+    if echo "$AP2_DESC" | grep -qiE "analysieren|verbessern|finden|prüfen|starten|suchen"; then
+        fail "analysis-phase: description contains German trigger phrases — triggers must use English for consistent auto-matching"
+    else
+        pass "analysis-phase: description trigger phrases use English (no German triggers)"
+    fi
+fi
+
+echo ""
 echo "-- analysis-phase: metadata completeness (part-of field) --"
 AP_FILE="$SKILLS_DIR/analysis-phase/SKILL.md"
 if [ -f "$AP_FILE" ]; then
