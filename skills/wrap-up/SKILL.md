@@ -2,14 +2,17 @@
 name: wrap-up
 description: |
   Wraps up a coding session — summarizes what was done, extracts learnings,
-  updates the session summary, and suggests a git commit. Use when you are
+  updates the session summary, suggests a git commit, and optionally runs
+  memory maintenance (archiving, JSON integrity, pruning). Use when you are
   done working for now, when context is getting long and needs a handoff,
   or before switching to a different project. Ensures no progress is lost
   and the next session can pick up seamlessly.
   Trigger phrases: "wrap up", "end session", "session end", "save session",
   "close session", "finish for today", "summarize session",
   "save context", "session handoff", "agent handoff",
-  "I'm done for today", "that's it for today", "give me a summary".
+  "I'm done for today", "that's it for today", "give me a summary",
+  "clean memory", "memory cleanup", "archive old data",
+  "memory health", "compact memory", "prune patterns", "memory maintenance".
 
   <example>
   Context: User is done for the day
@@ -22,21 +25,22 @@ description: |
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '1.0'
+  version: '2.0'
   part-of: agentic-os
   layer: core
 ---
 
 # Session Wrap-Up
 
-End-of-session sequence. Summarizes work, extracts learnings, prepares for next session.
+End-of-session sequence. Summarizes work, extracts learnings, prepares for next session. Optionally runs memory maintenance.
 
 ## When to Use
 
 - At the end of every coding session
 - When context window is getting long (pre-compression)
 - User says "wrap up", "end session", etc.
-- Note: this skill is manual-only — no hook triggers it automatically. The SessionEnd hook does a lightweight session-summary update, but the full wrap-up (learnings, patterns, commit suggestion) requires explicit user invocation.
+- When memory needs maintenance: "clean memory", "memory cleanup", "prune patterns"
+- Note: this skill is manual-only — no hook triggers it automatically
 
 ## Step 1: Gather Session Data
 
@@ -66,7 +70,7 @@ Review today's iterations for genuine insights. A learning is worth recording if
 - It reveals something non-obvious about the codebase
 - It documents a decision rationale that isn't in the code
 
-**Do NOT log trivial facts** like "file X exists" or "function Y takes 2 arguments". Only log insights that a future session would genuinely benefit from knowing.
+**Do NOT log trivial facts** like "file X exists" or "function Y takes 2 arguments".
 
 Append real learnings to `.agent-memory/learnings/learnings.md`:
 
@@ -116,47 +120,108 @@ Overwrite `.agent-memory/session-summary.md` with:
 - {declining quality trends, if any}
 ```
 
-**Keep it under 30 lines.** This file is read at every session start — conciseness is critical.
+**Keep it under 30 lines.**
 
 ## Step 6: Update user.md (Conditional)
 
 Only update `.agent-memory/identity/user.md` if a clear, repeated signal was observed:
+- User corrected the same behavior 3+ times
+- User confirmed a non-obvious approach
+- User expressed frustration with a specific style
 
-- User corrected the same behavior 3+ times → record the preference
-- User confirmed a non-obvious approach → record as validated pattern
-- User expressed frustration with a specific style → record as anti-preference
-
-**Do NOT update user.md for one-off corrections.** Wait for repeated signals.
+**Do NOT update user.md for one-off corrections.**
 
 ## Step 7: Optional NotebookLM Sync
 
 If a NotebookLM notebook exists for this project (check `.agent-memory/knowledge/notebook-registry.md`), optionally sync session learnings:
-
-1. Use the `notebooklm` user-skill (Python API) to add key learnings as a text source
+1. Use the `notebooklm` user-skill (Python API)
 2. Only sync if 3+ meaningful learnings were extracted in Step 3
-3. Skip if NotebookLM CLI is not installed or authentication has expired
-
-This closes the bidirectional feedback loop: NotebookLM informs work → work produces learnings → learnings feed back to NotebookLM.
+3. Skip if NotebookLM CLI is not installed
 
 ## Step 8: Suggest Git Commit (Optional)
 
 If there are uncommitted changes:
-
-1. Run `git status` to see what's staged/unstaged
-2. Suggest a conventional commit message based on the iteration types:
-   - `feat:` for features
-   - `fix:` for bugfixes
-   - `refactor:` for refactors
-   - `test:` for test changes
-   - `chore:` for config/tooling
+1. Run `git status`
+2. Suggest a conventional commit message (feat/fix/refactor/test/chore)
 3. **Show the user** what would be committed
 4. **Wait for confirmation** — never commit without explicit approval
 
-## Handoff Mode (Pre-Compression)
+---
 
-When triggered by context getting long (PreCompact) or explicit handoff request, add extra context to session-summary.md:
+# Step 9: Memory Maintenance (Optional)
 
-Append after the standard summary:
+Runs automatically if memory thresholds are exceeded, or when user explicitly requests "clean memory", "memory maintenance", etc. Skip entirely if no thresholds are exceeded and user didn't request it.
+
+## Step 9.1: Assess Memory Health
+
+Read and measure all memory files:
+
+```
+.agent-memory/iterations/iteration-log.md    → count ## headings
+.agent-memory/iterations/errors.json         → count array entries
+.agent-memory/patterns/patterns.json         → count array entries
+.agent-memory/quality/code-reviews.json      → count array entries
+.agent-memory/quality/test-results.json      → count array entries
+.agent-memory/context/decisions.json         → count array entries
+.agent-memory/session-summary.md             → count lines
+.agent-memory/learnings/learnings.md         → count lines
+```
+
+## Step 9.2: JSON Integrity Check
+
+For each JSON file:
+1. Attempt to parse it
+2. If parse fails: rename to `{file}.corrupt.bak`, create fresh with default (`[]` or `{}`), warn user
+3. If parse succeeds: check for structural issues
+
+## Step 9.3: Archive Old Data
+
+**Thresholds:**
+- `iteration-log.md` > 500 entries: keep newest 500, archive rest
+- `errors.json` > 200 entries: keep newest 200, archive rest
+- `code-reviews.json` > 100 entries: keep newest 100, archive rest
+- `test-results.json` > 100 entries: keep newest 100, archive rest
+
+Archive to `{filename}-archive-{YYYY-MM}.{ext}` in the same directory.
+
+## Step 9.4: Prune Stale Patterns
+
+Read `.agent-memory/patterns/patterns.json`:
+1. Find patterns where `last_seen` is older than 90 days
+2. Find patterns with `confidence < 0.3`
+3. Move these to `patterns-archive-{YYYY-MM}.json`
+4. Update `patterns.md` to reflect the pruned catalog
+
+**Exception:** Never prune patterns with `skill_candidate: true`.
+
+## Step 9.5: Compact Decisions
+
+Archive decisions with `status: "superseded"` older than 90 days. Keep all `status: "active"` decisions.
+
+## Step 9.6: Enforce Session Summary Length
+
+If `.agent-memory/session-summary.md` exceeds 30 lines: compress to 30 lines, keeping date, top 5 bullets, all open items, top 3 next steps.
+
+## Step 9.7: Compact Learnings
+
+If `.agent-memory/learnings/learnings.md` exceeds 200 lines: keep last 12 months, archive older entries, deduplicate.
+
+## Step 9.8: Memory Report
+
+```
+Memory Maintenance:
+  JSON Integrity: {n}/{total} valid ({n} repaired)
+  Archived: {n} iterations, {n} errors, {n} reviews
+  Patterns pruned: {n} stale, {n} low-confidence
+  Session summary: {compacted|ok} ({n} lines)
+  Learnings: {compacted|ok} ({n} lines)
+```
+
+---
+
+# Handoff Mode (Pre-Compression)
+
+When triggered by context getting long or explicit handoff request, append to session-summary.md:
 
 ```markdown
 ## Handoff Context
@@ -167,14 +232,11 @@ Append after the standard summary:
 - **Open questions**: Decisions pending user input
 ```
 
-This enables the next session's bootstrap to restore full context.
-
 ## Error Handling
 
 - If `iteration-log.md` is missing: create it, note "No previous iterations"
-- If any JSON file has a parse error: rename to `{file}.corrupt.bak`, create fresh with `[]`, warn user
+- If any JSON file has a parse error: rename to `{file}.corrupt.bak`, create fresh, warn user
 - If `.agent-memory/` doesn't exist: suggest running `/agentic-os:init`
-- If `session-summary.md` is missing: create it fresh
 
 ## What NOT to Do
 
@@ -183,4 +245,7 @@ This enables the next session's bootstrap to restore full context.
 - Do NOT modify `decisions.json` (that's context-keeper's job)
 - Do NOT write session-summary.md longer than 30 lines
 - Do NOT commit without user confirmation
-- Do NOT log trivial "learnings" that clutter the knowledge base
+- Do NOT log trivial "learnings"
+- Do NOT delete identity files (soul.md, user.md)
+- Do NOT prune skill_candidate patterns
+- Do NOT run memory maintenance during an active self-improve loop (check state.json status)

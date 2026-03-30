@@ -114,35 +114,16 @@ if [ -f "$SG_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- test-validator language consistency --"
-TV_FILE="$SKILLS_DIR/test-validator/SKILL.md"
-if [ -f "$TV_FILE" ]; then
-    if grep -q "^### Schritt" "$TV_FILE"; then
-        fail "test-validator: body uses German section headers (e.g. 'Schritt') — skill bodies must use English for consistency with the rest of the plugin"
-    else
-        pass "test-validator: body section headers use English (no 'Schritt' headers)"
-    fi
-fi
+# test-validator, code-reviewer merged into quality-gate in v3 consolidation
 
 echo ""
-echo "-- test-validator trigger language consistency --"
-if [ -f "$TV_FILE" ]; then
-    if grep -qE "laufen lassen|ausfuehren|kaputt gemacht|funktioniert noch|ist was kaputt" "$TV_FILE"; then
-        fail "test-validator: description trigger phrases contain German — all triggers must use English for correct auto-triggering"
+echo "-- quality-gate language consistency --"
+QG_FILE="$SKILLS_DIR/quality-gate/SKILL.md"
+if [ -f "$QG_FILE" ]; then
+    if grep -q "^### Schritt" "$QG_FILE"; then
+        fail "quality-gate: body uses German section headers (e.g. 'Schritt') — skill bodies must use English"
     else
-        pass "test-validator: description trigger phrases use English (no German triggers)"
-    fi
-fi
-
-echo ""
-echo "-- code-reviewer language consistency --"
-CR_FILE="$SKILLS_DIR/code-reviewer/SKILL.md"
-if [ -f "$CR_FILE" ]; then
-    if grep -q "^### Schritt" "$CR_FILE"; then
-        fail "code-reviewer: body uses German section headers (e.g. 'Schritt') — skill bodies must use English for consistency with the rest of the plugin"
-    else
-        pass "code-reviewer: body section headers use English (no 'Schritt' headers)"
+        pass "quality-gate: body section headers use English (no 'Schritt' headers)"
     fi
 fi
 
@@ -157,27 +138,7 @@ if [ -f "$WU_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- tdd trigger language consistency --"
-TDD_FILE="$SKILLS_DIR/tdd/SKILL.md"
-if [ -f "$TDD_FILE" ]; then
-    if grep -q "erst testen dann coden\|schreib erstmal einen test\|das muss getestet sein" "$TDD_FILE"; then
-        fail "tdd: description contains German trigger phrases — triggers must use English for consistent auto-matching"
-    else
-        pass "tdd: description trigger phrases use English (no German triggers)"
-    fi
-fi
-
-echo ""
-echo "-- code-reviewer JSON template language consistency --"
-CR_FILE="$SKILLS_DIR/code-reviewer/SKILL.md"
-if [ -f "$CR_FILE" ]; then
-    if grep -q "Beschreibung des Problems\|Vorgeschlagene Verbesserung\|Kurze Zusammenfassung" "$CR_FILE"; then
-        fail "code-reviewer: JSON output template uses German field values — template must use English placeholders"
-    else
-        pass "code-reviewer: JSON output template uses English field values"
-    fi
-fi
+# tdd, code-reviewer JSON template tests removed — merged into quality-gate in v3
 
 echo ""
 echo "-- pattern-extractor trigger language consistency --"
@@ -245,16 +206,7 @@ if [ -f "$WU_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- code-reviewer trigger language consistency --"
-CR_FILE="$SKILLS_DIR/code-reviewer/SKILL.md"
-if [ -f "$CR_FILE" ]; then
-    if grep -q "code reviewen\|qualitaet pruefen\|ist der code gut so\|schauen wir uns den code an" "$CR_FILE"; then
-        fail "code-reviewer: description contains German trigger phrases — triggers must use English for consistent auto-matching"
-    else
-        pass "code-reviewer: trigger phrases use English (no German triggers)"
-    fi
-fi
+# code-reviewer trigger test removed — merged into quality-gate in v3
 
 echo ""
 echo "-- session-bootstrap body language consistency --"
@@ -291,14 +243,15 @@ if [ -f "$RPL_FILE" ]; then
     fi
 fi
 
+# research-phase test removed — merged into self-improve in v3
 echo ""
-echo "-- research-phase: findings persistence --"
-RP_FILE="$SKILLS_DIR/research-phase/SKILL.md"
-if [ -f "$RP_FILE" ]; then
-    if grep -q "agent-memory/research\|research-cache" "$RP_FILE"; then
-        pass "research-phase: persists findings to .agent-memory/research/ for cross-session reuse"
+echo "-- self-improve: research findings persistence --"
+SI_FILE="$SKILLS_DIR/self-improve/SKILL.md"
+if [ -f "$SI_FILE" ]; then
+    if grep -q "agent-memory/research\|research-cache" "$SI_FILE"; then
+        pass "self-improve: persists research findings to .agent-memory/research/ for cross-session reuse"
     else
-        fail "research-phase: missing findings persistence — findings are ephemeral and lost after each session (P7: cache intermediate outputs)"
+        fail "self-improve: missing research findings persistence"
     fi
 fi
 
@@ -325,29 +278,7 @@ if [ -f "$SI2_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- analysis-phase trigger language consistency --"
-AP2_FILE="$SKILLS_DIR/analysis-phase/SKILL.md"
-if [ -f "$AP2_FILE" ]; then
-    AP2_DESC=$(awk '/^description:/{found=1} found{print; if(/^[^ ]/ && !/^description:/){exit}}' "$AP2_FILE" | head -5)
-    if echo "$AP2_DESC" | grep -qiE "analysieren|verbessern|finden|prüfen|starten|suchen"; then
-        fail "analysis-phase: description contains German trigger phrases — triggers must use English for consistent auto-matching"
-    else
-        pass "analysis-phase: description trigger phrases use English (no German triggers)"
-    fi
-fi
-
-echo ""
-echo "-- analysis-phase: metadata completeness (part-of field) --"
-AP_FILE="$SKILLS_DIR/analysis-phase/SKILL.md"
-if [ -f "$AP_FILE" ]; then
-    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$AP_FILE")
-    if echo "$FRONTMATTER" | grep -q "part-of:"; then
-        pass "analysis-phase: metadata includes part-of field (consistent with other skills)"
-    else
-        fail "analysis-phase: metadata missing 'part-of: agentic-os' — inconsistent with all other self-improve layer skills which declare their plugin membership"
-    fi
-fi
+# analysis-phase tests removed — merged into self-improve in v3
 
 echo ""
 echo "-- self-improve: consistent rollback strategy (no git stash) --"

@@ -13,3 +13,12 @@
 - **Files changed:** skills/sync-context/SKILL.md, agents/quality-gate.md, skills/DEPENDENCIES.md, tests/validate-plugin.sh
 - **Summary:** 3 weaknesses found and fixed: (1) sync-context missing examples section, (2) quality-gate missing plugin-specific review rules, (3) self-improve not documented in DEPENDENCIES.md. Tests went from 117 (1 failing) to 130 (0 failing).
 - **Errors encountered:** Test scripts failed on Windows due to `set -e` + bash arithmetic and path quoting with spaces. Fixed by removing `set -e` and using `process.argv` in node.
+
+## 2026-03-30 — refactor: Skill Consolidation v3 (20 → 9 skills)
+- **Type:** refactor
+- **Tags:** consolidation, architecture, v3
+- **Files changed:** skills/self-improve/SKILL.md, skills/quality-gate/SKILL.md, skills/wrap-up/SKILL.md, skills/DEPENDENCIES.md, .claude-plugin/plugin.json, .claude-plugin/marketplace.json, CLAUDE.md, tests/validate-plugin.sh, tests/validate-skills.sh
+- **Summary:** Consolidated Agentic OS from 20 skills to 9. Merged self-improve pipeline (loop-orchestrator, research-phase, analysis-phase, improvement-phase, validation-phase, meta-improve, schedule-manager → self-improve), quality skills (code-reviewer, test-validator, tdd → quality-gate), and memory-janitor into wrap-up. Version bumped to 3.0.0. All 221 tests pass (114 plugin + 107 skill).
+- **Confidence:** 5/5
+- **Tests:** passed (221/221)
+- **Learnings:** Internal pipeline phases that are never triggered directly by users should be inline sections in the orchestrating skill, not separate skills. The test suite's for-loop over skill dirs made deletion safe — removed dirs simply disappear from test scope.

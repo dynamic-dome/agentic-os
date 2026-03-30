@@ -1,4 +1,4 @@
-# Skill Dependency Graph — Agentic OS v2
+# Skill Dependency Graph — Agentic OS v3
 
 ## Session Lifecycle (Execution Order)
 
@@ -22,11 +22,10 @@ WORK PHASE (user-driven, no auto-triggers)
   ├── context-keeper (on architecture decisions)
   │     └── writes: context/project-context.md, decisions.json
   │
-  ├── code-reviewer (before commits, on request)
-  │     └── writes: quality/code-reviews.json, quality-score.json
-  │
-  ├── test-validator (before commits, on request)
-  │     └── writes: quality/test-results.json, quality-score.json
+  ├── quality-gate (before commits, on request)
+  │     ├── Mode 1: Code review → writes: quality/code-reviews.json, quality-score.json
+  │     ├── Mode 2: Test validation → writes: quality/test-results.json, quality-score.json
+  │     └── Mode 3: TDD enforcement → (no memory writes — uses test runner directly)
   │
   ├── pattern-extractor (every 5 iterations, on request)
   │     ├── reads: iterations/errors.json, iteration-log.md
@@ -36,24 +35,21 @@ WORK PHASE (user-driven, no auto-triggers)
   │     ├── reads: patterns/patterns.json
   │     └── writes: generated-skills/<name>/SKILL.md
   │
-  ├── tdd (on feature/bugfix work)
-  │     └── (no memory writes — uses test runner directly)
-  │
   ├── sync-context (manual only, on explicit request)
   │     └── reads/writes: local patterns ↔ global patterns
   │
-  └── self-improve (scheduled/manual, orchestrates improvement loop)
-        ├── delegates to: loop-orchestrator
-        │     ├── spawns: improvement-agent (per iteration)
-        │     │     ├── calls: research-phase (NotebookLM RAG + web fallback)
-        │     │     ├── calls: analysis-phase (pattern-extractor + direct analysis)
-        │     │     ├── calls: improvement-phase (TDD + git-stash safety)
-        │     │     └── calls: validation-phase (tests + NotebookLM eval)
-        │     ├── calls: schedule-manager (on convergence)
-        │     └── calls: meta-improve (1x per run, optional)
-        ├── calls: improvement-scout (legacy analysis agent)
-        ├── calls: fix-reviewer (legacy validation agent)
-        ├── calls: quality-gate (code checks)
+  ├── research-pipeline (token-optimized external research)
+  │     └── writes: research/<topic>-*.md
+  │
+  └── self-improve (scheduled/manual, all phases inline)
+        ├── Phase 0: Setup (git check, baseline tests, state.json)
+        ├── Phase 1: Research (local analysis, optional WebSearch/NotebookLM)
+        ├── Phase 2: Analysis (pattern-extractor + direct skill analysis)
+        ├── Phase 3: Improvement (TDD + git-checkpoint rollback)
+        ├── Phase 4: Validation (tests + quality evaluation)
+        ├── Circuit breaker (diminishing returns / rollback detection)
+        ├── Meta-improve (1x per run, optional, targets self)
+        ├── Schedule management (CronCreate/adaptive frequency)
         └── writes: improvements/iterations-*.md, state.json
   │
   ▼
@@ -65,7 +61,8 @@ SESSION END (Stop hook)
   │  ├── calls: pattern-extractor (if 3+ new iterations)
   │  ├── updates: session-summary.md
   │  ├── updates: learnings/learnings.md
-  │  └── updates: identity/user.md (conditional, 3+ repeated signals)
+  │  ├── updates: identity/user.md (conditional, 3+ repeated signals)
+  │  └── optional: memory maintenance (archiving, JSON integrity, pruning)
 ```
 
 ## Dependency Matrix
@@ -76,22 +73,12 @@ SESSION END (Stop hook)
 | iteration-logger | iteration-log.md, errors.json | iteration-log.md, errors.json |
 | pattern-extractor | errors.json, iteration-log.md, patterns.json | patterns.json, patterns.md |
 | context-keeper | project-context.md, decisions.json | project-context.md, decisions.json |
-| code-reviewer | project-context.md, patterns.md | code-reviews.json, quality-score.json |
-| test-validator | test-results.json | test-results.json, quality-score.json |
+| quality-gate | project-context.md, patterns.md, test-results.json, code-reviews.json | code-reviews.json, test-results.json, quality-score.json |
 | skill-generator | patterns.json | generated-skills/ |
-| wrap-up | iteration-log.md, errors.json | session-summary.md, learnings.md, user.md |
+| wrap-up | iteration-log.md, errors.json, all .agent-memory/ files (maintenance mode) | session-summary.md, learnings.md, user.md, archives |
 | sync-context | local patterns, global patterns | local patterns, global patterns |
-| tdd | — | — |
-| self-improve | improvements/state.json | improvements/iterations-*.md, state.json |
-| loop-orchestrator | improvements/state.json, skills/*/SKILL.md | improvements/state.json |
-| research-phase | .agent-memory/research-cache.json, patterns.json, session-summary.md | research-cache.json |
 | research-pipeline | (external: Perplexity, NotebookLM) | research/<topic>-*.md |
-| memory-janitor | all .agent-memory/ files (read) | archives in same dirs |
-| analysis-phase | iteration-log.md, errors.json, skills/*/SKILL.md | (output only) |
-| improvement-phase | skills/*/SKILL.md, tests/ | skills/*/SKILL.md, tests/validate-skills.sh |
-| validation-phase | tests/ | improvements/iterations-*.md, state.json |
-| meta-improve | improvements/state.json | improvements/state.json (metaHistory) |
-| schedule-manager | improvements/state.json | (MCP scheduled tasks) |
+| self-improve | improvements/state.json, skills/*/SKILL.md, .agent-memory/* | improvements/iterations-*.md, state.json, skills/*/SKILL.md |
 
 ## Agents
 
@@ -99,19 +86,35 @@ SESSION END (Stop hook)
 |-------|---------|---------|
 | context-detective | /agentic-os:init (optional) | Auto-detect project stack from manifests |
 | quality-gate | pre-commit, manual, self-improve | Combined code review + test validation |
-| improvement-scout | self-improve (legacy path) | Analyze plugin for actionable improvements |
-| fix-reviewer | self-improve (legacy path) | Validate proposed fixes before implementation |
-| improvement-agent | loop-orchestrator | Run single iteration (research→analysis→improvement→validation) |
-| research-agent | research-phase (optional) | Deep web + NotebookLM research |
+| improvement-agent | self-improve (inline iterations) | Run single iteration (research→analysis→improvement→validation) |
+| research-agent | self-improve research phase (optional) | Deep web + NotebookLM research |
+
+## Consolidated Skills (v3)
+
+Previously 20 skills, now 9:
+
+| # | Skill | Absorbed |
+|---|-------|----------|
+| 1 | session-bootstrap | — |
+| 2 | iteration-logger | — |
+| 3 | pattern-extractor | — |
+| 4 | context-keeper | — |
+| 5 | quality-gate | code-reviewer, test-validator, tdd |
+| 6 | self-improve | loop-orchestrator, research-phase, analysis-phase, improvement-phase, validation-phase, meta-improve, schedule-manager |
+| 7 | wrap-up | memory-janitor |
+| 8 | skill-generator | — |
+| 9 | sync-context | — |
+
+Plus `research-pipeline` as an optional standalone tool.
 
 ## Key Design Principles
 
 1. **No circular dependencies** — DAG only
 2. **No auto-triggers on code changes** — user/CLAUDE.md driven
 3. **session-bootstrap is read-only** — never writes during startup
-4. **wrap-up, self-improve, and loop-orchestrator are the only skills that call other skills/agents**
+4. **wrap-up and self-improve are the only skills that call other skills/agents**
 5. **sync-context is manual-only** — no auto-sync
-6. **loop-orchestrator uses explicit delegation contracts** — all phase inputs/outputs documented
+6. **self-improve has all phases inline** — no external skill delegation for pipeline steps
 7. **P9 safety: git revert over git stash pop** — stash may already be dropped
 8. **Max 20% mutation per skill per iteration** — prevents scope creep
-9. **Circuit breaker stops on diminishing returns** — adaptive scheduling via schedule-manager
+9. **Circuit breaker stops on diminishing returns** — adaptive scheduling built into self-improve

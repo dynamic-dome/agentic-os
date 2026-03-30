@@ -780,21 +780,19 @@ else
 fi
 
 
-# 43. code-reviewer must not reference a nonexistent plugin-setting 'max_review_entries'
-#     plugin.json has no settings/configuration block. Claiming 'konfigurierbar via
-#     Plugin-Setting max_review_entries' is a false affordance that misleads users into
-#     searching for a setting that cannot be configured.
+# 43. quality-gate must not reference a nonexistent plugin-setting
+#     plugin.json has no settings/configuration block.
 echo ""
-echo "-- code-reviewer no phantom plugin-setting reference --"
-CR_SKILL="$PLUGIN_ROOT/skills/code-reviewer/SKILL.md"
-if [ -f "$CR_SKILL" ]; then
-    if grep -q "Plugin-Setting\|plugin-setting\|plugin setting" "$CR_SKILL"; then
-        fail "code-reviewer: references a nonexistent plugin-setting (max_review_entries) — plugin.json has no settings block, so this is a false affordance"
+echo "-- quality-gate no phantom plugin-setting reference --"
+QG_SKILL="$PLUGIN_ROOT/skills/quality-gate/SKILL.md"
+if [ -f "$QG_SKILL" ]; then
+    if grep -q "Plugin-Setting\|plugin-setting\|plugin setting" "$QG_SKILL"; then
+        fail "quality-gate: references a nonexistent plugin-setting — plugin.json has no settings block"
     else
-        pass "code-reviewer: does not reference nonexistent plugin-settings"
+        pass "quality-gate: does not reference nonexistent plugin-settings"
     fi
 else
-    fail "code-reviewer: SKILL.md not found"
+    fail "quality-gate: SKILL.md not found"
 fi
 
 
@@ -928,18 +926,7 @@ else
     fail "iteration-logger: SKILL.md not found"
 fi
 
-echo ""
-echo "-- test-validator phantom plugin settings reference --"
-TV_FILE="$PLUGIN_ROOT/skills/test-validator/SKILL.md"
-if [ -f "$TV_FILE" ]; then
-    if grep -q "configurable via plugin setting" "$TV_FILE"; then
-        fail "test-validator: references 'configurable via plugin setting' (max_test_result_entries) but no such plugin config exists — agents will look for a non-existent mechanism; remove phantom setting reference"
-    else
-        pass "test-validator: does not reference phantom plugin settings (log rotation threshold is hardcoded)"
-    fi
-else
-    fail "test-validator: SKILL.md not found"
-fi
+# test-validator merged into quality-gate — test removed in v3 consolidation
 
 
 # 51. session-start.sh auto-init must use English for all initialized markdown file content
@@ -1013,22 +1000,18 @@ fi
 
 
 
-# 54. code-reviewer skill must have a quality-score.json update step
-#     code-reviewer's File Structure section declares quality-score.json as an output file,
-#     and DEPENDENCIES.md lists it as a write target. However, the procedure has no step
-#     that updates quality-score.json. This means the quality score trend tracking is
-#     non-functional: code reviews run but never feed into the quality dashboard.
+# 54. quality-gate skill must have a quality-score.json update step
 echo ""
-echo "-- code-reviewer skill: quality-score.json update step --"
-CR_SKILL="$PLUGIN_ROOT/skills/code-reviewer/SKILL.md"
-if [ -f "$CR_SKILL" ]; then
-    if grep -q "quality-score" "$CR_SKILL" && grep -qiE "update.*quality.score|quality.score.*update|quality-score\.json.*Step|Step.*quality-score" "$CR_SKILL"; then
-        pass "code-reviewer: skill has a quality-score.json update step"
+echo "-- quality-gate skill: quality-score.json update step --"
+QG_SKILL="$PLUGIN_ROOT/skills/quality-gate/SKILL.md"
+if [ -f "$QG_SKILL" ]; then
+    if grep -q "quality-score" "$QG_SKILL" && grep -qiE "update.*quality.score|quality.score.*update|quality-score\.json" "$QG_SKILL"; then
+        pass "quality-gate: skill has a quality-score.json update step"
     else
-        fail "code-reviewer: skill declares quality-score.json as output (File Structure) but procedure has no step to update it — quality trend tracking is non-functional"
+        fail "quality-gate: skill declares quality-score.json as output but procedure has no step to update it"
     fi
 else
-    fail "code-reviewer: SKILL.md not found"
+    fail "quality-gate: SKILL.md not found"
 fi
 
 

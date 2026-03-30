@@ -1,5 +1,5 @@
 {
   "name": "agentic-os",
-  "version": "2.0.0",
-  "description": "Self-improving agent memory system with 20 skills. Tracks iterations, extracts patterns, reviews code, validates tests, and generates skills from recurring workflows."
+  "version": "3.0.0",
+  "description": "Self-improving agent memory system with 9 consolidated skills. Tracks iterations, extracts patterns, enforces quality gates, and generates skills from recurring workflows."
 }
