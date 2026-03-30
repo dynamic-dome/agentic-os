@@ -1,5 +1,5 @@
 {
-  "description": "Agentic OS Lifecycle Hooks v5: Auto-Init, Briefing, Lightweight Logging, Smart Routing, Session Wrap-Up, Auto-Commit",
+  "description": "Agentic OS Lifecycle Hooks v6: Auto-Init (command), Intent Routing (prompt), Lightweight Logging (prompt), Context Preservation (prompt), Wrap-Up Delegation (prompt), Agent Commit Suggest (prompt)",
   "hooks": {
     "SessionStart": [
       {
@@ -55,8 +55,8 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n0. **WRAP-UP CHECK:** Read `.agent-memory/session-summary.md`. If the *Date* line contains today's date, wrap-up already ran this session — skip Step 2 (summary update) and only do the Task Persistence Guard and open-tasks check.\n1. **TASK PERSISTENCE GUARD (MANDATORY):** Read `.agent-memory/open-tasks.json`. If it exists, read ALL tasks with status 'open' or 'blocked'. These MUST appear in the 'Open Items' section of session-summary.md. Never drop, skip, or summarize them away. If open-tasks.json does not exist, check the current session-summary.md for 'Open Items' and create open-tasks.json from them.\n2. Update `.agent-memory/session-summary.md` with:\n   - What was done (2-3 bullet points of this session's work)\n   - Open items: MUST include ALL open/blocked tasks from open-tasks.json\n   - Next steps (what to do next session)\n   - Keep under 30 lines total (but never sacrifice task completeness for brevity).\n3. If any new unfinished work was identified this session, append it to open-tasks.json with a new ID.\n4. If 3+ iterations were logged this session, note key learnings in `.agent-memory/learnings/learnings.md` (only genuine, non-trivial insights).\n5. Output a one-line summary of what was done this session.\n\nReturn 'approve'.",
-            "timeout": 30
+            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n1. **TASK PERSISTENCE GUARD (MANDATORY):** Read `.agent-memory/open-tasks.json`. If it exists, read ALL tasks with status 'open' or 'blocked'. Verify they appear in the 'Open Items' section of `.agent-memory/session-summary.md`. If any are missing, add them now. Never drop, skip, or summarize tasks away.\n2. **DELEGATE TO WRAP-UP:** If wrap-up has NOT already run this session (check if session-summary.md Date line contains today's date), invoke `agentic-os:wrap-up` for full session summary, learnings, and pattern extraction.\n3. If wrap-up already ran, only ensure task persistence (Step 1) and return.\n\nReturn 'approve'.",
+            "timeout": 15
           }
         ]
       }

@@ -1167,6 +1167,106 @@ if [ -f "$SC_SKILL" ]; then
     fi
 fi
 
+# 64. session-start.sh must produce valid JSON output
+echo ""
+echo "-- session-start.sh JSON output validity --"
+SS_SCRIPT="$PLUGIN_ROOT/scripts/session-start.sh"
+if [ -f "$SS_SCRIPT" ]; then
+    # Run in a temp dir to test auto-init path
+    TMPDIR_TEST=$(mktemp -d)
+    SS_OUTPUT=$(CLAUDE_PROJECT_DIR="$TMPDIR_TEST" bash "$SS_SCRIPT" 2>/dev/null || true)
+    if echo "$SS_OUTPUT" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null; then
+        pass "session-start.sh: produces valid JSON output"
+    else
+        fail "session-start.sh: output is not valid JSON"
+    fi
+    # Check that systemMessage field exists
+    HAS_MSG=$(echo "$SS_OUTPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print('yes' if 'systemMessage' in d else 'no')" 2>/dev/null || echo "no")
+    if [ "$HAS_MSG" = "yes" ]; then
+        pass "session-start.sh: JSON output contains systemMessage field"
+    else
+        fail "session-start.sh: JSON output missing systemMessage field"
+    fi
+    rm -rf "$TMPDIR_TEST"
+fi
+
+# 65. session-start.sh auto-init creates required directory structure
+echo ""
+echo "-- session-start.sh auto-init directory structure --"
+if [ -f "$SS_SCRIPT" ]; then
+    TMPDIR_TEST=$(mktemp -d)
+    CLAUDE_PROJECT_DIR="$TMPDIR_TEST" bash "$SS_SCRIPT" > /dev/null 2>&1 || true
+    MISSING=""
+    for subdir in identity context iterations patterns quality learnings generated-skills knowledge; do
+        [ ! -d "$TMPDIR_TEST/.agent-memory/$subdir" ] && MISSING="$MISSING $subdir"
+    done
+    if [ -z "$MISSING" ]; then
+        pass "session-start.sh: auto-init creates all required subdirectories"
+    else
+        fail "session-start.sh: auto-init missing directories:$MISSING"
+    fi
+    # Check key files created
+    FILES_OK=true
+    for keyfile in session-summary.md identity/soul.md context/project-context.md iterations/errors.json patterns/patterns.json quality/quality-score.json knowledge/notebook-registry.md; do
+        [ ! -f "$TMPDIR_TEST/.agent-memory/$keyfile" ] && FILES_OK=false
+    done
+    if [ "$FILES_OK" = true ]; then
+        pass "session-start.sh: auto-init creates all required seed files"
+    else
+        fail "session-start.sh: auto-init missing seed files"
+    fi
+    rm -rf "$TMPDIR_TEST"
+fi
+
+# 66. session-start.sh existing memory dir does not re-init
+echo ""
+echo "-- session-start.sh no re-init on existing memory --"
+if [ -f "$SS_SCRIPT" ]; then
+    TMPDIR_TEST=$(mktemp -d)
+    mkdir -p "$TMPDIR_TEST/.agent-memory"
+    echo "# Existing summary" > "$TMPDIR_TEST/.agent-memory/session-summary.md"
+    CLAUDE_PROJECT_DIR="$TMPDIR_TEST" bash "$SS_SCRIPT" > /dev/null 2>&1 || true
+    CONTENT=$(cat "$TMPDIR_TEST/.agent-memory/session-summary.md" 2>/dev/null)
+    if echo "$CONTENT" | grep -q "Existing summary"; then
+        pass "session-start.sh: does not overwrite existing .agent-memory/ files"
+    else
+        fail "session-start.sh: overwrites existing .agent-memory/ files on re-run"
+    fi
+    rm -rf "$TMPDIR_TEST"
+fi
+
+# 67. SessionEnd prompt hook delegates to wrap-up (no duplicate logic)
+echo ""
+echo "-- SessionEnd hook delegates to wrap-up --"
+SE_PROMPT=$(python3 -c "import json,sys; h=json.load(open(sys.argv[1])); print(h['hooks']['SessionEnd'][0]['hooks'][0]['prompt'])" "$PLUGIN_ROOT/hooks/hooks.json" 2>/dev/null || echo "")
+if [ -n "$SE_PROMPT" ]; then
+    if echo "$SE_PROMPT" | grep -q "wrap-up"; then
+        pass "SessionEnd: prompt hook delegates to wrap-up skill"
+    else
+        fail "SessionEnd: prompt hook does not delegate to wrap-up — risk of duplicate logic"
+    fi
+    # Should NOT contain detailed summary update instructions (that's wrap-up's job)
+    if echo "$SE_PROMPT" | grep -qE "What was done.*bullet points|Keep under 30 lines"; then
+        fail "SessionEnd: prompt hook contains detailed summary logic that duplicates wrap-up skill"
+    else
+        pass "SessionEnd: prompt hook is lean (no duplicate summary logic)"
+    fi
+fi
+
+# 68. Dead script cleanup — session-end.sh and pre-compact.sh should not exist
+echo ""
+echo "-- Dead hook script cleanup --"
+if [ -f "$PLUGIN_ROOT/scripts/session-end.sh" ]; then
+    fail "scripts/session-end.sh exists but is not referenced in hooks.json (dead code)"
+else
+    pass "scripts/session-end.sh: removed (was dead code — prompt hook handles SessionEnd)"
+fi
+if [ -f "$PLUGIN_ROOT/scripts/pre-compact.sh" ]; then
+    fail "scripts/pre-compact.sh exists but is not referenced in hooks.json (dead code)"
+else
+    pass "scripts/pre-compact.sh: removed (was dead code — prompt hook handles PreCompact)"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
