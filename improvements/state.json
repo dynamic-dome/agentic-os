@@ -1,9 +1,8 @@
 {
   "iteration": 63,
   "currentIteration": 63,
-  "status": "running",
-  "running_since": "2026-03-30T06:00:00Z",
-  "lastRun": "2026-03-30T00:00:00Z",
+  "status": "idle",
+  "lastRun": "2026-03-30T06:00:00Z",
   "total_fixes": 79,
   "metaHistory": [
     {
