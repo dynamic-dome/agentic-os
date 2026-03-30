@@ -1,4 +1,5 @@
 ---
+name: init
 description: Initialize Agentic OS v2 memory system in the current project
 argument-hint: "[--force]"
 allowed_tools: ["Read", "Write", "Bash", "Glob", "Grep"]

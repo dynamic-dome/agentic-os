@@ -136,7 +136,21 @@ for cmd_file in "$PLUGIN_ROOT/commands"/*.md; do
     fi
 done
 
-# 5b. Commands must use allowed_tools (underscore), not allowed-tools (hyphen)
+# 5b. Commands must have a name field in frontmatter
+echo ""
+echo "-- Command name field --"
+for cmd_file in "$PLUGIN_ROOT/commands"/*.md; do
+    [ -f "$cmd_file" ] || continue
+    cname=$(basename "$cmd_file")
+    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$cmd_file")
+    if echo "$FRONTMATTER" | grep -q "^name:"; then
+        pass "$cname has name field in frontmatter"
+    else
+        fail "$cname missing name field — command manifests must declare name for consistent identification"
+    fi
+done
+
+# 5c. Commands must use allowed_tools (underscore), not allowed-tools (hyphen)
 echo ""
 echo "-- Command allowed_tools key --"
 for cmd_file in "$PLUGIN_ROOT/commands"/*.md; do

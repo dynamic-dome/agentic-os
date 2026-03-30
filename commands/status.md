@@ -1,4 +1,5 @@
 ---
+name: status
 description: Show Agentic OS memory system status and health
 allowed_tools: ["Read", "Glob", "Bash"]
 ---
