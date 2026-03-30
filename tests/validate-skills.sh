@@ -231,15 +231,14 @@ if [ -f "$SC_BODY_FILE" ]; then
 fi
 
 echo ""
-echo "-- research-pipeline trigger language consistency --"
+echo "-- research-pipeline: no non-standard triggers: field --"
 RPL_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
 if [ -f "$RPL_FILE" ]; then
-    # Check the triggers: YAML list for German entries
-    TRIGGERS_BLOCK=$(awk '/^triggers:/{p=1;next} p && /^[a-z_-]*:|^---/{p=0} p{print}' "$RPL_FILE")
-    if echo "$TRIGGERS_BLOCK" | grep -qi "recherchiere\|quellen suchen\|recherche starten\|suche\|finde quellen"; then
-        fail "research-pipeline: triggers: field contains German phrases — all triggers must use English for consistent auto-matching"
+    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$RPL_FILE")
+    if echo "$FRONTMATTER" | grep -q "^triggers:"; then
+        fail "research-pipeline: has non-standard triggers: field — no other skill uses this field; trigger phrases belong in the description: field"
     else
-        pass "research-pipeline: trigger phrases use English (no German triggers in triggers: field)"
+        pass "research-pipeline: no non-standard triggers: field (consistent with all other skills)"
     fi
 fi
 
