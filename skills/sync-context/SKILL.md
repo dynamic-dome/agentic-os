@@ -11,7 +11,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '1.0'
+  version: '3.0'
   part-of: agentic-os
   layer: utility
 ---

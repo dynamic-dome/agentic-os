@@ -63,7 +63,7 @@
     ],
     "SubagentStop": [
       {
-        "matcher": "quality-gate|improvement-scout",
+        "matcher": "quality-gate|improvement-agent",
         "hooks": [
           {
             "type": "prompt",

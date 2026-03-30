@@ -10,9 +10,9 @@ Start the self-improvement loop for plugin skills.
 
 ## Instructions
 
-Invoke the `agentic-os:loop-orchestrator` skill to run the full improvement cycle.
+Invoke the `agentic-os:self-improve` skill to run the full improvement cycle.
 
-The orchestrator will:
+The skill will:
 1. Check git state and baseline tests
 2. Run up to 4 sequential iterations
 3. Each iteration: research → analysis → improvement → validation
@@ -22,5 +22,5 @@ The orchestrator will:
 
 Use the Skill tool:
 ```
-Skill: agentic-os:loop-orchestrator
+Skill: agentic-os:self-improve
 ```

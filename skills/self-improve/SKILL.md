@@ -18,6 +18,7 @@ metadata:
   depends-on:
     - agentic-os:iteration-logger
     - agentic-os:pattern-extractor
+    - agentic-os:quality-gate
 ---
 
 # Self-Improve Orchestrator

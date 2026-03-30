@@ -16,68 +16,68 @@ metadata:
 
 # Research Pipeline Skill
 
-Token-optimierte Recherche durch Auslagerung an spezialisierte Tools.
+Token-optimized research by offloading to specialized tools.
 
-> **Canonical Location:** Dieser Skill lebt in agentic-os als Shared Skill.
-> devil-advocate-swarms, multi-model-orchestrator und self-improving-agent
-> verweisen hierher statt eigene Kopien zu pflegen.
+> **Canonical Location:** This skill lives in agentic-os as a shared skill.
+> devil-advocate-swarms, multi-model-orchestrator, and self-improving-agent
+> reference this instead of maintaining their own copies.
 
-## Architektur
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Phase 1: SUCHE (Perplexity)                  GRATIS*   │
+│  Phase 1: SEARCH (Perplexity)                 FREE*     │
 │  ─────────────────────────────────────────────           │
-│  → Browser oeffnen → Perplexity Suchanfrage             │
-│  → Links + Zusammenfassung extrahieren                  │
-│  → Lokal speichern: research/<topic>-<date>.md          │
+│  → Open browser → Perplexity search query               │
+│  → Extract links + summary                              │
+│  → Save locally: research/<topic>-<date>.md             │
 ├─────────────────────────────────────────────────────────┤
-│  Phase 2: INGEST (NotebookLM)                 GRATIS    │
+│  Phase 2: INGEST (NotebookLM)                 FREE      │
 │  ─────────────────────────────────────────────           │
-│  → Links aus Phase 1 in NotebookLM Notebook laden       │
-│  → Notebook benennen nach Thema                         │
-│  → Gemini indexiert automatisch alle Quellen             │
+│  → Load links from Phase 1 into NotebookLM notebook     │
+│  → Name notebook by topic                               │
+│  → Gemini auto-indexes all sources                      │
 ├─────────────────────────────────────────────────────────┤
-│  Phase 3: ANALYSE (NotebookLM RAG)            GRATIS    │
+│  Phase 3: ANALYSIS (NotebookLM RAG)           FREE      │
 │  ─────────────────────────────────────────────           │
-│  → Gezielte Fragen an NotebookLM stellen                │
-│  → Antworten extrahieren und lokal speichern             │
-│  → Optional: Studio-Output (Mindmap, Bericht, etc.)     │
+│  → Ask targeted questions to NotebookLM                 │
+│  → Extract answers and save locally                     │
+│  → Optional: Studio output (mindmap, report, etc.)      │
 ├─────────────────────────────────────────────────────────┤
 │  Phase 4: INTEGRATION (Claude)                ~3K Tok   │
 │  ─────────────────────────────────────────────           │
-│  → Gespeicherte Ergebnisse lesen (lokale Dateien)       │
-│  → In Projekt integrieren (Code, Docs, Architektur)     │
-│  → Entscheidungen treffen basierend auf Research         │
+│  → Read saved results (local files)                     │
+│  → Integrate into project (code, docs, architecture)    │
+│  → Make decisions based on research                     │
 └─────────────────────────────────────────────────────────┘
-  * Perplexity Pro = Flatrate, Free Tier = 5 Pro Searches/Tag
+  * Perplexity Pro = flat rate, Free Tier = 5 Pro Searches/day
 ```
 
-## Token-Ersparnis
+## Token Savings
 
-| Schritt | Nur Claude | Mit Pipeline |
-|---------|-----------|--------------|
-| Web-Suche | ~10-20K Tokens | 0 (Perplexity) |
-| Quellen lesen | ~50-100K Tokens | 0 (NotebookLM) |
-| Synthese | ~5K Tokens | 0 (NotebookLM RAG) |
-| Ergebnis lesen | — | ~2-3K Tokens |
-| **Gesamt** | **~70-125K** | **~3K** |
+| Step | Claude Only | With Pipeline |
+|------|-----------|--------------|
+| Web search | ~10-20K Tokens | 0 (Perplexity) |
+| Read sources | ~50-100K Tokens | 0 (NotebookLM) |
+| Synthesis | ~5K Tokens | 0 (NotebookLM RAG) |
+| Read results | — | ~2-3K Tokens |
+| **Total** | **~70-125K** | **~3K** |
 
-**Ersparnis: ~95%**
+**Savings: ~95%**
 
-## Ablauf im Detail
+## Detailed Workflow
 
-### Phase 1: Perplexity-Suche
+### Phase 1: Perplexity Search
 
-1. Browser oeffnen → `https://www.perplexity.ai`
-2. Suchanfrage formulieren (spezifisch, mit Kontext)
-3. Antwort abwarten
-4. Text + Links extrahieren via `browser_evaluate`
-5. Speichern nach `research/<topic>-<YYYY-MM-DD>.md`
+1. Open browser → `https://www.perplexity.ai`
+2. Formulate search query (specific, with context)
+3. Wait for response
+4. Extract text + links via `browser_evaluate`
+5. Save to `research/<topic>-<YYYY-MM-DD>.md`
 
-**Prompt-Template fuer Perplexity:**
+**Prompt template for Perplexity:**
 ```
-<Thema> - Focus on:
+<Topic> - Focus on:
 1) Real-world implementations and GitHub repos
 2) Best practices and common patterns
 3) Cost/performance tradeoffs
@@ -86,125 +86,125 @@ Token-optimierte Recherche durch Auslagerung an spezialisierte Tools.
 
 ### Phase 2: NotebookLM Ingest
 
-1. Notebook erstellen: `notebooklm create "Research: <topic>" --json` (ID aus `id`-Feld parsen)
-2. Notebook-Kontext setzen: `notebooklm use <notebook_id>`
-3. Links aus Phase 1 als Quellen hinzufuegen: `notebooklm source add "<url>" --json` (source_id merken)
-4. Auf Indexierung warten: `notebooklm source wait <source_id> -n <notebook_id> --timeout 600` (Exit-Code 2 = Timeout → Quelle ueberspringen, weiter mit naechster)
+1. Create notebook: `notebooklm create "Research: <topic>" --json` (parse ID from `id` field)
+2. Set notebook context: `notebooklm use <notebook_id>`
+3. Add links from Phase 1 as sources: `notebooklm source add "<url>" --json` (note source_id)
+4. Wait for indexing: `notebooklm source wait <source_id> -n <notebook_id> --timeout 600` (exit code 2 = timeout → skip source, continue with next)
 
-### Phase 3: NotebookLM Analyse
+### Phase 3: NotebookLM Analysis
 
-1. Gezielte Fragen stellen via CLI:
+1. Ask targeted questions via CLI:
    ```bash
-   notebooklm ask "Was sind die konkreten Use Cases fuer X?" --json
-   notebooklm ask "Vergleiche Ansatz A vs B" --json
-   notebooklm ask "Welche Risiken und Einschraenkungen gibt es?" --json
+   notebooklm ask "What are the concrete use cases for X?" --json
+   notebooklm ask "Compare approach A vs B" --json
+   notebooklm ask "What are the risks and limitations?" --json
    ```
-2. Antworten aus JSON-Output extrahieren und lokal speichern
-3. Optional: Studio-Outputs generieren (`notebooklm generate report --format briefing-doc`)
+2. Extract answers from JSON output and save locally
+3. Optional: Generate studio outputs (`notebooklm generate report --format briefing-doc`)
 
 ### Phase 4: Claude Integration
 
-1. Lokale Research-Dateien lesen (Read Tool)
-2. Erkenntnisse in Projektcode/-docs integrieren
-3. Architektur-Entscheidungen dokumentieren
+1. Read local research files (Read tool)
+2. Integrate findings into project code/docs
+3. Document architecture decisions
 
-## Wann diese Pipeline nutzen
+## When to Use This Pipeline
 
-**JA — Pipeline nutzen wenn:**
-- Web-Recherche zu einem neuen Thema noetig
-- Mehrere Quellen verglichen werden muessen
-- Tiefenanalyse ueber 5+ Dokumente/Artikel
-- Wiederkehrende Research-Fragen zu einem Themengebiet
+**YES — Use pipeline when:**
+- Web research on a new topic is needed
+- Multiple sources need to be compared
+- Deep analysis across 5+ documents/articles
+- Recurring research questions on a topic area
 
-**NEIN — Direkt Claude nutzen wenn:**
-- Antwort ist im Projekt-Code/Docs vorhanden
-- Einfache API-Doku-Frage (→ context7 MCP)
-- Frage kann aus Kontext beantwortet werden
+**NO — Use Claude directly when:**
+- Answer is available in project code/docs
+- Simple API doc question (→ context7 MCP)
+- Question can be answered from context
 
-## Dateisystem-Konvention
+## File System Convention
 
 ```
 research/
-├── <topic>-<YYYY-MM-DD>.md          # Perplexity-Ergebnis (roh)
-├── <topic>-analysis-<YYYY-MM-DD>.md # NotebookLM-Analyse
-└── <topic>-links.md                 # Extrahierte Links fuer NotebookLM
+├── <topic>-<YYYY-MM-DD>.md          # Perplexity result (raw)
+├── <topic>-analysis-<YYYY-MM-DD>.md # NotebookLM analysis
+└── <topic>-links.md                 # Extracted links for NotebookLM
 ```
 
-## Fehlerbehandlung
+## Error Handling
 
-### Phase 1: Perplexity nicht erreichbar / Rate-Limit
+### Phase 1: Perplexity Unreachable / Rate Limit
 
-**Problem:** Perplexity gibt Fehler zurueck oder Rate-Limit (Free Tier: 5 Pro Searches/Tag) ist erschoepft.
+**Problem:** Perplexity returns an error or rate limit (Free Tier: 5 Pro Searches/day) is exhausted.
 
-**Fallback:** WebSearch-Tool direkt nutzen:
+**Fallback:** Use WebSearch tool directly:
 ```
-→ WebSearch("<thema> best practices site:github.com OR site:stackoverflow.com")
-→ Ergebnisse manuell in research/<topic>-<YYYY-MM-DD>.md speichern
-→ Mit Phase 4 fortfahren (Phase 2-3 optional)
-```
-
-### Phase 2-3: NotebookLM CLI nicht installiert
-
-**Problem:** `notebooklm` Befehl nicht gefunden (`command not found` oder `ModuleNotFoundError`).
-
-**Fallback:** Phase 2 und 3 ueberspringen, Perplexity-Ergebnisse direkt in Phase 4 verwenden:
-```
-→ research/<topic>-<YYYY-MM-DD>.md mit Read-Tool laden
-→ Direkt mit Claude-Integration (Phase 4) fortfahren
-→ Token-Ersparnis reduziert sich, aber Pipeline bleibt funktional
+→ WebSearch("<topic> best practices site:github.com OR site:stackoverflow.com")
+→ Save results manually to research/<topic>-<YYYY-MM-DD>.md
+→ Continue with Phase 4 (Phase 2-3 optional)
 ```
 
-### Phase 2: Notebook-Erstellung schlaegt fehl
+### Phase 2-3: NotebookLM CLI Not Installed
 
-**Problem:** `notebooklm create` gibt Fehler zurueck (z.B. API-Fehler, Netzwerkproblem).
+**Problem:** `notebooklm` command not found (`command not found` or `ModuleNotFoundError`).
 
-**Vorgehen:**
-1. Einmal wiederholen (retry): `notebooklm create "Research: <topic>"` erneut ausfuehren
-2. Schlaegt der Retry ebenfalls fehl → Inline-Research als Fallback:
-   - Quellen direkt via WebSearch oder Read-Tool laden
-   - Zusammenfassung lokal als `research/<topic>-inline-<YYYY-MM-DD>.md` speichern
-   - Mit Phase 4 fortfahren
-
-### Phase 2: Source-Import Timeout
-
-**Problem:** `notebooklm source wait` haengt oder Quelle wird nicht innerhalb von 60s indexiert.
-
-**Vorgehen:**
+**Fallback:** Skip Phase 2 and 3, use Perplexity results directly in Phase 4:
 ```
-→ Warning loggen: "⚠ Source <url> timeout — wird uebersprungen"
-→ Mit erfolgreich importierten Quellen fortfahren
-→ Mindestens 1 Quelle muss erfolgreich sein, sonst zu Phase-2-Fehler-Fallback wechseln
+→ Load research/<topic>-<YYYY-MM-DD>.md with Read tool
+→ Continue directly with Claude integration (Phase 4)
+→ Token savings reduced, but pipeline remains functional
 ```
 
-### Phase 3: RAG-Abfrage liefert leeres Ergebnis
+### Phase 2: Notebook Creation Fails
 
-**Problem:** `notebooklm ask` gibt leere Antwort oder "No relevant content found" zurueck.
+**Problem:** `notebooklm create` returns an error (e.g., API error, network issue).
 
-**Vorgehen:**
-1. Query vereinfachen und wiederholen:
+**Procedure:**
+1. Retry once: run `notebooklm create "Research: <topic>"` again
+2. If retry also fails → inline research as fallback:
+   - Load sources directly via WebSearch or Read tool
+   - Save summary locally as `research/<topic>-inline-<YYYY-MM-DD>.md`
+   - Continue with Phase 4
+
+### Phase 2: Source Import Timeout
+
+**Problem:** `notebooklm source wait` hangs or source is not indexed within 60s.
+
+**Procedure:**
+```
+→ Log warning: "⚠ Source <url> timeout — skipping"
+→ Continue with successfully imported sources
+→ At least 1 source must succeed, otherwise switch to Phase 2 error fallback
+```
+
+### Phase 3: RAG Query Returns Empty Result
+
+**Problem:** `notebooklm ask` returns empty answer or "No relevant content found".
+
+**Procedure:**
+1. Simplify query and retry:
    ```bash
-   # Original (zu spezifisch):
-   notebooklm ask "Was sind die konkreten Implementierungsdetails fuer X in Kontext Y?" --json
-   # Vereinfacht:
-   notebooklm ask "X erklaeren" --json
+   # Original (too specific):
+   notebooklm ask "What are the concrete implementation details for X in context Y?" --json
+   # Simplified:
+   notebooklm ask "Explain X" --json
    ```
-2. Alternative Fragestellung versuchen (Stichwoerter statt vollstaendige Frage)
-3. Bleibt Ergebnis leer → direkt auf Perplexity-Rohdata (Phase 1 Output) zurueckgreifen
+2. Try alternative phrasing (keywords instead of full question)
+3. If result remains empty → fall back to Perplexity raw data (Phase 1 output)
 
-### Authentifizierung abgelaufen
+### Authentication Expired
 
-**Problem:** NotebookLM CLI gibt `AuthenticationError`, `401 Unauthorized` oder `Token expired` zurueck.
+**Problem:** NotebookLM CLI returns `AuthenticationError`, `401 Unauthorized`, or `Token expired`.
 
-**Vorgehen:**
+**Procedure:**
 ```
-→ Nutzer auffordern: `notebooklm login` ausfuehren
-→ Pipeline pausieren bis Bestaetigung erfolgt
-→ Ab Phase 2 neu starten (Phase 1 Ergebnis bleibt gueltig)
+→ Ask user to run: `notebooklm login`
+→ Pause pipeline until confirmation
+→ Restart from Phase 2 (Phase 1 result remains valid)
 ```
 
-## Voraussetzungen
+## Prerequisites
 
-- Perplexity-Account (Free oder Pro)
-- Google-Account fuer NotebookLM
-- `notebooklm-py` CLI installiert (`pip install notebooklm-py`)
-- Authentifiziert via `notebooklm login`
+- Perplexity account (Free or Pro)
+- Google account for NotebookLM
+- `notebooklm-py` CLI installed (`pip install notebooklm-py`)
+- Authenticated via `notebooklm login`
