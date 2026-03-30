@@ -4,6 +4,7 @@ description: Identifies skill weaknesses using Agentic-OS pattern-extractor and 
 metadata:
   author: agentic-os
   version: '2.0'
+  part-of: agentic-os
   layer: analysis
 ---
 

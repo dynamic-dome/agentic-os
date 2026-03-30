@@ -314,6 +314,18 @@ if [ -f "$WU2_FILE" ]; then
 fi
 
 echo ""
+echo "-- analysis-phase: metadata completeness (part-of field) --"
+AP_FILE="$SKILLS_DIR/analysis-phase/SKILL.md"
+if [ -f "$AP_FILE" ]; then
+    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$AP_FILE")
+    if echo "$FRONTMATTER" | grep -q "part-of:"; then
+        pass "analysis-phase: metadata includes part-of field (consistent with other skills)"
+    else
+        fail "analysis-phase: metadata missing 'part-of: agentic-os' — inconsistent with all other self-improve layer skills which declare their plugin membership"
+    fi
+fi
+
+echo ""
 echo "-- self-improve: consistent rollback strategy (no git stash) --"
 SI_FILE="$SKILLS_DIR/self-improve/SKILL.md"
 if [ -f "$SI_FILE" ]; then
