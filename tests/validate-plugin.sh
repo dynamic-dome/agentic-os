@@ -1105,6 +1105,68 @@ if [ -f "$MI_SKILL" ]; then
     fi
 fi
 
+# 59. SubagentStop matcher must reference improvement-agent (not deprecated improvement-scout)
+echo ""
+echo "-- SubagentStop matcher references active agent --"
+if grep -q '"matcher":' "$PLUGIN_ROOT/hooks/hooks.json"; then
+    SUBAGENT_MATCHER=$(grep '"matcher":' "$PLUGIN_ROOT/hooks/hooks.json" | tail -1)
+    if echo "$SUBAGENT_MATCHER" | grep -q "improvement-scout"; then
+        fail "SubagentStop: matcher references deprecated improvement-scout — should be improvement-agent"
+    else
+        pass "SubagentStop: matcher references active agents (no deprecated improvement-scout)"
+    fi
+fi
+
+# 60. run-loop command must reference agentic-os:self-improve (not loop-orchestrator)
+echo ""
+echo "-- run-loop command references self-improve skill --"
+if [ -f "$PLUGIN_ROOT/commands/run-loop.md" ]; then
+    if grep -q "loop-orchestrator" "$PLUGIN_ROOT/commands/run-loop.md"; then
+        fail "run-loop: references non-existent loop-orchestrator — should reference self-improve"
+    else
+        pass "run-loop: correctly references self-improve (no stale loop-orchestrator)"
+    fi
+fi
+
+# 61. self-improve depends-on must include quality-gate
+echo ""
+echo "-- self-improve depends-on includes quality-gate --"
+SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SKILL" ]; then
+    FRONTMATTER=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print}' "$SI_SKILL")
+    if echo "$FRONTMATTER" | grep -q "quality-gate"; then
+        pass "self-improve: depends-on includes quality-gate"
+    else
+        fail "self-improve: depends-on missing quality-gate (used for validation phase)"
+    fi
+fi
+
+# 62. research-pipeline body must be in English (no German section headers)
+echo ""
+echo "-- research-pipeline body language consistency --"
+RP_SKILL="$PLUGIN_ROOT/skills/research-pipeline/SKILL.md"
+if [ -f "$RP_SKILL" ]; then
+    RP_BODY=$(awk 'BEGIN{c=0} /^---/{c++; next} c>=2{print}' "$RP_SKILL")
+    if echo "$RP_BODY" | grep -qE '(Architektur|Ablauf|Fehlerbehandlung|Voraussetzungen|Ersparnis)'; then
+        fail "research-pipeline: body contains German section headers — must be English"
+    else
+        pass "research-pipeline: body uses English section headers"
+    fi
+fi
+
+# 63. sync-context version must be 3.0 (consistent with other skills)
+echo ""
+echo "-- sync-context version consistency --"
+SC_SKILL="$PLUGIN_ROOT/skills/sync-context/SKILL.md"
+if [ -f "$SC_SKILL" ]; then
+    SC_FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print}' "$SC_SKILL")
+    if echo "$SC_FM" | grep -qE "version:.*['\"]?1\.0"; then
+        fail "sync-context: version is 1.0 — should be 3.0 (consistent with other skills)"
+    else
+        pass "sync-context: version is consistent (not stale 1.0)"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
