@@ -314,6 +314,18 @@ if [ -f "$WU2_FILE" ]; then
 fi
 
 echo ""
+echo "-- self-improve: metadata block present --"
+SI2_FILE="$SKILLS_DIR/self-improve/SKILL.md"
+if [ -f "$SI2_FILE" ]; then
+    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$SI2_FILE")
+    if echo "$FRONTMATTER" | grep -q "metadata:"; then
+        pass "self-improve: has metadata block (consistent with all other skills)"
+    else
+        fail "self-improve: missing metadata block — all other skills have metadata with author, version, part-of, layer fields for plugin membership and discoverability"
+    fi
+fi
+
+echo ""
 echo "-- analysis-phase: metadata completeness (part-of field) --"
 AP_FILE="$SKILLS_DIR/analysis-phase/SKILL.md"
 if [ -f "$AP_FILE" ]; then

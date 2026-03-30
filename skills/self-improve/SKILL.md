@@ -2,6 +2,13 @@
 name: self-improve
 description: "Orchestrates autonomous self-improvement loops: runs up to 4 iterations of research, analysis, TDD-based improvement, and validation with circuit breaker, NotebookLM research, and git-safe rollback. Replaces the old single-pass approach with a multi-iteration loop."
 user_invocable: false
+metadata:
+  author: agentic-os
+  version: '2.0'
+  part-of: agentic-os
+  layer: orchestration
+  depends-on:
+    - agentic-os:loop-orchestrator
 ---
 
 # Self-Improve Orchestrator
