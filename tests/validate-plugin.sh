@@ -385,34 +385,33 @@ fi
 
 
 # 21. self-improve SKILL.md error handling must specify a concrete rollback command
-#     "Revert the fix" is ambiguous — agents need 'git checkout .' or 'git stash pop'
-#     to know HOW to revert, otherwise they guess and may lose work
+#     "Revert the fix" is ambiguous — agents need a specific git command.
+#     Accepted: git reset --hard (commit-hash checkpoint), git checkout ., git restore .
 echo ""
 echo "-- self-improve rollback command specificity --"
 SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
 if [ -f "$SI_SKILL" ]; then
-    if grep -qE "git checkout \.|git stash pop|git restore \." "$SI_SKILL"; then
+    if grep -qE "git reset --hard|git checkout \.|git restore \." "$SI_SKILL"; then
         pass "self-improve: error handling specifies concrete rollback command"
     else
-        fail "self-improve: error handling says 'revert the fix' but gives no concrete git rollback command — agents will guess and may lose test file changes"
+        fail "self-improve: error handling gives no concrete git rollback command — agents will guess and may lose test file changes"
     fi
 else
     fail "self-improve: SKILL.md not found"
 fi
 
 
-# 22. self-improve SKILL.md Step 4 (TDD Fix) must instruct to create a safety
-#     git stash checkpoint BEFORE making changes. Without this, git checkout .
-#     cannot recover newly-added test files (untracked), leaving the test suite
-#     in a broken state after a failed fix attempt.
+# 22. self-improve SKILL.md must instruct to create a safety checkpoint BEFORE making
+#     changes. Accepted: commit-hash checkpoint (git rev-parse HEAD + git reset --hard)
+#     or git stash. commit-hash is preferred as stash is fragile with untracked files.
 echo ""
-echo "-- self-improve pre-fix stash checkpoint --"
+echo "-- self-improve pre-fix safety checkpoint --"
 SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
 if [ -f "$SI_SKILL" ]; then
-    if grep -qE "git stash push|stash.*checkpoint|safety checkpoint" "$SI_SKILL"; then
-        pass "self-improve: TDD Fix step includes safety stash checkpoint before making changes"
+    if grep -qE "checkpoint_sha|git rev-parse HEAD|safety checkpoint|git stash push" "$SI_SKILL"; then
+        pass "self-improve: TDD Fix step includes safety checkpoint before making changes"
     else
-        fail "self-improve: TDD Fix step missing git stash checkpoint — git checkout . cannot recover newly-added test files; use 'git stash push' before changes and 'git stash pop' on failure"
+        fail "self-improve: TDD Fix step missing safety checkpoint — cannot recover from failed fix without a checkpoint"
     fi
 else
     fail "self-improve: SKILL.md not found"

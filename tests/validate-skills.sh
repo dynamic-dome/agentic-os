@@ -314,5 +314,16 @@ if [ -f "$WU2_FILE" ]; then
 fi
 
 echo ""
+echo "-- self-improve: consistent rollback strategy (no git stash) --"
+SI_FILE="$SKILLS_DIR/self-improve/SKILL.md"
+if [ -f "$SI_FILE" ]; then
+    if grep -qE "git stash (push|pop)" "$SI_FILE"; then
+        fail "self-improve: uses 'git stash push/pop' for rollback — contradicts improvement-phase which forbids stash-based rollback (fragile: stash may be empty or contain unrelated entries). Use commit-hash checkpoint instead."
+    else
+        pass "self-improve: rollback strategy consistent — no git stash push/pop (uses commit-hash checkpoint)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

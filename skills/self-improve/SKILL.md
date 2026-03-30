@@ -55,15 +55,18 @@ filename = iterations-{batch_start:03d}-{batch_end:03d}.md
 
 ## Safety & Rollback
 
-Before making changes, create a safety checkpoint:
+Before making changes, record the current commit hash as a checkpoint:
 ```bash
-git stash push -m "self-improve-checkpoint"
+git rev-parse HEAD
+```
+Store this as `checkpoint_sha`.
+
+If tests fail after a fix, rollback using the commit hash:
+```bash
+git reset --hard {checkpoint_sha}
 ```
 
-If tests fail after a fix, rollback with:
-```bash
-git stash pop
-```
+Do NOT use `git stash` — stash-based rollback is fragile when the stash may be empty or contain unrelated entries.
 
 ## State History Entry Format
 
