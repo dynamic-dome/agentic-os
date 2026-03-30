@@ -9,7 +9,13 @@ triggers:
   - "search for sources"
   - "gather references"
   - "look up sources"
-depends-on: notebooklm (user-skill, notebooklm-py Python API — IMMER bevorzugen)
+metadata:
+  author: agentic-os
+  version: '3.0'
+  part-of: agentic-os
+  layer: research
+  depends-on:
+    - notebooklm (user-skill, notebooklm-py Python API — prefer over plugin skills)
 ---
 
 # Research Pipeline Skill

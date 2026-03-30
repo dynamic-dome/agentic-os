@@ -278,6 +278,18 @@ if [ -f "$SI2_FILE" ]; then
     fi
 fi
 
+echo ""
+echo "-- research-pipeline: metadata block present --"
+RP2_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
+if [ -f "$RP2_FILE" ]; then
+    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$RP2_FILE")
+    if echo "$FRONTMATTER" | grep -q "metadata:"; then
+        pass "research-pipeline: has metadata block (consistent with all other skills)"
+    else
+        fail "research-pipeline: missing metadata block — all skills must have metadata with author, version, part-of, layer fields for plugin membership and discoverability"
+    fi
+fi
+
 # analysis-phase tests removed — merged into self-improve in v3
 
 echo ""
