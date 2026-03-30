@@ -243,6 +243,18 @@ if [ -f "$RPL_FILE" ]; then
     fi
 fi
 
+echo ""
+echo "-- research-pipeline: description in English --"
+RPL_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
+if [ -f "$RPL_FILE" ]; then
+    DESC=$(awk '/^---/{c++; next} c==1 && /^description:/{sub(/^description:[[:space:]]*/,""); p=1; print} c==1 && p && /^[a-z_-]+:/{p=0} c==1 && p{print} c==2{exit}' "$RPL_FILE")
+    if echo "$DESC" | grep -qi "optimierte\|ersparnis\|spart[[:space:]]\|web-recherche"; then
+        fail "research-pipeline: description field contains German text — description must be English for consistent skill matching"
+    else
+        pass "research-pipeline: description field uses English"
+    fi
+fi
+
 # research-phase test removed — merged into self-improve in v3
 echo ""
 echo "-- self-improve: research findings persistence --"
