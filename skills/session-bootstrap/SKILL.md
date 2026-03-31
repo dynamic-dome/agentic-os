@@ -8,6 +8,7 @@ description: >
   Trigger phrases: "start session", "session bootstrap", "session start",
   "begin work", "what was I working on", "context restore", "new session",
   "project status", "where were we", "what do we know".
+user_invocable: true
 metadata:
   author: agentic-os
   version: '3.0'

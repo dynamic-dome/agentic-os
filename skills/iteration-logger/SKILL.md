@@ -6,6 +6,7 @@ description: >
   duplicate detection, recurrence tracking, and structured tagging.
   Trigger phrases: "log iteration", "log this fix", "iteration done",
   "document what I did", "record progress", "what did I do".
+user_invocable: true
 metadata:
   author: agentic-os
   version: '3.0'

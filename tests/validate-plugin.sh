@@ -1283,6 +1283,23 @@ if [ -f "$WU_VER_SKILL" ]; then
     fi
 fi
 
+# 77. All skills must declare user_invocable field (true or false)
+#     The skill-generator template enforces user_invocable in generated skills,
+#     but 5 existing skills (context-keeper, iteration-logger, pattern-extractor,
+#     session-bootstrap, research-pipeline) are missing this field entirely.
+#     Missing the field means the plugin framework cannot determine invocability.
+echo ""
+echo "-- all skills declare user_invocable field --"
+for SKILL_FILE in "$PLUGIN_ROOT"/skills/*/SKILL.md; do
+    SKILL_NAME=$(basename "$(dirname "$SKILL_FILE")")
+    FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$SKILL_FILE")
+    if echo "$FM" | grep -q "user_invocable:"; then
+        pass "skill $SKILL_NAME: declares user_invocable field"
+    else
+        fail "skill $SKILL_NAME: missing user_invocable field — plugin framework cannot determine if skill is exposed as slash command"
+    fi
+done
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

@@ -8,6 +8,7 @@ description: >
   Trigger phrases: "update context", "record decision", "why did we choose X",
   "update project status", "decision record", "create ADR", "stack change",
   "new dependency".
+user_invocable: true
 metadata:
   author: agentic-os
   version: '3.0'

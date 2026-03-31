@@ -5,6 +5,7 @@ description: >
   Saves ~95% Claude tokens on web research by offloading to specialized tools.
   Trigger: "research", "find sources", "web research", "deep research",
   "search for sources", "gather references", "look up sources".
+user_invocable: true
 metadata:
   author: agentic-os
   version: '3.0'

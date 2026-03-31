@@ -8,6 +8,7 @@ description: >
   occurs 3+ times, or on explicit request.
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
   "what patterns do you see", "lessons learned", "retrospective", "pattern scan".
+user_invocable: true
 metadata:
   author: agentic-os
   version: '3.0'
