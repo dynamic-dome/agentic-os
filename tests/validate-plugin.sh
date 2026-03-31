@@ -1267,6 +1267,22 @@ else
     pass "scripts/pre-compact.sh: removed (was dead code — prompt hook handles PreCompact)"
 fi
 
+# 76. wrap-up version must be 3.0 (consistent with all other skills)
+#     wrap-up was the only skill still carrying version '2.0' from the v2 era.
+#     All other skills are at '3.0' — stale version causes confusion about
+#     when the skill was last updated relative to the rest of the plugin.
+echo ""
+echo "-- wrap-up version consistency --"
+WU_VER_SKILL="$PLUGIN_ROOT/skills/wrap-up/SKILL.md"
+if [ -f "$WU_VER_SKILL" ]; then
+    WU_FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print}' "$WU_VER_SKILL")
+    if echo "$WU_FM" | grep -qE "version:.*['\"]?2\.0"; then
+        fail "wrap-up: version is 2.0 — should be 3.0 (all other skills are at version 3.0; stale version number misleads about update history)"
+    else
+        pass "wrap-up: version is consistent with other skills (not stale 2.0)"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

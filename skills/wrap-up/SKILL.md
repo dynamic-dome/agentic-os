@@ -25,7 +25,7 @@ description: |
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '2.0'
+  version: '3.0'
   part-of: agentic-os
   layer: core
 ---
