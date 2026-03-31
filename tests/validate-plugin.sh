@@ -1300,6 +1300,21 @@ for SKILL_FILE in "$PLUGIN_ROOT"/skills/*/SKILL.md; do
     fi
 done
 
+# 78. research-agent must not reference the old research-phase skill
+#     research-phase was merged into self-improve in v3. The research-agent.md
+#     still says "Spawned by research-phase skill" — a stale reference that
+#     misleads users about which skill spawns this agent.
+echo ""
+echo "-- research-agent: no stale research-phase skill reference --"
+RA_FILE="$PLUGIN_ROOT/agents/research-agent.md"
+if [ -f "$RA_FILE" ]; then
+    if grep -q "research-phase skill" "$RA_FILE"; then
+        fail "research-agent: references 'research-phase skill' which no longer exists — research-phase was merged into self-improve in v3; update to reference self-improve"
+    else
+        pass "research-agent: no stale research-phase skill reference"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
