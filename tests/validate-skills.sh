@@ -348,5 +348,17 @@ if [ -f "$SB2_FILE" ]; then
 fi
 
 echo ""
+echo "-- quality-gate: WARN verdict checks regressions --"
+QG_FILE="$SKILLS_DIR/quality-gate/SKILL.md"
+if [ -f "$QG_FILE" ]; then
+    WARN_LINE=$(grep "^\*\*WARN\*\*:" "$QG_FILE" | head -1)
+    if echo "$WARN_LINE" | grep -qiE "regression"; then
+        pass "quality-gate: WARN verdict criteria includes regression check"
+    else
+        fail "quality-gate: WARN verdict ignores regressions — a build with regressions should never be WARN (only FAIL)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

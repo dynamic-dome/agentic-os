@@ -309,5 +309,5 @@ Quality Gate: <verdict>
 ```
 
 **PASS**: Code review >= 75 AND test health >= 90 AND 0 regressions
-**WARN**: Code review >= 60 AND test health >= 70
-**FAIL**: Everything else
+**WARN**: Code review >= 60 AND test health >= 70 AND 0 regressions
+**FAIL**: Everything else (including any regressions)
