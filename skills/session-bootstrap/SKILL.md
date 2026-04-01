@@ -46,7 +46,7 @@ Read files in this priority order. Skip any that don't exist:
 4. **`context/project-context.md`** — tech stack, architecture, constraints
 5. **`patterns/patterns.md`** — known patterns and anti-patterns (scan for high-confidence only)
 6. **`quality/quality-score.json`** — test health + code quality trends
-7. **`iterations/errors.json`** — last 5 entries only (tail, not full load)
+7. **`iterations/errors.json`** — last 3 entries only (tail, not full load)
 
 Apply identity settings from `soul.md` silently (communication style, guard rails).
 

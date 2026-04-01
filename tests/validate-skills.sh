@@ -337,5 +337,16 @@ if [ -f "$WU3_FILE" ]; then
 fi
 
 echo ""
+echo "-- session-bootstrap: errors.json load count consistent with usage --"
+SB2_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
+if [ -f "$SB2_FILE" ]; then
+    if grep -q "last 5 entries" "$SB2_FILE" && grep -q "Last 3 errors\|last 3 errors" "$SB2_FILE"; then
+        fail "session-bootstrap: Step 2 loads 'last 5 entries' from errors.json but Step 4/5 only use 'last 3 errors' — inconsistent, causes confusion about buffer size"
+    else
+        pass "session-bootstrap: errors.json load count consistent with usage in Step 4/5"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
