@@ -168,7 +168,7 @@ research/
 
 ### Phase 2: Source Import Timeout
 
-**Problem:** `notebooklm source wait` hangs or source is not indexed within 60s.
+**Problem:** `notebooklm source wait` hangs or source is not indexed within 600s (the `--timeout 600` limit).
 
 **Procedure:**
 ```

@@ -315,5 +315,16 @@ if [ -f "$SI_FILE" ]; then
 fi
 
 echo ""
+echo "-- research-pipeline: timeout value consistent (no 60s/600s conflict) --"
+RP3_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
+if [ -f "$RP3_FILE" ]; then
+    if grep -q "\-\-timeout 600" "$RP3_FILE" && grep -q "within 60s" "$RP3_FILE"; then
+        fail "research-pipeline: timeout inconsistency — --timeout 600 (10min) in step 4 conflicts with 'within 60s' in error handling section"
+    else
+        pass "research-pipeline: timeout values consistent (no --timeout 600 vs 60s conflict)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
