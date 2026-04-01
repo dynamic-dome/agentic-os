@@ -326,5 +326,16 @@ if [ -f "$RP3_FILE" ]; then
 fi
 
 echo ""
+echo "-- wrap-up: state.json path specified for self-improve loop check --"
+WU3_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+if [ -f "$WU3_FILE" ]; then
+    if grep -q "state.json" "$WU3_FILE" && ! grep -qE "improvements/state\.json|improvements/state" "$WU3_FILE"; then
+        fail "wrap-up: references 'state.json' without path — agents won't know it's 'improvements/state.json' in the plugin root"
+    else
+        pass "wrap-up: state.json reference includes full path (improvements/state.json)"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

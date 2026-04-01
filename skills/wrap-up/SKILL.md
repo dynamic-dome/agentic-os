@@ -248,4 +248,4 @@ When triggered by context getting long or explicit handoff request, append to se
 - Do NOT log trivial "learnings"
 - Do NOT delete identity files (soul.md, user.md)
 - Do NOT prune skill_candidate patterns
-- Do NOT run memory maintenance during an active self-improve loop (check state.json status)
+- Do NOT run memory maintenance during an active self-improve loop (check `improvements/state.json` in the plugin root — `status: "running"` means the loop is active)
