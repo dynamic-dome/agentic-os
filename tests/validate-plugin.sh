@@ -1316,5 +1316,16 @@ if [ -f "$RA_FILE" ]; then
 fi
 
 echo ""
+echo "-- improvement-agent: no stale phase-skill references --"
+IA_FILE="$PLUGIN_ROOT/agents/improvement-agent.md"
+if [ -f "$IA_FILE" ]; then
+    if grep -qE "research-phase|analysis-phase|improvement-phase|validation-phase" "$IA_FILE"; then
+        fail "improvement-agent: references phase skills (research-phase, analysis-phase, improvement-phase, validation-phase) which no longer exist — all phases were merged inline into agentic-os:self-improve in v3"
+    else
+        pass "improvement-agent: no stale phase-skill references"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

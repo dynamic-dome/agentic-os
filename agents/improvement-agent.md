@@ -30,13 +30,12 @@ You receive:
 
 ## Steps
 
-1. **RESEARCH**: Invoke `agentic-os:research-phase` skill to gather best practices via NotebookLM.
+Invoke `agentic-os:self-improve` skill — it orchestrates all phases inline (research, analysis, improvement, validation). All phases have been merged into the self-improve skill in v3; there are no separate phase skills.
 
-2. **ANALYSIS**: Invoke `agentic-os:analysis-phase` skill to identify weaknesses with severity ranking and dedup.
-
-3. **IMPROVEMENT**: Invoke `agentic-os:improvement-phase` skill to apply TDD fixes with rollback safety.
-
-4. **VALIDATION**: Invoke `agentic-os:validation-phase` skill to run tests and evaluate quality.
+Pass the following context to the skill:
+- `target_dir`: target plugin directory
+- `iteration_number`: current iteration
+- `dedup_history`: previously fixed weaknesses
 
 5. **REPORT**: Output structured result:
    - Status: completed / diminishing-returns / rollback
