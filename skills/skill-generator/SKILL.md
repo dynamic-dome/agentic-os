@@ -70,6 +70,11 @@ name: <skill-name>
 description: >
   <Description with trigger words for when the skill should be used>
 user_invocable: true
+metadata:
+  author: <author>
+  version: '1.0'
+  part-of: <plugin-name>
+  layer: <core|quality|analysis|research|utility|orchestration>
 ---
 
 # <Skill Title>

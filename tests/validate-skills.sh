@@ -360,5 +360,17 @@ if [ -f "$QG_FILE" ]; then
 fi
 
 echo ""
+echo "-- skill-generator: template includes metadata block --"
+SG_FILE="$SKILLS_DIR/skill-generator/SKILL.md"
+if [ -f "$SG_FILE" ]; then
+    TEMPLATE=$(awk '/^```markdown/{found=1; next} found && /^```/{exit} found{print}' "$SG_FILE")
+    if echo "$TEMPLATE" | grep -q "metadata:"; then
+        pass "skill-generator: template includes metadata block (consistent with all existing skills)"
+    else
+        fail "skill-generator: template missing metadata block — all 10 existing skills have metadata with author/version/part-of/layer; generated skills should too"
+    fi
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
