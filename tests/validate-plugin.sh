@@ -1316,6 +1316,17 @@ if [ -f "$RA_FILE" ]; then
 fi
 
 echo ""
+echo "-- improvement-agent: no stale git-stash safety rule --"
+IA2_FILE="$PLUGIN_ROOT/agents/improvement-agent.md"
+if [ -f "$IA2_FILE" ]; then
+    if grep -q "git stash" "$IA2_FILE"; then
+        fail "improvement-agent: safety rule says 'git stash checkpoint' — but self-improve uses commit-hash checkpoints (git rev-parse HEAD + git reset --hard); stash is explicitly avoided as rollback strategy"
+    else
+        pass "improvement-agent: uses commit-hash checkpoint strategy (no git stash)"
+    fi
+fi
+
+echo ""
 echo "-- improvement-agent: no stale phase-skill references --"
 IA_FILE="$PLUGIN_ROOT/agents/improvement-agent.md"
 if [ -f "$IA_FILE" ]; then

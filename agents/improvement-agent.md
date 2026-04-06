@@ -45,7 +45,7 @@ Pass the following context to the skill:
 
 ## Safety
 
-- Always create git stash checkpoint before changes
+- Always record `git rev-parse HEAD` as checkpoint before changes; rollback via `git reset --hard {checkpoint_sha}`
 - Rollback on ANY test failure
 - Max 20% change per skill per iteration
 - Skip duplicate weaknesses from history
