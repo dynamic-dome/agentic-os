@@ -1316,6 +1316,18 @@ if [ -f "$RA_FILE" ]; then
 fi
 
 echo ""
+echo "-- quality-gate agent: WARN threshold checks regressions --"
+QGA_FILE="$PLUGIN_ROOT/agents/quality-gate.md"
+if [ -f "$QGA_FILE" ]; then
+    WARN_LINE=$(grep -i "^\- WARN:" "$QGA_FILE" | head -1)
+    if echo "$WARN_LINE" | grep -qiE "regression"; then
+        pass "quality-gate agent: WARN threshold includes regression check"
+    else
+        fail "quality-gate agent: WARN threshold missing regression check — skill requires 0 regressions for WARN; agent is inconsistent"
+    fi
+fi
+
+echo ""
 echo "-- improvement-agent: no stale git-stash safety rule --"
 IA2_FILE="$PLUGIN_ROOT/agents/improvement-agent.md"
 if [ -f "$IA2_FILE" ]; then

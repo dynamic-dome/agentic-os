@@ -87,9 +87,9 @@ QUALITY GATE: PASS | WARN | FAIL
 ```
 
 **Thresholds:**
-- PASS: code >= 75 AND test >= 80 AND no critical findings
-- WARN: code >= 60 AND test >= 60
-- FAIL: anything below WARN thresholds OR critical findings exist
+- PASS: code >= 75 AND test >= 80 AND no critical findings AND 0 regressions
+- WARN: code >= 60 AND test >= 60 AND 0 regressions
+- FAIL: anything below WARN thresholds OR critical findings exist OR regressions exist
 
 ### 5. Update Memory
 
