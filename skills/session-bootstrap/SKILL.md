@@ -11,7 +11,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '3.0'
+  version: '3.1'
   part-of: agentic-os
   layer: core
 ---
@@ -28,6 +28,15 @@ Restore full project context at the start of every coding session.
 - Agent switch (Claude Code <-> other)
 
 **Note:** The SessionStart hook now handles Auto-Init automatically. If `.agent-memory/` doesn't exist, the hook creates it before this skill runs. You should never need to suggest `/agentic-os:init` manually anymore.
+
+## Step 0: Session-Workflow laden
+
+Lies `C:\Users\domes\Desktop\SESSION-WORKFLOW.md` (die Session-Verfassung).
+
+- Falls die Datei existiert: Befolge die darin definierte Autoritaets-Hierarchie und Startreihenfolge fuer den Rest des Bootstraps.
+- Falls die Datei nicht existiert: Weiter mit Step 1 (kein Blocker).
+
+Diese Datei hat Vorrang vor projektspezifischen Instruktionen (CLAUDE.md, AGENTS.md).
 
 ## Step 1: Check Memory System Exists
 
