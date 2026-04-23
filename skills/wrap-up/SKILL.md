@@ -231,90 +231,23 @@ If there are uncommitted changes:
 
 ---
 
-# Step 9: Memory Maintenance (Optional)
+# Step 9: Memory Maintenance (Delegated)
 
-Runs automatically if memory thresholds are exceeded, or when user explicitly requests "clean memory", "memory maintenance", etc. Skip entirely if no thresholds are exceeded and user didn't request it.
+Memory maintenance is a separate skill: `memory-maintenance`.
 
-> **Note:** Step 9 is a separate SUB-MODE of wrap-up. It is not part of the normal end-of-session flow and MUST NOT run unless one of these is true:
-> - JSON files exceed the thresholds defined in Step 9.3
-> - The user explicitly requested memory maintenance (e.g., "clean memory", "memory cleanup", "prune patterns")
->
-> If neither is true, skip this entire section (9.1–9.8) and end after Step 8.
+Wrap-up does NOT perform maintenance itself. It only decides whether to invoke the dedicated skill:
 
-## Step 9.1: Assess Memory Health
+- If the user explicitly asked for it ("clean memory", "memory cleanup", "prune patterns", etc.): invoke `memory-maintenance` after Step 8.
+- Otherwise check the quick threshold signal before invoking:
+  - `iterations/iteration-log.md` > 100 entries
+  - `iterations/errors.json` > 50 entries
+  - `learnings/learnings.json` > 100 entries
+  - `patterns/patterns.json` contains entries with `last_seen` older than 60 days
+  - `session-summary.md` > 30 lines
+  - `learnings/learnings.md` > 200 lines
+- If none of the above apply: skip entirely. End after Step 8.
 
-Read and measure all memory files:
-
-```
-.agent-memory/iterations/iteration-log.md    → count ## headings
-.agent-memory/iterations/errors.json         → count array entries
-.agent-memory/patterns/patterns.json         → count array entries
-.agent-memory/quality/code-reviews.json      → count array entries
-.agent-memory/quality/test-results.json      → count array entries
-.agent-memory/context/decisions.json         → count array entries
-.agent-memory/session-summary.md             → count lines
-.agent-memory/learnings/learnings.md         → count lines
-```
-
-## Step 9.2: JSON Integrity Check
-
-For each JSON file:
-1. Attempt to parse it
-2. If parse fails: rename to `{file}.corrupt.bak`, create fresh with default (`[]` or `{}`), warn user
-3. If parse succeeds: check for structural issues
-
-## Step 9.3: Archive Old Data
-
-**Thresholds:**
-- `iteration-log.md` > 100 entries: keep newest 100, archive rest
-- `errors.json` > 50 entries: keep newest 50, archive rest
-- `learnings/learnings.json` > 100 entries: keep newest 100, archive rest
-- `code-reviews.json` > 100 entries: keep newest 100, archive rest
-- `test-results.json` > 100 entries: keep newest 100, archive rest
-
-Archive to `{filename}-archive-{YYYY-MM}.{ext}` in the same directory.
-
-## Step 9.4: Prune Stale Patterns
-
-Read `.agent-memory/patterns/patterns.json`:
-1. Find patterns where `last_seen` is older than 60 days
-2. Find patterns with `confidence < 0.3`
-3. Move these to `patterns-archive-{YYYY-MM}.json`
-4. Update `patterns.md` to reflect the pruned catalog
-
-**Exception:** Never prune patterns with `skill_candidate: true`.
-
-## Step 9.5: Compact Decisions
-
-Archive decisions with `status: "superseded"` older than 90 days. Keep all `status: "active"` decisions.
-
-## Step 9.6: Enforce Session Summary Length
-
-If `.agent-memory/session-summary.md` exceeds 30 lines: compress to 30 lines, keeping date, top 5 bullets, all open items, top 3 next steps.
-
-## Step 9.7: Compact Learnings
-
-If `.agent-memory/learnings/learnings.md` exceeds 200 lines: keep last 12 months, archive older entries, deduplicate.
-
-## Step 9.9: Consistency Check
-
-After maintenance, verify memory system integrity:
-
-1. **patterns.md vs patterns.json**: If `patterns.json` has entries but `patterns.md` says "No patterns" or is outdated, regenerate it (call pattern-extractor with "refresh patterns")
-2. **No duplicate open-tasks.json**: Verify `.agent-memory/open-tasks.json` does NOT exist at root level — canonical location is `context/open-tasks.json` only
-3. **Quality staleness**: If `quality-score.json` has `last_updated: null` AND `iterations/iteration-log.md` has entries, warn: "Quality metrics never initialized — consider running quality-gate"
-4. **learnings.md vs learnings.json**: If `learnings.json` exists, verify `learnings.md` header contains "Auto-generated from learnings.json". If not, regenerate from JSON.
-
-## Step 9.8: Memory Report
-
-```
-Memory Maintenance:
-  JSON Integrity: {n}/{total} valid ({n} repaired)
-  Archived: {n} iterations, {n} errors, {n} reviews
-  Patterns pruned: {n} stale, {n} low-confidence
-  Session summary: {compacted|ok} ({n} lines)
-  Learnings: {compacted|ok} ({n} lines)
-```
+When invoking, hand off cleanly — `memory-maintenance` owns its own report and error handling; wrap-up should not duplicate that logic.
 
 ---
 

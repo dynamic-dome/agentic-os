@@ -75,9 +75,12 @@ SESSION END (Stop hook)
 | context-keeper | project-context.md, decisions.json | project-context.md, decisions.json |
 | quality-gate | project-context.md, patterns.md, test-results.json, code-reviews.json | code-reviews.json, test-results.json, quality-score.json |
 | skill-generator | patterns.json | generated-skills/ |
-| wrap-up | iteration-log.md, errors.json, all .agent-memory/ files (maintenance mode) | session-summary.md, learnings.md, user.md, archives |
+| wrap-up | iteration-log.md, errors.json | session-summary.md, learnings.md, user.md; delegates maintenance to memory-maintenance |
+| memory-maintenance | all .agent-memory/ files | archives/*, repaired JSON files, patterns.md regeneration via pattern-extractor |
 | sync-context | local patterns, global patterns | local patterns, global patterns |
 | research-pipeline | (external: Perplexity, NotebookLM) | research/<topic>-*.md |
+| obsidian-sync | .agent-memory/ session results | ~/wiki/ session notes, entity pages, synthesis |
+| wiki-query | ~/wiki/ pages (read-only) | (nothing — read-only lookup) |
 | self-improve | improvements/state.json, skills/*/SKILL.md, .agent-memory/* | improvements/iterations-*.md, state.json, skills/*/SKILL.md |
 
 ## Agents
@@ -91,9 +94,9 @@ SESSION END (Stop hook)
 
 ## Consolidated Skills (v3)
 
-Previously 20 skills, now 9:
+Previously 20 skills, now 10 core + 3 auxiliary:
 
-| # | Skill | Absorbed |
+| # | Skill | Absorbed / Note |
 |---|-------|----------|
 | 1 | session-bootstrap | — |
 | 2 | iteration-logger | — |
@@ -101,11 +104,12 @@ Previously 20 skills, now 9:
 | 4 | context-keeper | — |
 | 5 | quality-gate | code-reviewer, test-validator, tdd |
 | 6 | self-improve | loop-orchestrator, research-phase, analysis-phase, improvement-phase, validation-phase, meta-improve, schedule-manager |
-| 7 | wrap-up | memory-janitor |
-| 8 | skill-generator | — |
-| 9 | sync-context | — |
+| 7 | wrap-up | — (memory maintenance split out in v3.1) |
+| 8 | memory-maintenance | extracted from wrap-up Step 9 in v3.1 — owns JSON integrity, archiving, pruning, reporting |
+| 9 | skill-generator | — |
+| 10 | sync-context | — |
 
-Plus `research-pipeline` as an optional standalone tool.
+Auxiliary: `research-pipeline` (external research tool), `obsidian-sync` (write-path into wiki), `wiki-query` (read-only lookup in wiki).
 
 ## Key Design Principles
 
