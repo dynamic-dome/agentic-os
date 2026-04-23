@@ -1,0 +1,186 @@
+---
+name: obsidian-sync
+description: |
+  Syncs session results from .agent-memory/ into the Obsidian Wiki (~/wiki/).
+  Creates session notes, updates project entities, promotes high-confidence
+  patterns, and consolidates learnings into rolling syntheses. This is the
+  write-path from Agent Memory (RAM) to Obsidian (Brain).
+  Trigger phrases: "sync to wiki", "obsidian sync", "wiki update",
+  "push to obsidian", "wiki sync", "update wiki", "write to wiki".
+
+  <example>
+  Context: User finishes a productive session with 3 iterations
+  user: "sync to wiki"
+  assistant: "Wiki sync: Session-Note erstellt, Entity aktualisiert, 1 Learning promoted. 3 Seiten in ~/wiki/ geaendert."
+  <commentary>
+  User wants to persist session results to the Obsidian wiki for long-term memory.
+  </commentary>
+  </example>
+user_invocable: true
+metadata:
+  author: agentic-os
+  version: '1.0'
+  part-of: agentic-os
+  layer: core
+---
+
+# Obsidian Sync
+
+Sync session results from .agent-memory/ (RAM) into ~/wiki/ (Brain).
+
+## When to Use
+
+- At session end via wrap-up Step 7.5 (auto-triggered, conditional)
+- Manually when user says "sync to wiki", "obsidian sync", etc.
+- After a productive session with >= 2 iterations or meaningful learnings
+
+## When NOT to Use
+
+- Trivial sessions (< 2 iterations, no meaningful outcome)
+- When sync_enabled is false in config.json
+- From subagents (only the main agent writes to wiki)
+
+## Prerequisites
+
+- `.agent-memory/config.json` must exist with `wiki_root` and `sync_enabled: true`
+- The wiki at `wiki_root` must have a valid `CLAUDE.md` file
+- `.agent-memory/session-summary.md` should have current session data
+
+## Step 1: Read Config and Validate
+
+Read `.agent-memory/config.json`:
+- Extract `wiki_root`, `project_id`, `sync_enabled`
+- If `sync_enabled` is false → output "Wiki sync disabled for this project." and stop.
+- If config.json does not exist → output "No wiki config found. Run /agentic-os:init to set up." and stop.
+
+Validate wiki connection:
+- Check if `$WIKI_ROOT/CLAUDE.md` exists
+- If not → warn "Wiki not found at configured path" and stop.
+
+## Step 2: Gather Session Data
+
+Read from .agent-memory/:
+1. `session-summary.md` — current session summary
+2. `iterations/iteration-log.md` — today's iterations (filter by today's date)
+3. `learnings/learnings.json` OR `learnings/learnings.md` — new learnings from this session (check .json first, fall back to .md; parse .md as bullet list if no .json exists)
+4. `patterns/patterns.json` OR `patterns/patterns.md` — patterns with updated confidence (check .json first, fall back to .md)
+5. `context/decisions.json` — new decisions from this session (skip if not found)
+
+Count iterations from today. If < session_note_threshold (default: 2) AND no meaningful learnings → output "Session below sync threshold. Skipping wiki sync." and stop.
+
+## Step 3: Create Session Note
+
+**This step ALWAYS runs first when sync proceeds.**
+
+Create a new file in `$WIKI_ROOT/wiki/queries/` following the session-note template:
+
+Filename: `YYYY-MM-DD-session-{project_id}-{kebab-case-summary}.md`
+
+Frontmatter fields:
+```yaml
+---
+type: query
+status: active
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+source_count: 0
+tags:
+  - session
+  - agent-generated
+aliases: []
+question: Was wurde in dieser Session erarbeitet?
+scope: []
+project: {project_id}
+agent: claude-code
+iterations: {count}
+quality_delta: {delta or null}
+patterns_found: {count}
+authority: derived
+---
+```
+
+Body: Fill in Kontext, Was wurde gemacht, Entscheidungen, Erkenntnisse, Offene Fragen, Beruehrte Seiten sections from session data.
+
+Link to relevant wiki pages using `[[wiki/...]]` format.
+
+## Step 4: Update Project Entity (conditional)
+
+**Only if** new decisions exist with type `status-change` or `runtime-decision`:
+
+1. Find the project entity at `$WIKI_ROOT/wiki/entities/{project_id}.md`
+   - Resolution order: project_id → project_aliases → filename grep
+2. If entity exists: append status/decision update to the entity's relevant section
+3. If entity does not exist: skip (do NOT create entities in this step)
+
+**Do NOT update entity for:** architecture-decisions (those go to synthesis/topics via context-keeper Step 4.5).
+
+## Step 5: Update Rolling Synthesis (conditional)
+
+**Only if** new learnings exist with salience >= 4:
+
+1. Read `$WIKI_ROOT/wiki/synthesis/agent-learnings-aktuell.md`
+   - If it does not exist: create it with sections `## Pattern-basiert`, `## Tooling`, `## Architektur`
+2. For each learning with salience >= 4:
+   - Determine which section it belongs to
+   - Check for duplicates (Jaccard similarity >= 0.6 on key terms)
+   - If not duplicate: append as a concise bullet point with date and project reference
+3. Check file length:
+   - If > 200 lines: warn "Rolling synthesis exceeds 200 lines — consider running cyclic offload"
+   - Do NOT auto-offload (that is a manual/scheduled operation)
+
+## Step 6: Update Pattern Promotion Status (conditional)
+
+**Only update patterns.json, NO wiki writes in this step:**
+
+For each pattern in patterns.json:
+- If confidence 0.70–0.84 → set `"promotion_status": "candidate"` if not already set
+- If confidence >= 0.85 AND (occurrences >= 2 OR source_projects >= 2) → set `"promotion_status": "ready"`
+- If confidence >= 0.85 BUT single project/single occurrence → set `"promotion_status": "candidate"`
+
+**Do NOT create Concept pages from patterns.** That happens during migration (Sprint 4+) or manually.
+
+## Step 7: Update Index and Log
+
+### index.md
+Read `$WIKI_ROOT/index.md`. Add the new session-note under the "Session Notes" or "Queries" section:
+```
+- [YYYY-MM-DD Session: summary](wiki/queries/YYYY-MM-DD-session-{project_id}-summary.md) — project, {n} iterations
+```
+
+### log.md
+Append to `$WIKI_ROOT/log.md`:
+```
+## [YYYY-MM-DD] agent-sync | {project_id}
+
+- Session-Note: wiki/queries/YYYY-MM-DD-session-{project_id}-summary.md
+- Entity updated: {yes/no}
+- Learnings promoted: {count}
+- Patterns flagged: {count candidates, count ready}
+- Total pages touched: {n}
+```
+
+## Output
+
+Report to user:
+```
+Wiki sync complete:
+  Session-Note: wiki/queries/YYYY-MM-DD-session-...
+  Entity updated: {yes/no}
+  Learnings promoted: {count}
+  Patterns: {count} candidates, {count} ready
+  Pages touched: {total}
+```
+
+## Error Handling
+
+- **Any step fails:** Warn user, continue with remaining steps. Never abort wrap-up.
+- **Wiki path unreachable:** Warn and skip all wiki writes. Still update patterns.json locally.
+- **Frontmatter parse error:** Warn, write file without updating existing frontmatter.
+- **index.md/log.md not found:** Create minimal versions and continue.
+
+## Guards
+
+- Only the **main agent** may invoke this skill. Subagents must NOT call obsidian-sync.
+- This skill writes to `~/wiki/` which is OUTSIDE the current project directory. This is intentional and expected.
+- Never delete or overwrite existing wiki pages. Only append or create new.
+- All wiki writes use `[[wiki/...]]` link format per the wiki's CLAUDE.md conventions.

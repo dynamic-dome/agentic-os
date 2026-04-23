@@ -22,3 +22,11 @@
 - **Confidence:** 5/5
 - **Tests:** passed (221/221)
 - **Learnings:** Internal pipeline phases that are never triggered directly by users should be inline sections in the orchestrating skill, not separate skills. The test suite's for-loop over skill dirs made deletion safe — removed dirs simply disappear from test scope.
+
+## 2026-03-30 — fix: Adversarial Self-Improvement (#68 + #69)
+- **Type:** bugfix
+- **Tags:** adversarial-swarm, hooks, dead-code, testing, self-improve
+- **Files changed:** hooks/hooks.json, commands/run-loop.md, skills/sync-context/SKILL.md, skills/self-improve/SKILL.md, skills/research-pipeline/SKILL.md, tests/validate-plugin.sh, scripts/session-end.sh (deleted), scripts/pre-compact.sh (deleted)
+- **Summary:** Devil's Advocate Swarm found 17 issues. Fixed 10: stale refs (SubagentStop matcher, run-loop command), missing dependency (quality-gate), version inconsistency (sync-context), full German→English translation (research-pipeline body), SessionEnd hook streamlined to delegate to wrap-up, 2 dead scripts removed, 14 new regression tests added. Tests: 236→248.
+- **Confidence:** 5/5
+- **Tests:** passed (248/248)

@@ -7,7 +7,8 @@ description: >
   Run periodically (every 5 iterations), at session end, when a problem
   occurs 3+ times, or on explicit request.
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
-  "what patterns do you see", "lessons learned", "retrospective", "pattern scan".
+  "what patterns do you see", "lessons learned", "retrospective", "pattern scan",
+  "refresh patterns", "pattern refresh", "regenerate patterns".
 user_invocable: true
 metadata:
   author: agentic-os
@@ -35,7 +36,10 @@ Read these files:
 2. `.agent-memory/iterations/iteration-log.md` — iteration history
 3. `.agent-memory/patterns/patterns.json` — existing patterns (to avoid duplicates)
 
-If `errors.json` has fewer than 3 entries, output "Not enough data for pattern extraction (need 3+ error records)" and stop.
+**Minimum data guard:**
+- If triggered as "refresh patterns" / "pattern refresh" / "regenerate patterns": skip this guard entirely — just regenerate `patterns.md` from `patterns.json` (jump to Step 6) and stop.
+- If `patterns.json` already has entries: always allow running (existing patterns can be updated even without new errors).
+- If `errors.json` has fewer than 3 entries AND `patterns.json` is empty: output "Not enough data for pattern extraction (need 3+ error records or existing patterns)" and stop.
 
 ## Step 2: Detection Heuristics
 

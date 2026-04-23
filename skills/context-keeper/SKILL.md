@@ -112,6 +112,29 @@ Read `decisions.json` first to determine the next `id` number.
 
 If this decision supersedes a previous one, set `supersedes: "D{old_id}"` and update the old entry's `status` to `"superseded"`.
 
+## Step 3.5: Wiki-ADR Writeback (if Wiki configured)
+
+If `.agent-memory/config.json` exists and `sync_enabled: true`:
+
+For `architecture-decision` type decisions, additionally write back to the Wiki:
+
+| Decision Subtype | Wiki Target | Action |
+|-----------------|-------------|--------|
+| Runtime/status decision | Projekt-Entity in `wiki/entities/{project_id}.md` | Update Status/Timeline section |
+| Systemic architecture decision | `wiki/synthesis/` or `wiki/topics/` | Append to matching page or create ADR section |
+
+**Routing logic:**
+1. Read `config.json` → get `wiki_root` and `project_id`
+2. Classify: Is this a runtime/status change (e.g., "switch to v2", "deprecate feature X") or a systemic architecture decision (e.g., "use SQLite instead of PostgreSQL", "adopt event sourcing")?
+3. Runtime → update the project entity's Status/Timeline section
+4. Systemic → find the best matching synthesis/topic page and append, or add to the entity's Architecture section if no better target exists
+
+**Guardrails:**
+- Only the main agent writes (subagents skip this step)
+- Wiki write failures do NOT block the context-keeper flow (warn + continue)
+- Do NOT duplicate what `wrap-up` Step 7.5 / `obsidian-sync` already does — context-keeper writes the **decision itself**, wrap-up writes the **session summary**
+- Do NOT create new Wiki pages here — only update existing ones
+
 ## Step 4: Consistency Checks
 
 After updating, verify:

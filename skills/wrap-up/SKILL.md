@@ -72,13 +72,74 @@ Review today's iterations for genuine insights. A learning is worth recording if
 
 **Do NOT log trivial facts** like "file X exists" or "function Y takes 2 arguments".
 
-Append real learnings to `.agent-memory/learnings/learnings.md`:
+### 3a: Dedup Check
+
+Before adding a new learning, read `.agent-memory/learnings/learnings.json` and check for duplicates:
+
+1. Normalize the new learning text: lowercase, strip punctuation, collapse whitespace
+2. Tokenize into a word set
+3. Compare against each existing entry using Jaccard similarity: `|intersection| / |union|`
+4. **Threshold: similarity >= 0.6** → treat as duplicate
+5. If duplicate found: update `last_relevant` to today's date on the existing entry, skip creation
+6. If new: proceed to 3b
+
+### 3b: Score and Append
+
+For each new learning, assign metadata:
+
+- **importance** (1-5):
+  - 5 = would prevent data loss or security issue
+  - 4 = would prevent a multi-attempt debugging session
+  - 3 = non-obvious codebase/tool behavior
+  - 2 = workflow optimization
+  - 1 = trivia / edge case unlikely to recur
+- **tags**: extract from text (e.g., "windows", "git", "python", "agentic-os", "memory")
+- **layer**: default `"short-term"` (promoted to `"long-term"` after 30 days if still relevant)
+
+Append to `.agent-memory/learnings/learnings.json`:
+
+```json
+{
+  "id": "L{next_number}",
+  "date": "{YYYY-MM-DD}",
+  "text": "{insight with context}",
+  "importance": 3,
+  "tags": ["tag1", "tag2"],
+  "layer": "short-term",
+  "superseded_by": null,
+  "last_relevant": "{YYYY-MM-DD}"
+}
+```
+
+### 3c: Regenerate Markdown View
+
+After writing to `learnings.json`, regenerate `learnings.md` from the JSON:
 
 ```markdown
+# Learnings
+
+*Auto-generated from learnings.json — do not edit directly.*
+
 ## {date}
 
-- {insight with context}
+- [{id}] ({'*' * importance}) {text}
 ```
+
+Group entries by date, sorted chronologically.
+
+## Step 3.5: Layer Lifecycle Review
+
+If `learnings/learnings.json` exists, review layer assignments:
+
+1. **Short-term → Long-term promotion**: For entries with `layer: "short-term"` older than 30 days:
+   - If `last_relevant` was updated within the last 30 days → promote to `"long-term"`
+   - If `last_relevant` is older than 30 days → mark as archive candidate (set `layer: "archive-candidate"`)
+2. **Working memory consumption**: Read `working/current-session.json` if it exists:
+   - Review each `learnings_draft` entry against the dedup check from Step 3a
+   - Promote worthy drafts to `learnings.json` with `layer: "short-term"`
+   - Discard trivial drafts
+   - Reset `working/current-session.json` (it will be recreated at next session start)
+3. **Superseded entries**: If a new learning contradicts an older one, set `superseded_by` on the older entry pointing to the new one's ID
 
 ## Step 4: Run Pattern Extraction
 
@@ -138,6 +199,28 @@ If a NotebookLM notebook exists for this project (check `.agent-memory/knowledge
 2. Only sync if 3+ meaningful learnings were extracted in Step 3
 3. Skip if NotebookLM CLI is not installed
 
+## Step 7.5: Obsidian Wiki Sync (Conditional)
+
+Sync session results to the Obsidian Wiki. This step **delegates** to the `obsidian-sync` skill — it does NOT duplicate its logic.
+
+### Trigger Conditions (ALL must be true)
+1. `.agent-memory/config.json` exists AND `sync_enabled: true`
+2. At least ONE of:
+   - >= `session_note_threshold` iterations logged today (default: 2)
+   - meaningful_learning extracted in Step 3 (importance >= 4)
+   - new architecture-decision or status-change in decisions.json
+
+### Execution
+If conditions met: invoke the `obsidian-sync` skill.
+
+The obsidian-sync skill handles all wiki writes (session-note, entity update, rolling synthesis, pattern promotion status, index/log). Do NOT replicate any of its steps here.
+
+### If conditions NOT met
+Skip silently. Output nothing about wiki sync.
+
+### Error Handling
+If obsidian-sync fails: **warn and continue**. Never let wiki sync failure block wrap-up. Output: "Wiki sync failed: {reason}. Session data is safe in .agent-memory/."
+
 ## Step 8: Suggest Git Commit (Optional)
 
 If there are uncommitted changes:
@@ -151,6 +234,12 @@ If there are uncommitted changes:
 # Step 9: Memory Maintenance (Optional)
 
 Runs automatically if memory thresholds are exceeded, or when user explicitly requests "clean memory", "memory maintenance", etc. Skip entirely if no thresholds are exceeded and user didn't request it.
+
+> **Note:** Step 9 is a separate SUB-MODE of wrap-up. It is not part of the normal end-of-session flow and MUST NOT run unless one of these is true:
+> - JSON files exceed the thresholds defined in Step 9.3
+> - The user explicitly requested memory maintenance (e.g., "clean memory", "memory cleanup", "prune patterns")
+>
+> If neither is true, skip this entire section (9.1–9.8) and end after Step 8.
 
 ## Step 9.1: Assess Memory Health
 
@@ -177,8 +266,9 @@ For each JSON file:
 ## Step 9.3: Archive Old Data
 
 **Thresholds:**
-- `iteration-log.md` > 500 entries: keep newest 500, archive rest
-- `errors.json` > 200 entries: keep newest 200, archive rest
+- `iteration-log.md` > 100 entries: keep newest 100, archive rest
+- `errors.json` > 50 entries: keep newest 50, archive rest
+- `learnings/learnings.json` > 100 entries: keep newest 100, archive rest
 - `code-reviews.json` > 100 entries: keep newest 100, archive rest
 - `test-results.json` > 100 entries: keep newest 100, archive rest
 
@@ -187,7 +277,7 @@ Archive to `{filename}-archive-{YYYY-MM}.{ext}` in the same directory.
 ## Step 9.4: Prune Stale Patterns
 
 Read `.agent-memory/patterns/patterns.json`:
-1. Find patterns where `last_seen` is older than 90 days
+1. Find patterns where `last_seen` is older than 60 days
 2. Find patterns with `confidence < 0.3`
 3. Move these to `patterns-archive-{YYYY-MM}.json`
 4. Update `patterns.md` to reflect the pruned catalog
@@ -205,6 +295,15 @@ If `.agent-memory/session-summary.md` exceeds 30 lines: compress to 30 lines, ke
 ## Step 9.7: Compact Learnings
 
 If `.agent-memory/learnings/learnings.md` exceeds 200 lines: keep last 12 months, archive older entries, deduplicate.
+
+## Step 9.9: Consistency Check
+
+After maintenance, verify memory system integrity:
+
+1. **patterns.md vs patterns.json**: If `patterns.json` has entries but `patterns.md` says "No patterns" or is outdated, regenerate it (call pattern-extractor with "refresh patterns")
+2. **No duplicate open-tasks.json**: Verify `.agent-memory/open-tasks.json` does NOT exist at root level — canonical location is `context/open-tasks.json` only
+3. **Quality staleness**: If `quality-score.json` has `last_updated: null` AND `iterations/iteration-log.md` has entries, warn: "Quality metrics never initialized — consider running quality-gate"
+4. **learnings.md vs learnings.json**: If `learnings.json` exists, verify `learnings.md` header contains "Auto-generated from learnings.json". If not, regenerate from JSON.
 
 ## Step 9.8: Memory Report
 

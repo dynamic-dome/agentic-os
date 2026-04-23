@@ -124,6 +124,15 @@ Read `errors.json` first to determine the next `id` number. Append to the array.
 
 Read `iteration-log.md` first to determine the next iteration number.
 
+## Step 4b: Update Working Memory
+
+If `.agent-memory/working/current-session.json` exists, update it:
+
+1. If errors occurred: append error IDs to `errors_this_session`
+2. If the iteration produced a non-obvious insight: append to `learnings_draft` (these are candidates that wrap-up will later promote to `learnings.json` or discard)
+
+This keeps a running tally of the current session's activity for wrap-up consumption.
+
 ## Step 5: Confirm and Suggest
 
 Output a brief confirmation:

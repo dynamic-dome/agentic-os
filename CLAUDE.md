@@ -25,12 +25,12 @@ No build step. No package manager. The plugin is pure Markdown + JSON + Bash.
 
 ```
 plugin.json              → Plugin manifest (name, version, description)
-hooks/hooks.json         → 5 lifecycle hooks (SessionStart, UserPromptSubmit, Stop, PreCompact, SessionEnd, SubagentStop)
+hooks/hooks.json         → 6 lifecycle hooks (SessionStart, UserPromptSubmit, Stop, PreCompact, SessionEnd, SubagentStop)
 skills/*/SKILL.md        → 9 consolidated skills with YAML frontmatter (trigger phrases, descriptions)
 agents/*.md              → 6 agents (context-detective, quality-gate, improvement-agent, etc.)
 commands/*.md            → 5 slash commands (init, status, run-loop, rollback, auto-commit)
 improvements/state.json  → Self-improve loop state tracker
-scripts/                 → Hook helper scripts (session-start.sh, session-end.sh, pre-compact.sh)
+scripts/                 → Hook helper scripts (session-start.sh — only active command hook)
 ```
 
 **Skills (9, consolidated from 20 in v3):**
@@ -46,7 +46,7 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and data flow.
 - **Language policy:** Trigger phrases in SKILL.md frontmatter MUST be English (tests enforce this). Body text English. User-facing communication in German.
 - **SKILL.md format:** YAML frontmatter with `name`, `description` (used for matching — be specific), `type: skill`, trigger phrases. Body is the skill prompt.
 - **Memory dir:** Skills read/write `.agent-memory/` in the target project (not this repo). `session-bootstrap` is strictly read-only.
-- **Hooks:** Lightweight by design. SessionStart (15s) reads silently; Stop (15s) logs iterations; PreCompact outputs survival summary; SessionEnd (30s) updates session-summary; UserPromptSubmit is advisory-only (never blocks).
+- **Hooks:** Lightweight by design. SessionStart (15s, command) auto-inits + injects context; Stop (15s, prompt) logs iterations; PreCompact (15s, prompt) outputs survival summary; SessionEnd (15s, prompt) task guard + delegates to wrap-up; UserPromptSubmit (10s, prompt) advisory-only; SubagentStop (10s, prompt) commit suggestion for quality-gate/improvement-agent.
 - **Self-improve safety:** Max 20% mutation per skill per iteration. Git revert over git stash pop. Circuit breaker on diminishing returns.
 - **No circular dependencies** between skills — strict DAG.
 - **Deprecated agents:** `improvement-scout` and `fix-reviewer` are legacy — prefer `improvement-agent` + `self-improve`.

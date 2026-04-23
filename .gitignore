@@ -22,3 +22,15 @@ node_modules/
 .idea/
 *.swp
 *.swo
+
+# Windows / shell crash artifacts
+*.stackdump
+
+# Runtime artifacts from swarm / scheduler
+.agent-memory/scratch/
+.agent-memory/debates/
+.agent-memory/consensus/
+.claude/scheduled_tasks.lock
+
+# User-local Claude Code settings (permissions, history)
+.claude/settings.local.json

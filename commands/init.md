@@ -34,10 +34,12 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
 │   ├── code-reviews.json
 │   └── quality-score.json
 ├── learnings/
-│   └── learnings.md
+│   ├── learnings.md
+│   └── learnings.json
 ├── knowledge/
 │   └── notebook-registry.md
 ├── generated-skills/
+├── config.json              (optional, created by Wiki Integration step)
 └── session-summary.md
 ```
 
@@ -48,7 +50,8 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    - `test-results.json` → `[]`
    - `code-reviews.json` → `[]`
    - `quality-score.json` → `{"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}`
-   - `open-tasks.json` → `[]`  **(MANDATORY — Task Persistence Guard)**
+   - `context/open-tasks.json` → `[]`  **(MANDATORY — Task Persistence Guard, canonical location is context/, NOT root)**
+   - `learnings/learnings.json` → `[]`  **(MANDATORY — wrap-up dedup/scoring and session-bootstrap salience retrieval depend on this)**
 
 4. **Initialize Markdown files:**
    - `iteration-log.md` → `# Iteration Log\n\n*No entries yet.*`
@@ -124,7 +127,32 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    - Write findings to `.agent-memory/context/project-context.md` using the context-keeper format
    - Ask the user to confirm or supplement the detected context
 
-7. **Ensure CLAUDE.md contains Knowledge Base section:**
+7. **Optional: Wiki Integration (config.json)**
+
+   Ask the user: "Soll dieses Projekt mit dem Obsidian Wiki verbunden werden? (Pfad zum Wiki angeben oder 'nein')"
+
+   - If user says no or skips → do NOT create config.json, continue to step 8.
+   - If user provides a wiki path:
+     1. Validate: check if `{wiki_path}/CLAUDE.md` exists. If not → warn "Wiki not found at this path." and ask again or skip.
+     2. Auto-detect `project_id` from the current directory name (kebab-case)
+     3. **Idempotent write**: If `.agent-memory/config.json` already exists, **merge** new values into existing config (do NOT overwrite). If it does not exist, create it.
+     4. Write/merge `.agent-memory/config.json`:
+        ```json
+        {
+          "wiki_root": "{validated_wiki_path}",
+          "project_id": "{auto_detected_id}",
+          "project_aliases": ["{directory_name}"],
+          "sync_enabled": true,
+          "session_note_threshold": 2,
+          "default_entrypoints": []
+        }
+        ```
+     5. `default_entrypoints` is left empty by default. The user can add entry points later when the corresponding wiki pages exist.
+     6. If the project has an entity page at `{wiki_path}/wiki/entities/{project_id}.md`, add it to `default_entrypoints` automatically.
+
+   **Idempotency rule**: If config.json already has `wiki_root` set and `--force` was not passed, skip this step with: "Wiki already configured (wiki_root: {path}). Use --force to reconfigure."
+
+8. **Ensure CLAUDE.md contains Knowledge Base section:**
 
    Check if a `CLAUDE.md` exists in the project root. If not, create one. If it exists, check if it already has a "Knowledge Base" section. If not, append the following section:
 
@@ -160,7 +188,7 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    4. Incorporate result into the answer
    ```
 
-8. **Output summary:**
+9. **Output summary:**
 
 ```
 Agentic OS initialized!
@@ -168,6 +196,7 @@ Agentic OS initialized!
   Files: 15
   Detected stack: {language} + {framework}
   Knowledge Base: notebook-registry.md created
+  Wiki: {connected to ~/wiki/ | not configured}
 
   Next steps:
   1. Review .agent-memory/context/project-context.md
