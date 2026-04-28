@@ -387,7 +387,16 @@ The loop improves its own skills. Uses the same Phase 1-4 pipeline but targets t
 
 ## Recursion Guard
 
-Read `improvements/state.json` and check `metaHistory`. If the last meta-improvement was in the current run (same date), skip.
+Read `improvements/state.json` and inspect the `metaHistory` array.
+
+- If `metaHistory` is empty or missing → allow the run.
+- Otherwise, take the most recent entry and read its `timestamp` field (ISO-8601 UTC string, e.g. `2026-04-23T14:07:31Z`).
+- If `timestamp` is missing or unparseable → fall back to the legacy `date` field; if that is also missing, allow the run.
+- Compute seconds elapsed since that timestamp (`now_utc - timestamp`).
+- If less than **7200 seconds (2 hours / 120 minutes)** have passed, abort with: `META-GUARD: last meta-improve ran {mm} minutes ago; cooldown is 120 minutes`.
+- Otherwise allow the run.
+
+This timestamp-based cooldown replaces the older "same date" check, which incorrectly blocked legitimate re-runs on the same day and permitted back-to-back runs across midnight.
 
 ## Procedure
 
@@ -399,7 +408,7 @@ Run ONE iteration targeting `{PLUGIN_ROOT}` with focus on:
 
 After meta-improvement, run all tests. If tests fail, rollback entirely.
 
-Update `improvements/state.json` `metaHistory` with date, changes made, quality score.
+Update `improvements/state.json` `metaHistory` with `timestamp` (ISO-8601 UTC) and `date`, changes made, quality score. Both fields are written so the legacy `date` fallback in the recursion guard remains functional.
 
 ---
 
