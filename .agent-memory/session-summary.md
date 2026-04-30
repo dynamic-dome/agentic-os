@@ -1,22 +1,34 @@
-# Letzte Session — 2026-03-30
+# Last Session
 
-## Was wurde gemacht
-- Adversarial Self-Improvement: Devil's Advocate Swarm (3 Scanner, 2 Debate-Runden) → 17 bestaetigte Findings
-- Iteration #68: 5 Swarm-Fixes (SubagentStop matcher, run-loop ref, sync-context version, self-improve deps, research-pipeline DE→EN)
-- Iteration #69: 5 Hook-Fixes (SessionEnd verschlankt, session-end.sh + pre-compact.sh Dead Code entfernt, 9 neue Script-Tests, hooks.json v6)
-- Tests: 236 → 248 (139 plugin + 109 skill), alle gruen
-- Pushed to main
+*Date: 2026-04-30*
+*Agent: Claude Code*
 
-## Offene Punkte
-- Keine
+## What Was Done
+- Cross-Project-Sync (bidirectional): 4 Patterns gepullt (windows-git-bash-compat, P001, P002, P010), 1 gepushed, 10 off-stack geskippt
+- Pattern-Extractor + Dedup: ID-Doppelganger pattern-001 ↔ windows-git-bash-compat erkannt (Jaccard 1.0) und gemerged → 5 → 4 Patterns
+- Wiki-Sync: Session-Note `2026-04-30-session-agentic-os-plugin-memory-maintenance` angelegt, index.md und log.md aktualisiert
+- `.agent-memory/config.json` minimal angelegt (project_id, wiki_root, sync_enabled, project_aliases)
+- Pattern Promotion-Status gesetzt: 4 candidates, 0 ready
+- 3 Learnings extrahiert (UTF-8-Encoding-Bug L1 mit importance=5, Sync-Cross-ID-Dedup L2, config.json-Pflicht L3)
+- learnings.json neu angelegt + learnings.md regeneriert
 
-## Naechste Schritte
-1. Deprecated Agents (fix-reviewer.md, improvement-scout.md) aufraeumen oder entfernen
-2. SessionEnd hook im Praxistest beobachten (ob wrap-up Delegation sauber funktioniert)
-3. Weitere Swarm LOW-Priority-Findings evaluieren (quality-gate agent/skill Naming)
+## Open Items
+- sync-context-Skill macht keinen Cross-ID-Dedup (nur ID-Vergleich). Issue/TODO offen.
+- skill-generator nicht ausgefuehrt (P010 ist bereits als codex-3-role-review generiert — nichts zu tun)
+- Uncommitted: `.agent-memory/patterns/*` und `.agent-memory/config.json`
 
-## Statistik
-- Iterationen: 2 (#68, #69)
-- Fehler: 0
-- Fixes: 10 total
-- Test-Health: 248/248 (100%)
+## Next Steps
+1. sync-context um Jaccard-Description-Match (>=0.6) erweitern, bevor neuer Pattern als "neu" gepushed/gepullt wird
+2. UTF-8-Encoding in allen `.agent-memory/`-Skripten als Default durchziehen (Audit der `agentic-os/scripts/*`)
+3. obsidian-sync Fehlermeldung "No wiki config found" um konkreten Hinweis erweitern (Minimal-Config-Vorlage zeigen)
+
+## Statistics
+- Iterations: 0 (Memory-Maintenance-Session, keine Code-Iterationen)
+- Errors: 0
+- New Patterns: 0 (3 gepulled, 1 dedup'd, alle bereits vorhanden)
+- Test Health: n/a
+- Code Quality: n/a
+
+## Active Warnings
+- pattern-001 / P001 / P002 (Windows-Compat Cluster, conf 0.7-0.8) — relevant fuer alle bash/python-on-Windows-Arbeit
+- L1 (importance 5): UTF-8-Encoding-Pflicht in JSON-Reads — verhindert Datenverlust

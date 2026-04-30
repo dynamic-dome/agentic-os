@@ -1,0 +1,7 @@
+{
+  "project_id": "agentic-os-plugin",
+  "wiki_root": "C:/Users/domes/wiki",
+  "sync_enabled": true,
+  "session_note_threshold": 2,
+  "project_aliases": ["agentic-os", "agentic-os-plugin"]
+}

@@ -6,17 +6,23 @@ description: |
   session-summary length enforcement, and consistency checks. Runs on demand
   or when wrap-up detects exceeded thresholds. Never part of the normal
   end-of-session flow.
-  Trigger phrases: "clean memory", "memory cleanup", "memory maintenance",
-  "archive old data", "prune patterns", "memory health", "compact memory",
-  "memory report", "integrity check memory", "Speicher aufraeumen",
-  "Memory-Wartung", "Memory pruning".
+
+  Trigger phrases (memory-specific):
+  "clean memory", "memory cleanup", "memory maintenance",
+  "archive old data", "prune patterns", "memory health",
+  "compact memory", "memory report", "integrity check memory".
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '1.0'
+  version: '1.1'
   part-of: agentic-os
   layer: core
   extracted-from: wrap-up
+  trigger-audit-2026-04-30:
+    removed:
+      - "Speicher aufraeumen (German — violates Globale CLAUDE.md: trigger phrases MUST be English)"
+      - "Memory-Wartung (German — violates language policy)"
+      - "Memory pruning (lowercased duplicate of 'prune patterns')"
 ---
 
 # Memory Maintenance

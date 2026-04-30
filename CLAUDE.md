@@ -24,20 +24,20 @@ No build step. No package manager. The plugin is pure Markdown + JSON + Bash.
 ## Architecture
 
 ```
-plugin.json              → Plugin manifest (name, version, description)
-hooks/hooks.json         → 6 lifecycle hooks (SessionStart, UserPromptSubmit, Stop, PreCompact, SessionEnd, SubagentStop)
-skills/*/SKILL.md        → 9 consolidated skills with YAML frontmatter (trigger phrases, descriptions)
-agents/*.md              → 6 agents (context-detective, quality-gate, improvement-agent, etc.)
-commands/*.md            → 5 slash commands (init, status, run-loop, rollback, auto-commit)
-improvements/state.json  → Self-improve loop state tracker
-scripts/                 → Hook helper scripts (session-start.sh — only active command hook)
+.claude-plugin/plugin.json → Plugin manifest (name, version, description)
+hooks/hooks.json           → 5 lifecycle hooks (SessionStart, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop)
+skills/*/SKILL.md          → 13 skills with YAML frontmatter (trigger phrases, descriptions)
+agents/*.md                → 4 active agents (context-detective, improvement-agent, quality-gate, research-agent)
+commands/*.md              → 11 slash commands (init, status, run-loop, rollback, auto-commit, sync, log, patterns, research, quality-gate, wrap-up)
+improvements/state.json    → Self-improve loop state tracker
+scripts/                   → Hook helper scripts (session-start.sh — only active command hook)
 ```
 
-**Skills (9, consolidated from 20 in v3):**
-- **Core** (session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, skill-generator, sync-context): Session lifecycle and memory management
+**Skills (13, layered):**
+- **Core** (session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, skill-generator, sync-context, memory-maintenance): Session lifecycle and memory management
 - **Quality** (quality-gate): Code review + test validation + TDD enforcement in one skill
-- **Self-improve** (self-improve): All pipeline phases inline (research, analysis, improvement, validation, meta-improve, scheduling)
-- **Research** (research-pipeline): Token-optimized external research via Perplexity/NotebookLM
+- **Self-improve** (self-improve): Multi-iteration loop with research, analysis, improvement, validation, meta-improve, scheduling — policy-gated (siehe `skills/self-improve/SKILL.md` Self-Improve Policy)
+- **Knowledge** (research-pipeline, wiki-query, obsidian-sync): External research via Perplexity/NotebookLM, mid-session wiki-lookup, write-path to Obsidian wiki
 
 See `skills/DEPENDENCIES.md` for the full dependency graph and data flow.
 
@@ -48,8 +48,10 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and data flow.
 - **Memory dir:** Skills read/write `.agent-memory/` in the target project (not this repo). `session-bootstrap` is strictly read-only.
 - **Hooks:** Lightweight by design. SessionStart (15s, command) auto-inits + injects context; Stop (15s, prompt) logs iterations; PreCompact (15s, prompt) outputs survival summary; SessionEnd (15s, prompt) task guard + delegates to wrap-up; UserPromptSubmit (10s, prompt) advisory-only; SubagentStop (10s, prompt) commit suggestion for quality-gate/improvement-agent.
 - **Self-improve safety:** Max 20% mutation per skill per iteration. Git revert over git stash pop. Circuit breaker on diminishing returns.
+- **Self-Improve Policy (2026-04-30):** 6 hard rules in `skills/self-improve/SKILL.md` — single-cluster-rule, pattern-confirmation-threshold, wrap-up-discipline, MCP-audit-as-diagnosis-only, no-self-mod-boundary, rollback-tag-tightness. The `self-improve` skill MUST NOT modify its own SKILL.md body — meta-suggestions go to `improvements/meta-suggestions.md` for manual review.
+- **MCP-Tool-Bridge Policy (2026-04-30):** MCPs have 3 legitimate roles (tool execution, introspection, knowledge access) and 4 hard no-gos: do NOT replace `.agent-memory/`, do NOT replace `~/wiki/`, MCP-output is NEVER auto-truth, no uncontrolled cross-project mutation. Full policy: `~/wiki/wiki/concepts/mcp-tool-bridge-policy.md`. NotebookLM operations always prefer the user-skill `notebooklm` (notebooklm-py CLI) over the plugin-MCP variant — plugin-MCP is fallback for subagent contexts only.
 - **No circular dependencies** between skills — strict DAG.
-- **Deprecated agents:** `improvement-scout` and `fix-reviewer` are legacy — prefer `improvement-agent` + `self-improve`.
+- **Deprecated agents (removed 2026-04-30):** `improvement-scout` and `fix-reviewer` were legacy and have been deleted. Use `improvement-agent` + `self-improve` instead. The `agents/` directory now contains 4 active agents (context-detective, improvement-agent, quality-gate, research-agent).
 
 ## Testing Gotchas
 

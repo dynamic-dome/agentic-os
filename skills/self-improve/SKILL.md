@@ -48,6 +48,84 @@ Runs up to 4 sequential improvement iterations, each with research, analysis, im
 - Only fix critical and warning severity weaknesses; log suggestions without fixing
 - Skip previously-fixed weaknesses: read `state.json` history and avoid duplicate fixes
 
+## Self-Improve Policy (gehaertet 2026-04-30)
+
+Diese Policy wurde nach dem Plugin-Audit eingefuehrt, um rekursives Chaos zu verhindern.
+Sie steht ueber den Constraints — bei Konflikt gewinnt die Policy.
+
+### 1. Single-Cluster-Rule
+
+Pro Self-Improve-Run darf **nur ein Plugin-Cluster** verbessert werden, nicht mehrere
+parallel. Cluster-Definition (Stand 2026-04-30):
+
+| Cluster | Plugins |
+|---|---|
+| `memory-cluster` | `agentic-os`, `agentic-memory` |
+| `orchestration-cluster` | `agent-orchestrator-plugin`, `multi-model-orchestrator` (Repo `inception-sandbox`), `devil-advocate-swarms` |
+| `workflow-cluster` | `dome-loop`, `agentic-workflow-suite` |
+| `creative-cluster` | `crazy-professor` |
+
+Wenn der Run einen anderen Cluster betreten muss (z.B. quality-gate-Fix beruehrt
+Konsumenten in zwei Clustern), ABORT mit Hinweis und User-Eingriff anfordern. Das
+Risiko-Surface mehrerer Cluster ist zu gross — Rollback-Granularitaet leidet.
+
+### 2. Pattern-Bestaetigung-Schwelle
+
+`pattern-extractor` darf Pattern markieren, aber `skill-generator` erzeugt einen
+Skill-Kandidaten erst nach **mindestens zwei bestaetigten Wiederholungen desselben
+Patterns** ODER **expliziter User-Freigabe per Slash-Command**. Bestaetigt heisst:
+das Pattern wurde in zwei verschiedenen Iterationen, mindestens 24h auseinander, gelogged.
+
+Wenn die Schwelle nicht erreicht: Pattern bleibt im Catalog, aber kein Skill-Build.
+
+### 3. Wrap-Up-Discipline
+
+`obsidian-sync` (Wiki-Schreibpfad) schreibt am Ende eines Self-Improve-Runs **nur
+verdichtete Resultate** ins Wiki, nicht die Iteration-Rohdaten. Konkret: pro Run
+maximal eine Session-Note unter `wiki/queries/YYYY-MM-DD-self-improve-<cluster>.md`,
+keine Auto-Promotions roher Iterations-Logs.
+
+### 4. MCP-Audit als Diagnose-Signal
+
+Wenn in der Session ein MCP-Tool-Audit oder Smoke-Test gelaufen ist, **lies das
+Ergebnis als Diagnose** — aber **trigger keinen automatischen Self-Improve-Run**
+auf Basis dieser Diagnose. Ein Self-Improve-Run muss explizit vom User oder vom
+Scheduler kommen, nicht reaktiv aus einem anderen Tool-Output.
+
+### 5. No-Self-Mod-Boundary
+
+`self-improve` darf **NICHT seinen eigenen `SKILL.md`-Body modifizieren**
+(Meta-Improve mit Recursion-Risk). Wenn der Algorithmus erkennt, dass der eigene
+Pfad veraltet ist, schreibt er einen Befund in `improvements/meta-suggestions.md`,
+der manuell vom User reviewed werden muss. Kein automatischer Edit der
+self-improve-Skill-Datei.
+
+Diese Regel ist die wichtigste Sicherheits-Boundary: vergleichbar mit der
+Globalen-CLAUDE.md-Regel "NIEMALS Tests gegen Production-Datenbanken" — analog
+nutzt self-improve niemals seinen eigenen Maintainer-Pfad als Self-Mod-Target.
+
+### 6. Rollback-Tightness
+
+Bei jedem Self-Improve-Commit wird ein Git-Tag gesetzt im Format
+`self-improve-{cluster}-{iteration}-{ISO-timestamp}`, sodass `/agentic-os:rollback`
+zuverlaessig auf den Pre-Run-State zurueck geht. Tag-Persistenz: nach erfolgreichem
+User-Push wird der Tag im Remote-Repo persistiert; bei Rollback wird der Tag
+geloescht.
+
+---
+
+## Verifikations-Checkliste pro Run
+
+Vor jedem Phase-1-Schritt sicherstellen:
+
+1. Single-Cluster gewaehlt? (Policy 1)
+2. Letzter `obsidian-sync`-Eintrag ist verdichtet, nicht roh? (Policy 3 retrospektiv)
+3. Pattern-Schwelle fuer alle in diesem Run aktiven Pattern erfuellt? (Policy 2)
+4. Self-Improve-Skill ist NICHT in der Target-Plugin-Liste? (Policy 5)
+5. Rollback-Tag-Praefix vorbereitet? (Policy 6)
+
+Wenn auch nur eine Antwort "nein" ist: ABORT mit Hinweis und User-Bestaetigung erfragen.
+
 ## Batch File Naming
 
 ```

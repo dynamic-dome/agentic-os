@@ -2,17 +2,16 @@
 name: wrap-up
 description: |
   Wraps up a coding session — summarizes what was done, extracts learnings,
-  updates the session summary, suggests a git commit, and optionally runs
-  memory maintenance (archiving, JSON integrity, pruning). Use when you are
+  updates the session summary, suggests a git commit. Use when you are
   done working for now, when context is getting long and needs a handoff,
   or before switching to a different project. Ensures no progress is lost
   and the next session can pick up seamlessly.
-  Trigger phrases: "wrap up", "end session", "session end", "save session",
-  "close session", "finish for today", "summarize session",
-  "save context", "session handoff", "agent handoff",
-  "I'm done for today", "that's it for today", "give me a summary",
-  "clean memory", "memory cleanup", "archive old data",
-  "memory health", "compact memory", "prune patterns", "memory maintenance".
+
+  Trigger phrases (session-specific only):
+  "wrap up", "end session", "session end", "save session", "close session",
+  "finish for today", "summarize session", "save context",
+  "session handoff", "agent handoff", "I'm done for today",
+  "that's it for today".
 
   <example>
   Context: User is done for the day
@@ -22,12 +21,28 @@ description: |
   User ends session, trigger wrap-up to save context for next session.
   </commentary>
   </example>
+
+  Note on scope: Memory maintenance (clean memory, memory health, prune patterns,
+  archive old data) was previously listed here but moved to the dedicated
+  `memory-maintenance` skill in v3.x. This skill no longer matches generic
+  "give me a summary" — that phrase is too broad and was matching unrelated
+  contexts (article summaries, code summaries).
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '3.0'
+  version: '3.1'
   part-of: agentic-os
   layer: core
+  trigger-audit-2026-04-30:
+    removed:
+      - "give me a summary (too broad — matched non-session contexts)"
+      - "clean memory (owned by memory-maintenance skill)"
+      - "memory cleanup (owned by memory-maintenance)"
+      - "archive old data (owned by memory-maintenance)"
+      - "memory health (owned by memory-maintenance)"
+      - "compact memory (owned by memory-maintenance)"
+      - "prune patterns (owned by memory-maintenance)"
+      - "memory maintenance (owned by memory-maintenance)"
 ---
 
 # Session Wrap-Up
@@ -39,7 +54,9 @@ End-of-session sequence. Summarizes work, extracts learnings, prepares for next 
 - At the end of every coding session
 - When context window is getting long (pre-compression)
 - User says "wrap up", "end session", etc.
-- When memory needs maintenance: "clean memory", "memory cleanup", "prune patterns"
+- For memory maintenance (clean memory, prune patterns, integrity check):
+  invoke the dedicated `memory-maintenance` skill instead — wrap-up no longer
+  owns those triggers as of v3.1 (2026-04-30 trigger audit).
 - Note: this skill is manual-only — no hook triggers it automatically
 
 ## Step 1: Gather Session Data

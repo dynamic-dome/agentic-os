@@ -7,12 +7,16 @@ description: |
   flaky tests, and enforces Red-Green-Refactor when implementing new features.
   Use after completing coding work, before commits, or when you want confidence
   that code is correct and high quality.
-  Trigger: "review this", "code review", "check quality", "self-review",
-  "before I commit", "review the code", "check my code", "run tests",
-  "check tests", "did I break anything", "is everything still working",
-  "check for regressions", "run the test suite", "any tests failing",
-  "use TDD", "test first", "test-driven", "red-green-refactor",
-  "validate", "regression check", "quality check", "is the code ready".
+
+  Trigger phrases (code-context-specific):
+  "review this code", "code review", "review the code", "check my code",
+  "self-review", "code quality check", "is the code ready", "is the code good",
+  "before I commit", "pre-commit check",
+  "run tests", "check tests", "any tests failing", "run the test suite",
+  "validate the code", "validate this code", "validate tests",
+  "regression check", "check for regressions",
+  "did I break anything", "is everything still working",
+  "use TDD", "test first", "test-driven", "red-green-refactor".
 
   <example>
   Context: User wants to check code quality before committing
@@ -25,12 +29,22 @@ description: |
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '3.0'
+  version: '3.1'
   part-of: agentic-os
   layer: quality
   depends-on:
     - agentic-os:pattern-extractor
     - agentic-os:context-keeper
+  trigger-audit-2026-04-30:
+    removed:
+      - "validate (too generic — matched 'validate hypothesis', 'validate JSON', etc.)"
+      - "review this (too generic — replaced with 'review this code', 'review the code')"
+      - "check quality (too generic — replaced with 'code quality check')"
+      - "quality check (too generic — replaced with 'code quality check')"
+    refined:
+      - "validate → validate the code / validate this code / validate tests"
+      - "review this → review this code"
+      - "check quality / quality check → code quality check"
 ---
 
 # Quality Gate
