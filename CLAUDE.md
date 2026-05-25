@@ -58,3 +58,4 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and data flow.
 - Skill trigger phrases must be English or tests fail
 - `description` in SKILL.md frontmatter may use multiline YAML (`>`), so simple grep won't work — use `awk` for extraction
 - `validate-skills.sh` checks frontmatter structure, trigger uniqueness, and dependency declarations
+- **Agent/Skill deletions must propagate to `validate-plugin.sh`** — several tests reference agent files by name (e.g. `agents/<name>.md`). Deleting a deprecated agent without updating its tests leaves the suite silently red. When removing an agent, grep `tests/` for its name and re-point tests to the successor (2026-05-25: `improvement-scout` → `improvement-agent`/`self-improve`).

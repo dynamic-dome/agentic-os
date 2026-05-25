@@ -1,34 +1,31 @@
 # Last Session
 
-*Date: 2026-04-30*
+*Date: 2026-05-25 10:45*
 *Agent: Claude Code*
 
 ## What Was Done
-- Cross-Project-Sync (bidirectional): 4 Patterns gepullt (windows-git-bash-compat, P001, P002, P010), 1 gepushed, 10 off-stack geskippt
-- Pattern-Extractor + Dedup: ID-Doppelganger pattern-001 ↔ windows-git-bash-compat erkannt (Jaccard 1.0) und gemerged → 5 → 4 Patterns
-- Wiki-Sync: Session-Note `2026-04-30-session-agentic-os-plugin-memory-maintenance` angelegt, index.md und log.md aktualisiert
-- `.agent-memory/config.json` minimal angelegt (project_id, wiki_root, sync_enabled, project_aliases)
-- Pattern Promotion-Status gesetzt: 4 candidates, 0 ready
-- 3 Learnings extrahiert (UTF-8-Encoding-Bug L1 mit importance=5, Sync-Cross-ID-Dedup L2, config.json-Pflicht L3)
-- learnings.json neu angelegt + learnings.md regeneriert
+- Cross-Device-Sharepoint-Loop in agentic-os integriert (v3.1.5 → 3.1.6): session-bootstrap Step 3.5 (Pull-Check), wrap-up Step 7.6 (Push-Vermerk)
+- Pull-Script ins Plugin kopiert (`skills/session-bootstrap/scripts/sharepoint-pull-check.ps1`, self-contained via ${CLAUDE_PLUGIN_ROOT})
+- AGENTIC-OS-INTEGRATION-PLAN.md verifiziert + 2 Pfad-Bugs korrigiert (plugin.json liegt unter .claude-plugin/, keine CHANGELOG.md)
+- Test-Reparatur: validate-plugin.sh Tests 12+26 von gelöschtem improvement-scout auf improvement-agent/self-improve portiert
+- Repo-URL-Korrektur committet (willneverusegit/argentic-os → dynamic-dome/agentic-os)
+- 3 Commits gepusht (178d12f feat, 5d265bf fix-tests, 04c672b chore-url), Marketplace + Plugin auf 3.1.6 aktualisiert
 
 ## Open Items
-- sync-context-Skill macht keinen Cross-ID-Dedup (nur ID-Vergleich). Issue/TODO offen.
-- skill-generator nicht ausgefuehrt (P010 ist bereits als codex-3-role-review generiert — nichts zu tun)
-- Uncommitted: `.agent-memory/patterns/*` und `.agent-memory/config.json`
+- v2-Verfeinerung (aus Plan): Index-Drift-Check im Pull-Script matcht Ordnernamen statt Pfade → False-Positives bei INDEX.md vs MANIFEST-Paketen
+- Standalone-Skill ~/.claude/skills/sharepoint-loop/ existiert parallel — Plugin-Variante ist jetzt self-contained, Standalone ggf. redundant
 
 ## Next Steps
-1. sync-context um Jaccard-Description-Match (>=0.6) erweitern, bevor neuer Pattern als "neu" gepushed/gepullt wird
-2. UTF-8-Encoding in allen `.agent-memory/`-Skripten als Default durchziehen (Audit der `agentic-os/scripts/*`)
-3. obsidian-sync Fehlermeldung "No wiki config found" um konkreten Hinweis erweitern (Minimal-Config-Vorlage zeigen)
+1. Bei nächster Session: Pull-Check Step 3.5 live testen (Drive gemountet → Output prüfen)
+2. v2: Index-Drift-Check auf Pfad-Matching umstellen
+3. Standalone-Skill vs Plugin-Variante: Redundanz klären
 
 ## Statistics
-- Iterations: 0 (Memory-Maintenance-Session, keine Code-Iterationen)
+- Iterations: 1 (feature) + 1 (test-fix) + 1 (chore)
 - Errors: 0
-- New Patterns: 0 (3 gepulled, 1 dedup'd, alle bereits vorhanden)
-- Test Health: n/a
-- Code Quality: n/a
+- New Patterns: 0
+- Test Health: 311/311 (170+141) passed
+- Code Quality: n/a (Markdown/JSON/Bash)
 
 ## Active Warnings
-- pattern-001 / P001 / P002 (Windows-Compat Cluster, conf 0.7-0.8) — relevant fuer alle bash/python-on-Windows-Arbeit
-- L1 (importance 5): UTF-8-Encoding-Pflicht in JSON-Reads — verhindert Datenverlust
+- Tests prüfen teils gelöschte Artefakte → bei Agent-Löschungen validate-plugin.sh mitprüfen
