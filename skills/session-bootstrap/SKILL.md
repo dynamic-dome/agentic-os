@@ -161,6 +161,21 @@ For each JSON file loaded: if parse fails → rename to `{file}.corrupt.bak`, cr
 - `decisions.json` > 50 active entries → warn: "Many active decisions ({n}). Review for superseded entries."
 - `iteration-log.md` > 100 entries → warn: "Iteration log is very long. Archive recommended."
 
+## Step 3.5: Sharepoint-Pull (Cross-Device)
+
+If the Google-Drive Sharepoint is mounted (`G:\Meine Ablage\dynamic-AI\dynamic_sharepoint`), run a read-only pull-check to surface what other agents/devices changed:
+
+```
+powershell -File "${CLAUDE_PLUGIN_ROOT}/skills/session-bootstrap/scripts/sharepoint-pull-check.ps1" -Since "<last-session-timestamp>"
+```
+
+Use the timestamp from the last `session-summary.md` as `-Since`; omit `-Since` to default to the last 3 days. Fold the finding (conflict-files, changed files, open handoffs from other agents, index-drift) into the briefing in 1-3 lines.
+
+- **Conflict-files found** → STOP, point to `00_INBOX/_conflicts/`, do NOT read them as truth.
+- **Path not mounted** (script exits with "STOP: Sharepoint-Pfad nicht gefunden") → skip this step silently, no error.
+
+This is read-only. The matching push-side lives in `wrap-up`.
+
 ## Step 4: Produce Briefing
 
 Output format (adapt content, keep structure concise):

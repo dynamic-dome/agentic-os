@@ -238,6 +238,20 @@ Skip silently. Output nothing about wiki sync.
 ### Error Handling
 If obsidian-sync fails: **warn and continue**. Never let wiki sync failure block wrap-up. Output: "Wiki sync failed: {reason}. Session data is safe in .agent-memory/."
 
+## Step 7.6: Sharepoint-Push-Vermerk (Cross-Device)
+
+If this session touched the Google-Drive Sharepoint (new/changed files under `G:\Meine Ablage\dynamic-AI\dynamic_sharepoint`):
+
+1. **Frontmatter-check** every new MD file (`created` / `agent` / `purpose` / `status` / `source_path` — Sharepoint Manifest v1.0 §4).
+2. **Hygiene-sweep**: no stackdumps, `.git`, `node_modules`, or `.env` dragged in (§7).
+3. **INDEX.md** update if a new package was added.
+4. Write **one** delta-handoff: `01_HANDOFFS/YYYY-MM-DD-from-claude-code-to-owner-session-sharepoint-delta.md`.
+5. Add one line to the Desktop `session-summary.md`: `Sharepoint touched: yes, delta: <path>`.
+
+If **not touched**: add only the line `Sharepoint unchanged this session` to the session-summary. Do NOT write an empty handoff.
+
+If the Sharepoint path is not mounted: skip silently.
+
 ## Step 8: Suggest Git Commit (Optional)
 
 If there are uncommitted changes:
