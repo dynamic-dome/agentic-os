@@ -253,18 +253,18 @@ else
     fail "context-detective: agent file not found"
 fi
 
-# 12. improvement-scout can handle plugin audit (not just .agent-memory/)
+# 12. improvement-agent can handle plugin audit (not just .agent-memory/)
 echo ""
-echo "-- improvement-scout plugin audit scope --"
-IS_AGENT="$PLUGIN_ROOT/agents/improvement-scout.md"
+echo "-- improvement-agent plugin audit scope --"
+IS_AGENT="$PLUGIN_ROOT/agents/improvement-agent.md"
 if [ -f "$IS_AGENT" ]; then
     if grep -qi "plugin\|skills/\|hooks.json\|SKILL.md" "$IS_AGENT"; then
-        pass "improvement-scout: supports plugin structure audit"
+        pass "improvement-agent: supports plugin structure audit"
     else
-        fail "improvement-scout: only scans .agent-memory/ — cannot audit plugin structure when called by self-improve"
+        fail "improvement-agent: only scans .agent-memory/ — cannot audit plugin structure when called by self-improve"
     fi
 else
-    fail "improvement-scout: agent file not found"
+    fail "improvement-agent: agent file not found"
 fi
 
 # 13. auto-commit command should not contain hardcoded model-specific co-author
@@ -434,7 +434,7 @@ fi
 
 # 23. self-improve SKILL.md Step 2 analysis prompt must instruct the agent to
 #     read state.json history and skip previously-fixed weaknesses by name.
-#     Without this, improvement-scout re-identifies the same things each run
+#     Without this, improvement-agent re-identifies the same things each run
 #     and the loop wastes iterations re-fixing already-solved problems.
 echo ""
 echo "-- self-improve history dedup guidance --"
@@ -443,7 +443,7 @@ if [ -f "$SI_SKILL" ]; then
     if grep -qiE "previously.fixed|skip.*history|history.*skip|state\.json.*history|already.fixed|dedup|avoid.*duplicate" "$SI_SKILL"; then
         pass "self-improve: analysis step instructs agent to skip previously-fixed weaknesses from history"
     else
-        fail "self-improve: analysis step missing history dedup guidance — improvement-scout will re-identify already-fixed weaknesses causing wasted iterations"
+        fail "self-improve: analysis step missing history dedup guidance — improvement-agent will re-identify already-fixed weaknesses causing wasted iterations"
     fi
 else
     fail "self-improve: SKILL.md not found"
@@ -492,23 +492,22 @@ else
 fi
 
 
-# 26. improvement-scout agent must use critical/warning/suggestion severity labels
-#     to match the self-improve severity filter. improvement-scout currently uses
-#     HIGH/MEDIUM/LOW which causes label mismatch when self-improve interprets output.
-#     Even though self-improve overrides the prompt for severity labels, the agent's
-#     own output template should match the ecosystem standard to avoid confusion
-#     when improvement-scout is called independently.
+# 26. self-improve must define the critical/warning/suggestion severity taxonomy.
+#     In v3 the analysis/severity logic lives in the self-improve SKILL.md (the
+#     improvement-agent is a thin delegation wrapper with no own severity output).
+#     The ecosystem standard is critical/warning/suggestion — verify the skill that
+#     actually ranks weaknesses uses these labels, not HIGH/MEDIUM/LOW.
 echo ""
-echo "-- improvement-scout severity label consistency --"
-IS_AGENT="$PLUGIN_ROOT/agents/improvement-scout.md"
-if [ -f "$IS_AGENT" ]; then
-    if grep -qiE "\[critical\]|\[warning\]|\[suggestion\]|severity.*critical|critical.*warning.*suggestion" "$IS_AGENT"; then
-        pass "improvement-scout: uses critical/warning/suggestion severity labels consistent with self-improve filter"
+echo "-- self-improve severity label consistency --"
+SI_SEV_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
+if [ -f "$SI_SEV_SKILL" ]; then
+    if grep -qiE "critical.*warning.*suggestion|critical and warning|severity.*critical|\*\*critical\*\*" "$SI_SEV_SKILL"; then
+        pass "self-improve: uses critical/warning/suggestion severity taxonomy consistently"
     else
-        fail "improvement-scout: uses HIGH/MEDIUM/LOW severity labels — mismatches self-improve's critical/warning/suggestion filter; update to use consistent labels"
+        fail "self-improve: missing critical/warning/suggestion severity taxonomy — analysis ranking may use inconsistent labels"
     fi
 else
-    fail "improvement-scout: agent file not found"
+    fail "self-improve: SKILL.md not found"
 fi
 
 
