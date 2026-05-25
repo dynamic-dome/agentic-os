@@ -13,9 +13,9 @@
       "category": "development",
       "source": {
         "source": "url",
-        "url": "https://github.com/willneverusegit/argentic-os.git"
+        "url": "https://github.com/dynamic-dome/agentic-os.git"
       },
-      "homepage": "https://github.com/willneverusegit/argentic-os"
+      "homepage": "https://github.com/dynamic-dome/agentic-os"
     }
   ]
 }

@@ -6,7 +6,7 @@
 - **Language:** Markdown (skills/agents/commands), JSON (config/state), Bash (tests/hooks)
 - **Framework:** Claude Code Plugin System v2
 - **Package Manager:** none (no runtime deps)
-- **Repository:** https://github.com/willneverusegit/argentic-os.git
+- **Repository:** https://github.com/dynamic-dome/agentic-os.git
 
 ## Architecture
 - 4-Layer system: Identity, Core (7 skills), Quality (3 skills), Evolution (generated)
