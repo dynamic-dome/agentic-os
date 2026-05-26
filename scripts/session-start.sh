@@ -23,6 +23,7 @@ if [ ! -d "$MEMORY_DIR" ]; then
   mkdir -p "$MEMORY_DIR/learnings"
   mkdir -p "$MEMORY_DIR/generated-skills"
   mkdir -p "$MEMORY_DIR/knowledge"
+  mkdir -p "$MEMORY_DIR/working"
 
   # session-summary.md
   cat > "$MEMORY_DIR/session-summary.md" << 'EOFILE'
@@ -124,13 +125,19 @@ EOFILE
 
   # JSON files
   echo "[]" > "$MEMORY_DIR/context/decisions.json"
+  echo "[]" > "$MEMORY_DIR/context/open-tasks.json"   # MANDATORY — SessionEnd Task-Persistence-Guard reads this
   echo "[]" > "$MEMORY_DIR/iterations/errors.json"
   echo "[]" > "$MEMORY_DIR/patterns/patterns.json"
   echo "[]" > "$MEMORY_DIR/quality/test-results.json"
   echo "[]" > "$MEMORY_DIR/quality/code-reviews.json"
+  echo "[]" > "$MEMORY_DIR/learnings/learnings.json"   # MANDATORY — wrap-up dedup/scoring + bootstrap salience retrieval depend on this
   cat > "$MEMORY_DIR/quality/quality-score.json" << 'EOFILE'
 {"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}
 EOFILE
+
+  # working memory — consumed by iteration-logger Step 4b, reset by wrap-up Step 3.5
+  TODAY_WM=$(date +%Y-%m-%d 2>/dev/null || echo "unknown")
+  printf '{"session_start": "%s", "errors_this_session": [], "learnings_draft": []}\n' "$TODAY_WM" > "$MEMORY_DIR/working/current-session.json"
 
   # Markdown files
   printf '# Iteration Log\n\n*No entries yet.*\n' > "$MEMORY_DIR/iterations/iteration-log.md"
@@ -163,6 +170,16 @@ fi
 
 # Load memory context
 if [ -d "$MEMORY_DIR" ]; then
+  # Backfill missing files for projects initialized by an older hook (or after wrap-up reset).
+  # These are MANDATORY for wrap-up + bootstrap; idempotent — only created if absent.
+  [ -f "$MEMORY_DIR/learnings/learnings.json" ] || { mkdir -p "$MEMORY_DIR/learnings"; echo "[]" > "$MEMORY_DIR/learnings/learnings.json"; }
+  [ -f "$MEMORY_DIR/context/open-tasks.json" ] || { mkdir -p "$MEMORY_DIR/context"; echo "[]" > "$MEMORY_DIR/context/open-tasks.json"; }
+  if [ ! -f "$MEMORY_DIR/working/current-session.json" ]; then
+    mkdir -p "$MEMORY_DIR/working"
+    WM_DATE=$(date +%Y-%m-%d 2>/dev/null || echo "unknown")
+    printf '{"session_start": "%s", "errors_this_session": [], "learnings_draft": []}\n' "$WM_DATE" > "$MEMORY_DIR/working/current-session.json"
+  fi
+
   # Session summary (first 10 lines)
   if [ -f "$MEMORY_DIR/session-summary.md" ]; then
     SUMMARY=$(head -10 "$MEMORY_DIR/session-summary.md" 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g' || true)

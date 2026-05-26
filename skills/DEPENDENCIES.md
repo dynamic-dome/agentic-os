@@ -53,7 +53,7 @@ WORK PHASE (user-driven, no auto-triggers)
         └── writes: improvements/iterations-*.md, state.json
   │
   ▼
-SESSION END (Stop hook)
+SESSION END (SessionEnd hook — delegates to wrap-up)
   │
   ▼
   wrap-up

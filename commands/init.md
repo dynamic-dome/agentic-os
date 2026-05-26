@@ -38,6 +38,8 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
 │   └── learnings.json
 ├── knowledge/
 │   └── notebook-registry.md
+├── working/
+│   └── current-session.json
 ├── generated-skills/
 ├── config.json              (optional, created by Wiki Integration step)
 └── session-summary.md
@@ -52,6 +54,7 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    - `quality-score.json` → `{"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}`
    - `context/open-tasks.json` → `[]`  **(MANDATORY — Task Persistence Guard, canonical location is context/, NOT root)**
    - `learnings/learnings.json` → `[]`  **(MANDATORY — wrap-up dedup/scoring and session-bootstrap salience retrieval depend on this)**
+   - `working/current-session.json` → `{"session_start": "{date}", "errors_this_session": [], "learnings_draft": []}`  **(working memory — iteration-logger Step 4b appends, wrap-up Step 3.5 consumes + resets)**
 
 4. **Initialize Markdown files:**
    - `iteration-log.md` → `# Iteration Log\n\n*No entries yet.*`
@@ -192,8 +195,8 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
 
 ```
 Agentic OS initialized!
-  Directories: 9
-  Files: 15
+  Directories: {count actually created}
+  Files: {count actually created}
   Detected stack: {language} + {framework}
   Knowledge Base: notebook-registry.md created
   Wiki: {connected to ~/wiki/ | not configured}
