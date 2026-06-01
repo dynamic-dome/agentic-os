@@ -33,8 +33,8 @@ Restore full project context at the start of every coding session.
 
 **Before** reading local project state, read the central handoff file:
 
-1. Read `C:\Users\domes\Desktop\.agent-memory\session-summary.md` (the **Desktop handoff**)
-2. Read `C:\Users\domes\Desktop\SESSION-WORKFLOW.md` **only if** the Desktop handoff references it or if this is the first session in a new project
+1. Read `C:\Users\domes\AI\session-summary.md` (the **central handoff**)
+2. Read `C:\Users\domes\AI\SESSION-WORKFLOW.md` **only if** the central handoff references it or if this is the first session in a new project
 
 This is the cross-project agent-to-agent handoff per SESSION-WORKFLOW.md. It tells you:
 - Which project was worked on last (may differ from the current project)
@@ -42,10 +42,10 @@ This is the cross-project agent-to-agent handoff per SESSION-WORKFLOW.md. It tel
 - Which agent wrote it (Claude, Codex, etc.)
 
 **Rules:**
-- If the Desktop handoff is **newer** than the local `.agent-memory/session-summary.md`, the Desktop handoff takes precedence for the LAST SESSION block in the briefing
-- If the Desktop handoff references a **different project** than the current one, note this in the briefing ("Last handoff was from project X — switching context to Y")
-- If the Desktop handoff does not exist or is unreadable → skip silently, continue with Step 1
-- This step is **read-only** — do not modify the Desktop handoff
+- If the central handoff is **newer** than the local `.agent-memory/session-summary.md`, the central handoff takes precedence for the LAST SESSION block in the briefing
+- If the central handoff references a **different project** than the current one, note this in the briefing ("Last handoff was from project X — switching context to Y")
+- If the central handoff does not exist or is unreadable → skip silently, continue with Step 1
+- This step is **read-only** — do not modify the central handoff
 
 ## Step 1: Check Memory System Exists
 
@@ -55,7 +55,7 @@ Read `.agent-memory/session-summary.md`:
 - If it exists but `session-summary.md` is missing → note "No previous session found", continue with other files.
 
 **Two session-summaries may exist:**
-- **Desktop handoff** (from Step 0.5): the cross-project agent-to-agent handoff — authoritative for "what happened last"
+- **Central handoff** (from Step 0.5): the cross-project agent-to-agent handoff — authoritative for "what happened last"
 - **Local `.agent-memory/session-summary.md`**: project-specific operational state — authoritative for "where this project stands"
 
 Both are valid. The briefing merges them (see Step 4).
@@ -64,7 +64,7 @@ Both are valid. The briefing merges them (see Step 4).
 
 Read files in this priority order. Skip any that don't exist:
 
-1. **`session-summary.md`** — this project's last session state (complements Desktop handoff)
+1. **`session-summary.md`** — this project's last session state (complements central handoff)
 2. **`identity/soul.md`** — agent behavior settings, guard rails
 3. **`identity/user.md`** — user preferences and work style
 4. **`context/project-context.md`** — tech stack, architecture, constraints
@@ -185,11 +185,11 @@ SESSION BRIEFING — {project name}
 {date}
 ---
 
-HANDOFF (from Desktop)
+HANDOFF (central)
   {Agent}: {project} — {date}
   {1-2 lines: what was done, key outcome}
   {if different project: "Context switch: last work was in {project}, now in {current project}"}
-  {omit this block entirely if Desktop handoff doesn't exist or is older than local summary}
+  {omit this block entirely if central handoff doesn't exist or is older than local summary}
 
 LAST SESSION (this project)
   {2-3 lines from LOCAL .agent-memory/session-summary.md}
@@ -234,14 +234,14 @@ Based on the briefing, suggest 2-3 concrete actions:
 
 ```
 RECOMMENDED NEXT STEPS
-  1. {from Desktop handoff open items, if they apply to this project}
+  1. {from central handoff open items, if they apply to this project}
   2. {from local session summary open items}
   3. {from pattern warnings or quality alerts}
 
   Ready — was steht heute an?
 ```
 
-**Priority:** Desktop handoff open items that reference THIS project come first. Then local open items. Then system-level warnings.
+**Priority:** Central handoff open items that reference THIS project come first. Then local open items. Then system-level warnings.
 
 ## Error Handling
 
