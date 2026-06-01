@@ -1433,9 +1433,9 @@ $LEAK"
     # 2026-06-01: doc omitted learnings.json, open-tasks.json, working/). Direction is
     # "doc subset of real"; the full-list check above already guards "real subset of doc".
     REF_DOC="$PLUGIN_ROOT/references/memory-structure.md"
-    if [ -f "$REF_DOC" ] && [ -n "$SCHEMA_TMP" ]; then
-        # Re-materialize the schema (SCHEMA_TMP was already rm-ed above)
-        REF_TMP=$(mktemp -d 2>/dev/null)
+    REF_TMP=$(mktemp -d 2>/dev/null)
+    if [ -f "$REF_DOC" ] && [ -n "$REF_TMP" ]; then
+        # Materialize the schema into a fresh temp dir (the SCHEMA_TMP above is gone)
         bash "$SCHEMA_FILE" "$REF_TMP/.agent-memory" >/dev/null 2>&1
         # Extract documented memory paths: only tokens under a known .agent-memory/
         # top-level dir (so prose refs like `commands/init.md` or `memory-maintenance/
