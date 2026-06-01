@@ -1,6 +1,10 @@
 # .agent-memory/ Structure Reference
 
-Complete directory and file structure created by `/agentic-os:init`.
+> **Authoritative source:** `scripts/mem-schema.sh` (`create_memory_structure`).
+> This file is documentation — when it disagrees with the SSoT, the SSoT wins.
+> The directory tree is created by the SessionStart hook (`scripts/session-start.sh`)
+> AND by `/agentic-os:init` (`commands/init.md`); both source `mem-schema.sh` so they
+> never diverge. A drift test in `tests/validate-plugin.sh` enforces this.
 
 ```
 .agent-memory/
@@ -11,8 +15,9 @@ Complete directory and file structure created by `/agentic-os:init`.
 │   └── user.md                         # User profile, preferences, corrections
 │
 ├── context/
-│   ├── project-context.md              # Tech stack, architecture, constraints
-│   └── decisions.json                  # Architecture decisions (append-only)
+│   ├── project-context.md              # Cache of docs/ (stack, architecture, constraints)
+│   ├── decisions.json                  # Architecture decisions (append-only)
+│   └── open-tasks.json                 # Open tasks (SessionEnd task guard)
 │
 ├── iterations/
 │   ├── iteration-log.md                # Chronological iteration entries
@@ -31,12 +36,27 @@ Complete directory and file structure created by `/agentic-os:init`.
 │   └── notebook-registry.md            # NotebookLM KB registry (topics, keywords)
 │
 ├── learnings/
-│   └── learnings.md                    # Session learnings (genuine insights only)
+│   ├── learnings.json                  # Structured learnings + salience metadata (read by bootstrap/wrap-up)
+│   └── learnings.md                    # Human-readable learnings mirror
+│
+├── working/
+│   └── current-session.json            # Volatile working memory for the active session
 │
 └── generated-skills/                    # Auto-generated skills from patterns
     └── <skill-name>/
         └── SKILL.md
 ```
+
+## Created by the SSoT vs. by a consumer
+
+- **`mem-schema.sh` creates:** all directories above, the empty-array JSON files,
+  `quality-score.json` (structured default), `working/current-session.json`, the
+  `.md` placeholders (`iteration-log.md`, `patterns.md`, `learnings.md`,
+  `notebook-registry.md`), `session-summary.md`, and `identity/soul.md` + `user.md`.
+- **NOT created by the SSoT:** `context/project-context.md`. It needs stack
+  auto-detection / docs distillation, so each consumer (hook, `/init`,
+  `context-keeper`) writes it itself after calling `create_memory_structure`.
+  Its source of truth is `docs/` (Regel 13) — the file is a cache.
 
 ## JSON Defaults
 
@@ -45,15 +65,30 @@ Complete directory and file structure created by `/agentic-os:init`.
 | `errors.json` | `[]` |
 | `patterns.json` | `[]` |
 | `decisions.json` | `[]` |
+| `open-tasks.json` | `[]` |
 | `test-results.json` | `[]` |
 | `code-reviews.json` | `[]` |
+| `learnings.json` | `[]` |
 | `quality-score.json` | `{"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}` |
+| `working/current-session.json` | `{"session_start": "<date>", "errors_this_session": [], "learnings_draft": []}` |
 
-## Log Rotation Thresholds
+## Archiving Thresholds
+
+> **Authoritative source:** `skills/memory-maintenance/SKILL.md` Step 3.
+> Archiving runs only when `memory-maintenance` is invoked (on demand or when
+> wrap-up detects an exceeded threshold) — it is never part of the normal
+> end-of-session flow.
 
 | File | Threshold | Action |
 |------|-----------|--------|
-| `iteration-log.md` | 500 entries | Archive to `iteration-log-archive-{YYYY-MM}.md` |
-| `errors.json` | 200 entries | Archive to `errors-archive-{YYYY-MM}.json` |
-| `code-reviews.json` | 100 entries | Archive to `code-reviews-archive-{YYYY-MM}.json` |
-| `test-results.json` | 100 entries | Archive to `test-results-archive-{YYYY-MM}.json` |
+| `iteration-log.md` | > 100 entries | Keep newest 100, archive rest to `iteration-log-archive-{YYYY-MM}.md` |
+| `errors.json` | > 50 entries | Keep newest 50, archive rest to `errors-archive-{YYYY-MM}.json` |
+| `learnings/learnings.json` | > 100 entries | Keep newest 100, archive rest to `learnings-archive-{YYYY-MM}.json` |
+| `code-reviews.json` | > 100 entries | Keep newest 100, archive rest to `code-reviews-archive-{YYYY-MM}.json` |
+| `test-results.json` | > 100 entries | Keep newest 100, archive rest to `test-results-archive-{YYYY-MM}.json` |
+| `patterns.json` | `last_seen` > 60 days | Archive stale entries to `patterns-archive-{YYYY-MM}.json` |
+| `decisions.json` | `status: superseded` > 90 days | Archive superseded; keep all `active` regardless of age |
+| `learnings/learnings.md` | > 200 lines | Keep last 12 months, archive older to `learnings-archive-{YYYY}.md` |
+| `session-summary.md` | > 30 lines | Compress to 30 lines (never drop "Open Items") |
+
+If an archive file for the current month already exists, append to it instead of overwriting.

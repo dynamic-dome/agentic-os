@@ -1426,6 +1426,37 @@ else
 $LEAK"
         fi
     fi
+
+    # Reference-doc drift guard (L8/L9): references/memory-structure.md documents the
+    # store layout. Every memory file it names in its tree/JSON-defaults must actually
+    # be produced by the SSoT — otherwise the doc silently drifts (the bug fixed
+    # 2026-06-01: doc omitted learnings.json, open-tasks.json, working/). Direction is
+    # "doc subset of real"; the full-list check above already guards "real subset of doc".
+    REF_DOC="$PLUGIN_ROOT/references/memory-structure.md"
+    if [ -f "$REF_DOC" ] && [ -n "$SCHEMA_TMP" ]; then
+        # Re-materialize the schema (SCHEMA_TMP was already rm-ed above)
+        REF_TMP=$(mktemp -d 2>/dev/null)
+        bash "$SCHEMA_FILE" "$REF_TMP/.agent-memory" >/dev/null 2>&1
+        # Extract documented memory paths: only tokens under a known .agent-memory/
+        # top-level dir (so prose refs like `commands/init.md` or `memory-maintenance/
+        # SKILL.md` in the source-header are not mistaken for store paths).
+        # project-context.md is exempt (SSoT does not create it — written by consumers).
+        DOC_MISSING=""
+        DOC_PATHS=$(grep -oE '(identity|context|iterations|patterns|quality|knowledge|learnings|working|generated-skills)/[a-zA-Z0-9_.-]+\.(json|md)' "$REF_DOC" | sort -u)
+        for p in $DOC_PATHS; do
+            case "$p" in
+                context/project-context.md) continue ;;        # consumer-written, not SSoT
+                *-archive-*) continue ;;                        # archive examples, created on rotation
+            esac
+            [ -f "$REF_TMP/.agent-memory/$p" ] || DOC_MISSING="$DOC_MISSING $p"
+        done
+        rm -rf "$REF_TMP"
+        if [ -z "$DOC_MISSING" ]; then
+            pass "references/memory-structure.md documents only paths the SSoT produces"
+        else
+            fail "references/memory-structure.md names paths the SSoT does NOT create (doc drift):$DOC_MISSING"
+        fi
+    fi
 fi
 
 echo ""
