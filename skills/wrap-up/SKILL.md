@@ -242,15 +242,22 @@ If obsidian-sync fails: **warn and continue**. Never let wiki sync failure block
 
 Two distinct cross-project files are written here. Read-side counterpart: `session-bootstrap` Step 0.5.
 
-### 7.6a — Central handoff (last session, complete overwrite)
+### 7.6a — Central handoff (last session, PREPEND — preserve prior sessions)
 
 Write the full last-session handoff to
 **`C:\Users\domes\AI\.agent-memory\session-summary.md`** (path per SESSION-WORKFLOW.md
 §1/§3 — NOTE: it lives under `.agent-memory\`, NOT flat in `~/AI\`).
 
-**Rules (SESSION-WORKFLOW.md §3):** ONE file, **complete overwrite** of the previous
-content — this is intentional. No per-agent variants, no per-project sections here.
-Old session details belong in the project (git log, session notes), not in this file.
+**Rules:** ONE file, but **PREPEND** the new session at the TOP and **PRESERVE the
+previous content below** under a `# Vorherige Session (...erhalten)` heading. Do NOT
+blank-overwrite. This deviates intentionally from SESSION-WORKFLOW.md §3's literal
+"complete overwrite" wording — the lived practice (stacked sessions, older ones kept)
+is robust against cross-project data loss: this file may hold a DIFFERENT project's
+handoff chain, and blind overwrite would destroy another agent's work (observed
+2026-06-01: a 267-line orchestrated-bridge chain was nearly overwritten by an
+unrelated agentic-os wrap-up). Read the file FIRST; if it contains another project's
+handoff, prepend yours and keep theirs. Optionally trim very old blocks (>5 sessions
+deep), but never drop the most recent foreign project's block.
 
 Use the SESSION-WORKFLOW.md template (German headings, do not invent your own format):
 
