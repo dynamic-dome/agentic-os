@@ -700,11 +700,12 @@ echo "-- auto-init creates knowledge/notebook-registry.md (functional) --"
 SESSION_HOOK="$PLUGIN_ROOT/scripts/session-start.sh"
 if [ -f "$SESSION_HOOK" ]; then
     NR_TMP=$(mktemp -d)
-    CLAUDE_PROJECT_DIR="$NR_TMP" bash "$SESSION_HOOK" > /dev/null 2>&1 || true
-    if [ -f "$NR_TMP/.agent-memory/knowledge/notebook-registry.md" ]; then
-        pass "auto-init creates knowledge/notebook-registry.md"
+    CLAUDE_PROJECT_DIR="$NR_TMP" bash "$SESSION_HOOK" > "$NR_TMP/out.json" 2>/dev/null
+    NR_EXIT=$?
+    if [ "$NR_EXIT" -eq 0 ] && [ -f "$NR_TMP/.agent-memory/knowledge/notebook-registry.md" ]; then
+        pass "auto-init creates knowledge/notebook-registry.md (hook exit 0)"
     else
-        fail "auto-init missing knowledge/notebook-registry.md creation — session-bootstrap health check will always warn after auto-init"
+        fail "auto-init missing knowledge/notebook-registry.md or hook exited non-zero ($NR_EXIT) — session-bootstrap health check will warn after auto-init"
     fi
     rm -rf "$NR_TMP"
 else
@@ -1387,21 +1388,42 @@ else
         fi
     fi
 
-    # Functional check: running the schema produces the mandatory consumer files
+    # Functional check: running the schema produces EVERY file it is responsible for
+    # (full list — not a representative subset — so a dropped file is always caught).
     SCHEMA_TMP=$(mktemp -d 2>/dev/null)
     if [ -n "$SCHEMA_TMP" ]; then
         bash "$SCHEMA_FILE" "$SCHEMA_TMP/.agent-memory" >/dev/null 2>&1
         MISSING=""
-        for req in learnings/learnings.json context/open-tasks.json working/current-session.json \
-                   quality/quality-score.json patterns/patterns.json iterations/errors.json \
-                   identity/soul.md identity/user.md session-summary.md; do
+        for req in identity/soul.md identity/user.md \
+                   context/decisions.json context/open-tasks.json \
+                   iterations/iteration-log.md iterations/errors.json \
+                   patterns/patterns.md patterns/patterns.json \
+                   quality/test-results.json quality/code-reviews.json quality/quality-score.json \
+                   learnings/learnings.md learnings/learnings.json \
+                   knowledge/notebook-registry.md working/current-session.json \
+                   session-summary.md; do
             [ -f "$SCHEMA_TMP/.agent-memory/$req" ] || MISSING="$MISSING $req"
         done
         rm -rf "$SCHEMA_TMP"
         if [ -z "$MISSING" ]; then
-            pass "mem-schema.sh produces all mandatory consumer files"
+            pass "mem-schema.sh produces all schema files (full list)"
         else
             fail "mem-schema.sh did not create:$MISSING"
+        fi
+    fi
+
+    # Negative drift guard: the hook must NOT inline schema WRITES into .agent-memory
+    # subfiles. The ONLY permitted inline write is project-context.md (intentionally
+    # outside the SSoT — needs stack detection). Match only real file-creating writes
+    # (redirect-to-file / heredoc into a memory subdir), NOT reads that merely use 2>
+    # or `|| echo "0"`. Pattern: `> "$MEMORY_DIR/<schema-subdir>/...`.
+    if [ -f "$HOOK_FILE" ]; then
+        LEAK=$(grep -nE '(>|cat >)[[:space:]]*"\$MEMORY_DIR/(identity|iterations|patterns|quality|learnings|knowledge|working)/' "$HOOK_FILE" || true)
+        if [ -z "$LEAK" ]; then
+            pass "session-start.sh has no inline schema writes outside mem-schema.sh (project-context.md exempt)"
+        else
+            fail "session-start.sh inlines schema writes that belong in mem-schema.sh (L4 drift):
+$LEAK"
         fi
     fi
 fi

@@ -10,26 +10,28 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 MEMORY_DIR="$PROJECT_DIR/.agent-memory"
 
 # ============================================================
+# PHASE 0: Load the schema Single Source of Truth (scripts/mem-schema.sh)
+# ============================================================
+# Sourced ONCE here; used for BOTH fresh init (Phase 1) and backfill (Phase 2),
+# so a missing file can never reappear inline. NEVER inline the file list anywhere.
+SCHEMA_SH="$(dirname "${BASH_SOURCE[0]}")/mem-schema.sh"
+SCHEMA_OK=false
+if [ -f "$SCHEMA_SH" ]; then
+  # shellcheck source=mem-schema.sh
+  source "$SCHEMA_SH" && SCHEMA_OK=true
+fi
+if [ "$SCHEMA_OK" != true ]; then
+  # Loud failure: the schema file is the contract for the whole memory system.
+  # Do not silently half-create — tell the user and still let the session start.
+  echo "[Agentic OS] WARNING: scripts/mem-schema.sh missing or unreadable — memory auto-init/backfill skipped. Run /agentic-os:init to repair." >&2
+fi
+
+# ============================================================
 # PHASE 1: Auto-Init (if .agent-memory/ does not exist)
 # ============================================================
 
-if [ ! -d "$MEMORY_DIR" ]; then
-  # Create the full structure from the Single Source of Truth (scripts/mem-schema.sh).
-  # NEVER inline the file list here — add new memory files in mem-schema.sh only.
-  SCHEMA_SH="$(dirname "${BASH_SOURCE[0]}")/mem-schema.sh"
-  if [ -f "$SCHEMA_SH" ]; then
-    # shellcheck source=mem-schema.sh
-    source "$SCHEMA_SH"
-    create_memory_structure "$MEMORY_DIR"
-  else
-    # Defensive fallback: schema file missing — create the bare minimum so the
-    # session can still start. This should never happen in a packaged plugin.
-    mkdir -p "$MEMORY_DIR/identity" "$MEMORY_DIR/context" "$MEMORY_DIR/iterations" \
-             "$MEMORY_DIR/patterns" "$MEMORY_DIR/quality" "$MEMORY_DIR/learnings" \
-             "$MEMORY_DIR/generated-skills" "$MEMORY_DIR/knowledge" "$MEMORY_DIR/working"
-    echo "[]" > "$MEMORY_DIR/learnings/learnings.json"
-    echo "[]" > "$MEMORY_DIR/context/open-tasks.json"
-  fi
+if [ ! -d "$MEMORY_DIR" ] && [ "$SCHEMA_OK" = true ]; then
+  create_memory_structure "$MEMORY_DIR"
 
   # project-context.md is hook-specific (inline stack auto-detect, no LLM/user).
   # Deliberately NOT in mem-schema.sh — /init writes it differently (LLM + confirm).
@@ -104,14 +106,20 @@ fi
 
 # Load memory context
 if [ -d "$MEMORY_DIR" ]; then
-  # Backfill missing files for projects initialized by an older hook (or after wrap-up reset).
-  # These are MANDATORY for wrap-up + bootstrap; idempotent — only created if absent.
-  [ -f "$MEMORY_DIR/learnings/learnings.json" ] || { mkdir -p "$MEMORY_DIR/learnings"; echo "[]" > "$MEMORY_DIR/learnings/learnings.json"; }
-  [ -f "$MEMORY_DIR/context/open-tasks.json" ] || { mkdir -p "$MEMORY_DIR/context"; echo "[]" > "$MEMORY_DIR/context/open-tasks.json"; }
-  if [ ! -f "$MEMORY_DIR/working/current-session.json" ]; then
-    mkdir -p "$MEMORY_DIR/working"
-    WM_DATE=$(date +%Y-%m-%d 2>/dev/null || echo "unknown")
-    printf '{"session_start": "%s", "errors_this_session": [], "learnings_draft": []}\n' "$WM_DATE" > "$MEMORY_DIR/working/current-session.json"
+  # ============================================================
+  # PHASE 2: Backfill — converge an existing (possibly incomplete) memory dir
+  #          to the FULL schema. Reuses the SAME SSoT as init (idempotent: only
+  #          absent files are created), so older/partial dirs heal completely —
+  #          not just the three files that were hand-listed before (L4 fix).
+  # ============================================================
+  if [ "$SCHEMA_OK" = true ]; then
+    create_memory_structure "$MEMORY_DIR"
+  fi
+  # project-context.md is outside the SSoT (needs stack detection). Backfill a stub
+  # if it is missing, so bootstrap's health check never warns on a half-built dir.
+  if [ ! -f "$MEMORY_DIR/context/project-context.md" ]; then
+    mkdir -p "$MEMORY_DIR/context"
+    printf '# Project Context\n\n## Project\n- **Name:** %s\n\n## Architecture\n- (To be documented — run /agentic-os:init for stack auto-detection)\n\n## Current Status\n- (backfilled stub)\n' "$(basename "$PROJECT_DIR")" > "$MEMORY_DIR/context/project-context.md"
   fi
 
   # Session summary (first 10 lines)
@@ -183,7 +191,15 @@ INIT_LINE=""
 [ -n "${INIT_MSG:-}" ] && INIT_LINE="Newly initialized!"
 BRIEF_LINE=""
 [ -n "${BRIEFING:-}" ] && BRIEF_LINE="$BRIEFING"
-context="[AGENTIC OS SESSION BRIEFING] At your FIRST response in this session, begin with a compact briefing block:\n---\nAgentic OS active | Branch: ${BRANCH:-?} | ${ITER_COUNT:-0} iterations, ${ERR_COUNT:-0} errors, ${PAT_COUNT:-0} patterns\n${INIT_LINE}${BRIEF_LINE}\n---\nThen respond normally to the user's question.\n\n$context"
+# Join the two optional lines with a \n separator only when BOTH are present,
+# so they never run together as "Newly initialized!Next steps...".
+OPT_LINES="$INIT_LINE"
+if [ -n "$INIT_LINE" ] && [ -n "$BRIEF_LINE" ]; then
+  OPT_LINES="${INIT_LINE}\n${BRIEF_LINE}"
+elif [ -n "$BRIEF_LINE" ]; then
+  OPT_LINES="$BRIEF_LINE"
+fi
+context="[AGENTIC OS SESSION BRIEFING] At your FIRST response in this session, begin with a compact briefing block:\n---\nAgentic OS active | Branch: ${BRANCH:-?} | ${ITER_COUNT:-0} iterations, ${ERR_COUNT:-0} errors, ${PAT_COUNT:-0} patterns\n${OPT_LINES}\n---\nThen respond normally to the user's question.\n\n$context"
 
 # Generate JSON output (python3 for safe escaping, fallback without)
 if command -v python3 > /dev/null 2>&1; then
