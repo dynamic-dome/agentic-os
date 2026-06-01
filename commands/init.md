@@ -13,116 +13,56 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
 
 1. **Check if `.agent-memory/` already exists.** If it does and `--force` was NOT passed, abort with: "Memory system already exists. Use `--force` to reinitialize (backs up existing)." If `--force` was passed, rename existing `.agent-memory/` to `.agent-memory.bak-{YYYY-MM-DD}/`.
 
-2. **Create the directory structure:**
+2. **Create the directory structure — via the Single Source of Truth.**
 
-```
-.agent-memory/
-├── identity/
-│   ├── soul.md
-│   └── user.md
-├── context/
-│   ├── project-context.md
-│   └── decisions.json
-├── iterations/
-│   ├── iteration-log.md
-│   └── errors.json
-├── patterns/
-│   ├── patterns.md
-│   └── patterns.json
-├── quality/
-│   ├── test-results.json
-│   ├── code-reviews.json
-│   └── quality-score.json
-├── learnings/
-│   ├── learnings.md
-│   └── learnings.json
-├── knowledge/
-│   └── notebook-registry.md
-├── working/
-│   └── current-session.json
-├── generated-skills/
-├── config.json              (optional, created by Wiki Integration step)
-└── session-summary.md
-```
+   Do NOT hand-create the files. Run the canonical schema script, which creates the
+   entire structure with correct empty defaults (idempotent — never overwrites existing):
 
-3. **Initialize JSON files** with these defaults:
-   - `errors.json` → `[]`
-   - `patterns.json` → `[]`
-   - `decisions.json` → `[]`
-   - `test-results.json` → `[]`
-   - `code-reviews.json` → `[]`
-   - `quality-score.json` → `{"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}`
-   - `context/open-tasks.json` → `[]`  **(MANDATORY — Task Persistence Guard, canonical location is context/, NOT root)**
-   - `learnings/learnings.json` → `[]`  **(MANDATORY — wrap-up dedup/scoring and session-bootstrap salience retrieval depend on this)**
-   - `working/current-session.json` → `{"session_start": "{date}", "errors_this_session": [], "learnings_draft": []}`  **(working memory — iteration-logger Step 4b appends, wrap-up Step 3.5 consumes + resets)**
-
-4. **Initialize Markdown files:**
-   - `iteration-log.md` → `# Iteration Log\n\n*No entries yet.*`
-   - `patterns.md` → `# Pattern Catalog\n\n*No patterns detected yet.*`
-   - `learnings.md` → `# Learnings\n\n*No session learnings yet.*`
-   - `session-summary.md` → `# Last Session\n\n*First session — system freshly initialized.*\n\n## Next Steps\n1. Fill in project context\n2. Start first coding iteration`
-   - `knowledge/notebook-registry.md` → see below
-
-   **notebook-registry.md** (Knowledge Base Registry):
-   ```markdown
-   # NotebookLM Knowledge Base Registry
-
-   *No notebooks registered yet. Add entries here as you create NotebookLM knowledge bases.*
-
-   ## Active Notebooks
-
-   (none)
-
-   ## When to consult NotebookLM
-   - For expert knowledge on topics covered by a notebook
-   - When best practices or reference material is needed
-   - When uncertain about the right approach
-   - When comparing or summarizing multiple sources
-
-   ## How to update this registry
-   After creating a new notebook or adding important sources:
-   1. Add a new entry here (name, topic, strengths, keywords)
-   2. Update existing entries when major changes are made
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/scripts/mem-schema.sh" "$PWD/.agent-memory"
    ```
 
-5. **Create identity files:**
+   `scripts/mem-schema.sh` is the ONE definition of the memory schema — the SessionStart
+   hook sources the same file. This guarantees `/init` and the hook can never drift
+   (the historical L4 bug). If you add a new memory file, add it in `mem-schema.sh` only.
 
-   **soul.md:**
-   ```markdown
-   # Agent Identity
+   The structure it produces (for reference — the script is authoritative):
 
-   ## Communication
-   - Language: en (switch to de if user writes in German)
-   - Brevity: 3/5 (balanced — concise but explain when needed)
-   - Proactivity: 3/5 (suggest when relevant, don't overdo)
-
-   ## Guard Rails
-   - Confirm before deleting files (accidental deletion is hard to undo)
-   - Justify new dependencies (every dependency is a maintenance burden)
-   - For changes spanning many files: write a brief plan first
-   - No architecture decisions without discussion (show options with pros/cons)
-
-   ## Priorities
-   1. Correctness over speed
-   2. Simplicity over cleverness
-   3. Working code over perfect code
    ```
-
-   **user.md:**
-   ```markdown
-   # User Profile
-
-   *Initialized: {date}*
-
-   ## Preferences
-   - (Will be populated through observed patterns)
-
-   ## Work Style
-   - (Will be populated through session observations)
-
-   ## Known Corrections
-   - (Recorded when user corrects agent behavior 3+ times)
+   .agent-memory/
+   ├── identity/{soul.md, user.md}
+   ├── context/{project-context.md*, decisions.json, open-tasks.json}
+   ├── iterations/{iteration-log.md, errors.json}
+   ├── patterns/{patterns.md, patterns.json}
+   ├── quality/{test-results.json, code-reviews.json, quality-score.json}
+   ├── learnings/{learnings.md, learnings.json}
+   ├── knowledge/notebook-registry.md
+   ├── working/current-session.json
+   ├── generated-skills/
+   ├── config.json              (optional, created by Wiki Integration step)
+   └── session-summary.md
    ```
+   `*` `project-context.md` is NOT created by the script — it needs stack auto-detection
+   (step 6 below). Everything else is created with empty/stub defaults by the script.
+
+3. **(Defaults are handled by the script.)** `mem-schema.sh` already wrote the empty
+   JSON stores (`[]`), the `quality-score.json` skeleton, the `working/current-session.json`
+   working-memory stub, all Markdown stubs, `notebook-registry.md`, `session-summary.md`,
+   and the `soul.md` / `user.md` identity defaults. Do not re-create them. Only proceed to
+   customize identity (step 5) and project context (step 6) below.
+
+   Key files the script guarantees (each MANDATORY for a downstream consumer):
+   - `context/open-tasks.json` — SessionEnd Task-Persistence Guard (canonical location: `context/`)
+   - `learnings/learnings.json` — wrap-up dedup/scoring + session-bootstrap salience
+   - `working/current-session.json` — iteration-logger Step 4b appends, wrap-up Step 3.5 consumes + resets
+
+4. **(Markdown stubs are handled by the script.)** See step 3. No manual creation needed.
+
+5. **Customize identity files (optional):**
+
+   The script already wrote default `identity/soul.md` and `identity/user.md`. Only edit
+   them if the user wants different communication style, guard rails, or priorities than
+   the defaults (en/balanced/correctness-first). Otherwise leave them as-is.
 
 6. **Auto-detect project context:**
    - Read `README.md`, `package.json`, `pyproject.toml`, `requirements.txt`, `Cargo.toml`, `go.mod` if they exist

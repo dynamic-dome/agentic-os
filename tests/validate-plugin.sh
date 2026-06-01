@@ -689,19 +689,24 @@ else
 fi
 
 
-# 38. session-start.sh auto-init must create knowledge/notebook-registry.md
+# 38. auto-init must create knowledge/notebook-registry.md
 #     session-bootstrap health check verifies knowledge/notebook-registry.md exists.
-#     If auto-init (session-start.sh) skips this file, bootstrap always warns about
-#     a missing file after a fresh auto-init, producing spurious health alerts.
+#     If auto-init skips this file, bootstrap always warns about a missing file after
+#     a fresh auto-init, producing spurious health alerts.
+#     FUNCTIONAL check (not grep): the file may be created by the hook inline OR by the
+#     sourced mem-schema.sh — we verify it actually appears, regardless of where defined.
 echo ""
-echo "-- session-start.sh auto-init creates knowledge/notebook-registry.md --"
+echo "-- auto-init creates knowledge/notebook-registry.md (functional) --"
 SESSION_HOOK="$PLUGIN_ROOT/scripts/session-start.sh"
 if [ -f "$SESSION_HOOK" ]; then
-    if grep -q "knowledge" "$SESSION_HOOK" && grep -q "notebook-registry" "$SESSION_HOOK"; then
-        pass "session-start.sh: auto-init creates knowledge/notebook-registry.md"
+    NR_TMP=$(mktemp -d)
+    CLAUDE_PROJECT_DIR="$NR_TMP" bash "$SESSION_HOOK" > /dev/null 2>&1 || true
+    if [ -f "$NR_TMP/.agent-memory/knowledge/notebook-registry.md" ]; then
+        pass "auto-init creates knowledge/notebook-registry.md"
     else
-        fail "session-start.sh: auto-init missing knowledge/notebook-registry.md creation — session-bootstrap health check will always warn after auto-init"
+        fail "auto-init missing knowledge/notebook-registry.md creation — session-bootstrap health check will always warn after auto-init"
     fi
+    rm -rf "$NR_TMP"
 else
     fail "session-start.sh: not found"
 fi
@@ -1345,6 +1350,59 @@ if [ -f "$IA_FILE" ]; then
         fail "improvement-agent: references phase skills (research-phase, analysis-phase, improvement-phase, validation-phase) which no longer exist — all phases were merged inline into agentic-os:self-improve in v3"
     else
         pass "improvement-agent: no stale phase-skill references"
+    fi
+fi
+
+echo ""
+echo "-- memory schema: Single Source of Truth exists and is the only definition --"
+SCHEMA_FILE="$PLUGIN_ROOT/scripts/mem-schema.sh"
+HOOK_FILE="$PLUGIN_ROOT/scripts/session-start.sh"
+INITCMD_FILE="$PLUGIN_ROOT/commands/init.md"
+if [ ! -f "$SCHEMA_FILE" ]; then
+    fail "mem-schema.sh missing — the .agent-memory/ schema must live in ONE sourceable file (scripts/mem-schema.sh)"
+else
+    pass "mem-schema.sh exists (single source of truth for memory schema)"
+
+    if grep -q "create_memory_structure()" "$SCHEMA_FILE"; then
+        pass "mem-schema.sh defines create_memory_structure()"
+    else
+        fail "mem-schema.sh: create_memory_structure() not defined — both hook and /init depend on it"
+    fi
+
+    # The hook must SOURCE the schema, not re-inline the file list (L4 drift guard)
+    if [ -f "$HOOK_FILE" ]; then
+        if grep -q "mem-schema.sh" "$HOOK_FILE" && grep -q "create_memory_structure" "$HOOK_FILE"; then
+            pass "session-start.sh sources mem-schema.sh (no inlined duplicate schema)"
+        else
+            fail "session-start.sh does NOT source mem-schema.sh — re-inlining the file list reintroduces the L4 hook/command drift"
+        fi
+    fi
+
+    # /init command must invoke the schema script, not hand-list files
+    if [ -f "$INITCMD_FILE" ]; then
+        if grep -q "mem-schema.sh" "$INITCMD_FILE"; then
+            pass "commands/init.md invokes mem-schema.sh (shared schema with the hook)"
+        else
+            fail "commands/init.md does NOT reference mem-schema.sh — /init would drift from the hook (L4)"
+        fi
+    fi
+
+    # Functional check: running the schema produces the mandatory consumer files
+    SCHEMA_TMP=$(mktemp -d 2>/dev/null)
+    if [ -n "$SCHEMA_TMP" ]; then
+        bash "$SCHEMA_FILE" "$SCHEMA_TMP/.agent-memory" >/dev/null 2>&1
+        MISSING=""
+        for req in learnings/learnings.json context/open-tasks.json working/current-session.json \
+                   quality/quality-score.json patterns/patterns.json iterations/errors.json \
+                   identity/soul.md identity/user.md session-summary.md; do
+            [ -f "$SCHEMA_TMP/.agent-memory/$req" ] || MISSING="$MISSING $req"
+        done
+        rm -rf "$SCHEMA_TMP"
+        if [ -z "$MISSING" ]; then
+            pass "mem-schema.sh produces all mandatory consumer files"
+        else
+            fail "mem-schema.sh did not create:$MISSING"
+        fi
     fi
 fi
 

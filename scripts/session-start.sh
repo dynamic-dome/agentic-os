@@ -14,67 +14,25 @@ MEMORY_DIR="$PROJECT_DIR/.agent-memory"
 # ============================================================
 
 if [ ! -d "$MEMORY_DIR" ]; then
-  # Create directories
-  mkdir -p "$MEMORY_DIR/identity"
-  mkdir -p "$MEMORY_DIR/context"
-  mkdir -p "$MEMORY_DIR/iterations"
-  mkdir -p "$MEMORY_DIR/patterns"
-  mkdir -p "$MEMORY_DIR/quality"
-  mkdir -p "$MEMORY_DIR/learnings"
-  mkdir -p "$MEMORY_DIR/generated-skills"
-  mkdir -p "$MEMORY_DIR/knowledge"
-  mkdir -p "$MEMORY_DIR/working"
+  # Create the full structure from the Single Source of Truth (scripts/mem-schema.sh).
+  # NEVER inline the file list here — add new memory files in mem-schema.sh only.
+  SCHEMA_SH="$(dirname "${BASH_SOURCE[0]}")/mem-schema.sh"
+  if [ -f "$SCHEMA_SH" ]; then
+    # shellcheck source=mem-schema.sh
+    source "$SCHEMA_SH"
+    create_memory_structure "$MEMORY_DIR"
+  else
+    # Defensive fallback: schema file missing — create the bare minimum so the
+    # session can still start. This should never happen in a packaged plugin.
+    mkdir -p "$MEMORY_DIR/identity" "$MEMORY_DIR/context" "$MEMORY_DIR/iterations" \
+             "$MEMORY_DIR/patterns" "$MEMORY_DIR/quality" "$MEMORY_DIR/learnings" \
+             "$MEMORY_DIR/generated-skills" "$MEMORY_DIR/knowledge" "$MEMORY_DIR/working"
+    echo "[]" > "$MEMORY_DIR/learnings/learnings.json"
+    echo "[]" > "$MEMORY_DIR/context/open-tasks.json"
+  fi
 
-  # session-summary.md
-  cat > "$MEMORY_DIR/session-summary.md" << 'EOFILE'
-# Last Session
-
-*First session — system freshly initialized.*
-
-## Next Steps
-1. Review project context
-2. Start first coding iteration
-EOFILE
-
-  # identity/soul.md
-  cat > "$MEMORY_DIR/identity/soul.md" << 'EOFILE'
-# Agent Identity
-
-## Communication
-- Language: en (switch to de if user writes in German)
-- Brevity: 3/5 (balanced)
-- Proactivity: 3/5
-
-## Guard Rails
-- Confirm before deleting files
-- Justify new dependencies
-- For multi-file changes: write a brief plan first
-- No architecture decisions without discussion
-
-## Priorities
-1. Correctness over speed
-2. Simplicity over cleverness
-3. Working code over perfect code
-EOFILE
-
-  # identity/user.md
-  TODAY=$(date +%Y-%m-%d 2>/dev/null || echo "unknown")
-  cat > "$MEMORY_DIR/identity/user.md" << EOFILE
-# User Profile
-
-*Initialized: ${TODAY}*
-
-## Preferences
-- (Will be populated through observed patterns)
-
-## Work Style
-- (Will be populated through session observations)
-
-## Known Corrections
-- (Recorded when user corrects agent behavior 3+ times)
-EOFILE
-
-  # context/project-context.md — Auto-Detect
+  # project-context.md is hook-specific (inline stack auto-detect, no LLM/user).
+  # Deliberately NOT in mem-schema.sh — /init writes it differently (LLM + confirm).
   PROJECT_NAME=$(basename "$PROJECT_DIR")
   LANG=""
   FRAMEWORK=""
@@ -122,30 +80,6 @@ EOFILE
 ## Current Status
 - Fresh initialization
 EOFILE
-
-  # JSON files
-  echo "[]" > "$MEMORY_DIR/context/decisions.json"
-  echo "[]" > "$MEMORY_DIR/context/open-tasks.json"   # MANDATORY — SessionEnd Task-Persistence-Guard reads this
-  echo "[]" > "$MEMORY_DIR/iterations/errors.json"
-  echo "[]" > "$MEMORY_DIR/patterns/patterns.json"
-  echo "[]" > "$MEMORY_DIR/quality/test-results.json"
-  echo "[]" > "$MEMORY_DIR/quality/code-reviews.json"
-  echo "[]" > "$MEMORY_DIR/learnings/learnings.json"   # MANDATORY — wrap-up dedup/scoring + bootstrap salience retrieval depend on this
-  cat > "$MEMORY_DIR/quality/quality-score.json" << 'EOFILE'
-{"last_updated": null, "test_health": {"current_score": null, "trend": "unknown"}, "code_quality": {"current_score": null, "trend": "unknown"}}
-EOFILE
-
-  # working memory — consumed by iteration-logger Step 4b, reset by wrap-up Step 3.5
-  TODAY_WM=$(date +%Y-%m-%d 2>/dev/null || echo "unknown")
-  printf '{"session_start": "%s", "errors_this_session": [], "learnings_draft": []}\n' "$TODAY_WM" > "$MEMORY_DIR/working/current-session.json"
-
-  # Markdown files
-  printf '# Iteration Log\n\n*No entries yet.*\n' > "$MEMORY_DIR/iterations/iteration-log.md"
-  printf '# Pattern Catalog\n\n*No patterns detected yet.*\n' > "$MEMORY_DIR/patterns/patterns.md"
-  printf '# Learnings\n\n*No session learnings yet.*\n' > "$MEMORY_DIR/learnings/learnings.md"
-
-  # knowledge/notebook-registry.md
-  printf '# NotebookLM Knowledge Base Registry\n\n*No notebooks registered yet. Add entries here as you create NotebookLM knowledge bases.*\n\n## Active Notebooks\n\n(none)\n\n## When to consult NotebookLM\n- For expert knowledge on topics covered by a notebook\n- When best practices or reference material is needed\n- When uncertain about the right approach\n' > "$MEMORY_DIR/knowledge/notebook-registry.md"
 
   INIT_MSG="[Agentic OS] Memory system initialized for '${PROJECT_NAME}'. Stack: ${LANG:-?} + ${FRAMEWORK:-?}. Please review .agent-memory/context/project-context.md."
 fi
@@ -240,8 +174,16 @@ if [ -f "$MEMORY_DIR/session-summary.md" ]; then
   [ -n "$WARNINGS" ] && BRIEFING="$BRIEFING | Warnings: $WARNINGS"
 fi
 
-# Instruction to Claude: compact briefing in chat
-context="[AGENTIC OS SESSION BRIEFING] At your FIRST response in this session, begin with a compact briefing block:\n---\nAgentic OS active | Branch: ${BRANCH:-?} | ${ITER_COUNT:-0} iterations, ${ERR_COUNT:-0} errors, ${PAT_COUNT:-0} patterns\n$([ -n \"${INIT_MSG:-}\" ] && echo 'Newly initialized!' || echo '')$([ -n \"$BRIEFING\" ] && echo \"$BRIEFING\" || echo '')\n---\nThen respond normally to the user's question.\n\n$context"
+# Instruction to Claude: compact briefing in chat.
+# Build the optional lines as plain shell statements FIRST. Embedding $(...) with
+# escaped quotes inside the assigned double-quoted string left the test operands
+# effectively unquoted at subshell-eval time → "[: too many arguments" whenever
+# BRIEFING held pipes/spaces ("| Open: ... | Warnings: ..."). Plain statements fix it.
+INIT_LINE=""
+[ -n "${INIT_MSG:-}" ] && INIT_LINE="Newly initialized!"
+BRIEF_LINE=""
+[ -n "${BRIEFING:-}" ] && BRIEF_LINE="$BRIEFING"
+context="[AGENTIC OS SESSION BRIEFING] At your FIRST response in this session, begin with a compact briefing block:\n---\nAgentic OS active | Branch: ${BRANCH:-?} | ${ITER_COUNT:-0} iterations, ${ERR_COUNT:-0} errors, ${PAT_COUNT:-0} patterns\n${INIT_LINE}${BRIEF_LINE}\n---\nThen respond normally to the user's question.\n\n$context"
 
 # Generate JSON output (python3 for safe escaping, fallback without)
 if command -v python3 > /dev/null 2>&1; then
