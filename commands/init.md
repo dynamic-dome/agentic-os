@@ -64,10 +64,15 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    them if the user wants different communication style, guard rails, or priorities than
    the defaults (en/balanced/correctness-first). Otherwise leave them as-is.
 
-6. **Auto-detect project context:**
-   - Read `README.md`, `package.json`, `pyproject.toml`, `requirements.txt`, `Cargo.toml`, `go.mod` if they exist
-   - Detect: project name, language, framework, test runner
-   - Write findings to `.agent-memory/context/project-context.md` using the context-keeper format
+6. **Build project context (docs first, then detect):**
+   - **Source of truth:** if `docs/PROJECT.md`, `docs/ARCHITECTURE.md`, `docs/CAPABILITIES.md`,
+     or `HOW-TO-USE.md` exist, read them and derive the context from them. `project-context.md`
+     is a CACHE of the docs — it must not contradict them.
+   - Only for facts the docs do NOT state: read `README.md`, `package.json`, `pyproject.toml`,
+     `requirements.txt`, `Cargo.toml`, `go.mod` to detect language, framework, test runner.
+   - Write findings to `.agent-memory/context/project-context.md` using the context-keeper
+     7-section format (include the `*Source: docs/ ... This file is a cache.*` pointer line).
+   - If NO docs exist, suggest creating the Regel-13 skeleton (HOW-TO-USE.md + docs/).
    - Ask the user to confirm or supplement the detected context
 
 7. **Optional: Wiki Integration (config.json)**

@@ -1429,5 +1429,34 @@ $LEAK"
 fi
 
 echo ""
+echo "-- project-context.md: all writers honor docs-as-source-of-truth --"
+# project-context.md is a CACHE of the project docs. EVERY writer (hook, /init,
+# context-detective, context-keeper) must reference the docs as source of truth so the
+# cache can never silently diverge from docs/. Guards against the divergence paths the
+# Codex verifier flagged (2026-06-01).
+PC_WRITERS_OK=true
+# context-keeper must declare the source-of-truth hierarchy
+if [ -f "$PLUGIN_ROOT/skills/context-keeper/SKILL.md" ]; then
+    grep -q "Source-of-Truth Hierarchy" "$PLUGIN_ROOT/skills/context-keeper/SKILL.md" || { PC_WRITERS_OK=false; echo "    (context-keeper: missing Source-of-Truth Hierarchy)"; }
+fi
+# /init must read docs before detecting
+if [ -f "$PLUGIN_ROOT/commands/init.md" ]; then
+    grep -qiE "docs first|source of truth" "$PLUGIN_ROOT/commands/init.md" || { PC_WRITERS_OK=false; echo "    (init.md: missing docs-first rule)"; }
+fi
+# context-detective must read docs first
+if [ -f "$PLUGIN_ROOT/agents/context-detective.md" ]; then
+    grep -qiE "docs FIRST|source of truth" "$PLUGIN_ROOT/agents/context-detective.md" || { PC_WRITERS_OK=false; echo "    (context-detective: missing docs-first rule)"; }
+fi
+# hook template must carry the cache pointer line
+if [ -f "$PLUGIN_ROOT/scripts/session-start.sh" ]; then
+    grep -q "This file is a cache" "$PLUGIN_ROOT/scripts/session-start.sh" || { PC_WRITERS_OK=false; echo "    (session-start.sh: missing cache pointer in project-context template)"; }
+fi
+if [ "$PC_WRITERS_OK" = true ]; then
+    pass "all project-context.md writers reference docs as source of truth"
+else
+    fail "a project-context.md writer does not honor docs-as-source-of-truth — cache can silently diverge from docs/"
+fi
+
+echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

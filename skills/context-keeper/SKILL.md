@@ -79,6 +79,9 @@ that exists; skip silently if absent (a project may not have the full Regel-13 s
   doc already states it (that is `/init`'s job on first run, not context-keeper's).
 - If a doc CONTRADICTS the current `project-context.md`, the doc wins. Note the drift
   in the Step 5 output so the user knows the cache was stale.
+- **Partial docs:** if SOME docs exist but a needed section is missing (e.g. PROJECT.md
+  is present but ARCHITECTURE.md is absent), use the docs for what they cover and fall
+  back to config-file detection / user-ask ONLY for the missing facts. Do not block.
 - If NO docs exist at all → fall back to reading config files / asking the user, and
   add a note suggesting the user create the Regel-13 skeleton.
 - This step is read-only.
@@ -87,7 +90,8 @@ that exists; skip silently if absent (a project may not have the full Regel-13 s
 
 Read the current file, then overwrite with content distilled from Step 1.5. Keep the
 cache compact (~60 lines) — it summarizes the docs, it does not duplicate them. Add a
-pointer line `*Source: docs/ (PROJECT.md, ARCHITECTURE.md). This file is a cache.*`.
+pointer line listing whichever docs you actually read, e.g.
+`*Source: docs/ (PROJECT.md, ARCHITECTURE.md, CAPABILITIES.md) + HOW-TO-USE.md/CLAUDE.md. This file is a cache.*`.
 Maintain this structure:
 
 ```markdown
@@ -193,7 +197,9 @@ When the user asks "Why did we choose X?" or "What was the rationale for Y?":
 1. Search `decisions.json` for matching entries (search `title`, `decision`, `tags`)
 2. Filter to `status: "active"` entries (unless user asks about historical decisions)
 3. Present the decision with its context, options considered, and consequences
-4. If no match found, say so and offer to search `project-context.md`
+4. If no match found, search the source of truth in order: the project docs
+   (`docs/PROJECT.md`, `docs/ARCHITECTURE.md`, `docs/CAPABILITIES.md`) FIRST, then the
+   `project-context.md` cache as a fallback. Report which source the answer came from.
 
 ## Step 5: Confirm
 

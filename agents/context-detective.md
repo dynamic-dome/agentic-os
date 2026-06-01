@@ -40,11 +40,17 @@ You are the Context Detective. Your job is to analyze a repository and produce a
    - `src/`, `lib/`, `app/`, `tests/`
    - Detect patterns: monorepo, microservices, monolith
 
-4. **Detect tech stack:**
+4. **Read the project docs FIRST (source of truth):**
+   - If `docs/PROJECT.md`, `docs/ARCHITECTURE.md`, `docs/CAPABILITIES.md`, or
+     `HOW-TO-USE.md` exist, treat them as authoritative for stack/architecture/status.
+   - Only fall back to scanning config files for facts the docs do NOT state.
+   - `project-context.md` is a CACHE of those docs — never let it contradict them.
+
+5. **Detect tech stack (only for what the docs don't cover):**
    - Language(s), frameworks, testing tools, CI/CD
    - Tag with standardized stack tags
 
-5. **Check for existing .agent-memory/:**
+6. **Check for existing .agent-memory/:**
    - If exists, read and preserve project-context.md
    - Only supplement missing information
 

@@ -69,6 +69,7 @@ if [ ! -d "$MEMORY_DIR" ] && [ "$SCHEMA_OK" = true ]; then
   cat > "$MEMORY_DIR/context/project-context.md" << EOFILE
 # Project Context
 
+*Last updated: $(date +%Y-%m-%d 2>/dev/null || echo unknown)*
 *Source: docs/ (PROJECT.md, ARCHITECTURE.md) once they exist. This file is a cache.*
 
 ## Project
