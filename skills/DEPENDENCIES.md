@@ -1,124 +1,136 @@
 # Skill Dependency Graph — Agentic OS v3
 
+> Reflects v3.2.4. The store schema itself is owned by `scripts/mem-schema.sh`
+> (see `references/memory-structure.md`). When this graph disagrees with a
+> skill's own SKILL.md, the SKILL.md wins — keep this file in sync with them.
+
 ## Session Lifecycle (Execution Order)
 
 ```
-SESSION START (SessionStart hook)
+SESSION START (SessionStart hook → session-bootstrap)
   │
   ▼
-  session-bootstrap (read-only)
-  │  ├── reads: session-summary.md
-  │  ├── reads: identity/soul.md, identity/user.md
-  │  ├── reads: context/project-context.md
-  │  ├── reads: patterns/patterns.md
-  │  └── reads: quality/quality-score.json
+  session-bootstrap (READ-ONLY)
+  │  ├── cross-project (read-only): ~/AI/.agent-memory/session-summary.md,
+  │  │     ~/AI/cross-project-status.md, ~/AI/SESSION-WORKFLOW.md (conditional)
+  │  ├── local: session-summary.md, identity/soul.md, identity/user.md,
+  │  │     context/project-context.md, patterns/patterns.md,
+  │  │     learnings/learnings.json (salience), quality/quality-score.json,
+  │  │     iterations/errors.json (tail 3), working/current-session.json
+  │  └── wiki (optional, if config.json sync_enabled): entity + entrypoints (≤5 pages)
   │
   ▼
-WORK PHASE (user-driven, no auto-triggers)
+WORK PHASE (user-driven, no auto-triggers on code changes)
   │
   ├── iteration-logger (after fixes/features)
-  │     └── writes: iterations/iteration-log.md, errors.json
+  │     ├── reads: errors.json, iteration-log.md, working/current-session.json
+  │     ├── writes: iteration-log.md, errors.json, working/current-session.json
+  │     ├── rotates: *-archive-{YYYY-MM} when over threshold
+  │     └── suggests (no invoke): pattern-extractor every 5th iteration
   │
-  ├── context-keeper (on architecture decisions)
-  │     └── writes: context/project-context.md, decisions.json
+  ├── context-keeper (on architecture/stack decisions)
+  │     ├── reads: docs/PROJECT.md+ARCHITECTURE.md+CAPABILITIES.md (SoT, Step 1.5),
+  │     │     context/project-context.md, context/decisions.json, config.json
+  │     ├── writes: context/project-context.md (cache), context/decisions.json
+  │     └── writes (optional, Step 3.5 if sync_enabled): ~/wiki/wiki/entities/<id>.md
   │
   ├── quality-gate (before commits, on request)
-  │     ├── Mode 1: Code review → writes: quality/code-reviews.json, quality-score.json
-  │     ├── Mode 2: Test validation → writes: quality/test-results.json, quality-score.json
-  │     └── Mode 3: TDD enforcement → (no memory writes — uses test runner directly)
+  │     ├── reads: project-context.md, patterns.md, quality/*.json
+  │     └── writes: code-reviews.json, test-results.json, quality-score.json
   │
-  ├── pattern-extractor (every 5 iterations, on request)
-  │     ├── reads: iterations/errors.json, iteration-log.md
-  │     └── writes: patterns/patterns.json, patterns.md
+  ├── pattern-extractor (every ~5 iterations, on request, "refresh" mode)
+  │     ├── reads: errors.json, iteration-log.md, patterns.json
+  │     └── writes: patterns.json, patterns.md
   │
-  ├── skill-generator (when pattern has skill_candidate=true)
-  │     ├── reads: patterns/patterns.json
-  │     └── writes: generated-skills/<name>/SKILL.md
+  ├── skill-generator (when pattern has skill_candidate=true, conf≥0.5 occ≥2)
+  │     ├── reads: patterns.json, errors.json
+  │     └── writes: generated-skills/<name>/SKILL.md, patterns.json (back-ref);
+  │           optional ~/.claude/skills/<name>/ (global install, on consent)
   │
-  ├── sync-context (manual only, on explicit request)
-  │     └── reads/writes: local patterns ↔ global patterns
+  ├── sync-context (MANUAL ONLY, explicit request)
+  │     └── reads/writes: ~/.claude-memory/global/{patterns,learnings,projects}.json ↔ local
   │
   ├── research-pipeline (token-optimized external research)
-  │     └── writes: research/<topic>-*.md
+  │     └── writes: research/<topic>-*.md  (external: Perplexity, NotebookLM CLI)
   │
-  └── self-improve (scheduled/manual, all phases inline)
-        ├── Phase 0: Setup (git check, baseline tests, state.json)
-        ├── Phase 1: Research (local analysis, optional WebSearch/NotebookLM)
-        ├── Phase 2: Analysis (pattern-extractor + direct skill analysis)
-        ├── Phase 3: Improvement (TDD + git-checkpoint rollback)
-        ├── Phase 4: Validation (tests + quality evaluation)
-        ├── Circuit breaker (diminishing returns / rollback detection)
-        ├── Meta-improve (1x per run, optional, targets self)
-        ├── Schedule management (CronCreate/adaptive frequency)
-        └── writes: improvements/iterations-*.md, state.json
+  ├── wiki-query (mid-session lookup, READ-ONLY by default)
+  │     ├── reads: config.json, ~/wiki/ pages
+  │     └── writes: ~/wiki/wiki/queries/ (only on explicit user consent)
+  │
+  └── self-improve (scheduled/manual, all pipeline phases inline)
+        ├── reads: improvements/state.json, skills/*/SKILL.md (Glob),
+        │     patterns.json, iteration-log.md, errors.json, ARCHITECTURE.md
+        ├── invokes: pattern-extractor (Phase 2.1, via Skill tool)
+        ├── writes: skills/*/SKILL.md (Edit), research/research-cache.json,
+        │     improvements/iterations-*.md, improvements/state.json
+        ├── commits: git tags self-improve-<cluster>-<iter>-<ts>
+        └── policy: single-cluster, no-self-mod, rollback-tagged, circuit breaker
   │
   ▼
-SESSION END (SessionEnd hook — delegates to wrap-up)
+SESSION END (SessionEnd hook → wrap-up)
   │
   ▼
-  wrap-up
-  │  ├── reads: iterations/iteration-log.md
-  │  ├── calls: pattern-extractor (if 3+ new iterations)
-  │  ├── updates: session-summary.md
-  │  ├── updates: learnings/learnings.md
-  │  ├── updates: identity/user.md (conditional, 3+ repeated signals)
-  │  └── optional: memory maintenance (archiving, JSON integrity, pruning)
+  wrap-up (MANUAL-ONLY — no hook auto-triggers it)
+  │  ├── reads: iteration-log.md, errors.json, test-results.json,
+  │  │     code-reviews.json, learnings.json, working/current-session.json
+  │  ├── writes: session-summary.md, learnings.json + learnings.md,
+  │  │     identity/user.md (conditional), working/current-session.json (reset)
+  │  ├── Step 4   → invokes pattern-extractor (if 3+ new iterations)
+  │  ├── Step 7.5 → invokes obsidian-sync (conditional: sync_enabled + threshold)
+  │  ├── Step 7.6 → writes cross-project: ~/AI/.agent-memory/session-summary.md
+  │  │     (prepend handoff), ~/AI/cross-project-status.md, Sharepoint (optional)
+  │  └── Step 9   → invokes memory-maintenance (only on explicit request / threshold)
 ```
 
 ## Dependency Matrix
 
-| Skill | Reads From | Writes To |
-|-------|-----------|----------|
-| session-bootstrap | session-summary.md, soul.md, user.md, project-context.md, patterns.md, quality-score.json, errors.json | (nothing — read-only) |
-| iteration-logger | iteration-log.md, errors.json | iteration-log.md, errors.json |
-| pattern-extractor | errors.json, iteration-log.md, patterns.json | patterns.json, patterns.md |
-| context-keeper | project-context.md, decisions.json | project-context.md, decisions.json |
-| quality-gate | project-context.md, patterns.md, test-results.json, code-reviews.json | code-reviews.json, test-results.json, quality-score.json |
-| skill-generator | patterns.json | generated-skills/ |
-| wrap-up | iteration-log.md, errors.json | session-summary.md, learnings.md, user.md; delegates maintenance to memory-maintenance |
-| memory-maintenance | all .agent-memory/ files | archives/*, repaired JSON files, patterns.md regeneration via pattern-extractor |
-| sync-context | local patterns, global patterns | local patterns, global patterns |
-| research-pipeline | (external: Perplexity, NotebookLM) | research/<topic>-*.md |
-| obsidian-sync | .agent-memory/ session results | ~/wiki/ session notes, entity pages, synthesis |
-| wiki-query | ~/wiki/ pages (read-only) | (nothing — read-only lookup) |
-| self-improve | improvements/state.json, skills/*/SKILL.md, .agent-memory/* | improvements/iterations-*.md, state.json, skills/*/SKILL.md |
+| Skill | Reads From | Writes To | Invokes |
+|-------|-----------|-----------|---------|
+| session-bootstrap | local: session-summary.md, soul.md, user.md, project-context.md, patterns.md, learnings.json, quality-score.json, errors.json (tail), working/current-session.json, config.json · cross-project: ~/AI/.agent-memory/session-summary.md, cross-project-status.md, SESSION-WORKFLOW.md · wiki (optional): entity + entrypoints | (nothing — read-only) | — |
+| iteration-logger | errors.json, iteration-log.md, working/current-session.json | iteration-log.md, errors.json, working/current-session.json, *-archive-{YYYY-MM} | — (suggests pattern-extractor) |
+| pattern-extractor | errors.json, iteration-log.md, patterns.json | patterns.json, patterns.md | — |
+| context-keeper | docs/PROJECT.md+ARCHITECTURE.md+CAPABILITIES.md (SoT), project-context.md, decisions.json, config.json | project-context.md (cache), decisions.json, ~/wiki/wiki/entities/<id>.md (optional) | — |
+| quality-gate | project-context.md, patterns.md, test-results.json, code-reviews.json, quality-score.json | code-reviews.json, test-results.json, quality-score.json | — (pattern-extractor/context-keeper are in `depends-on` metadata but NOT invoked by the body) |
+| skill-generator | patterns.json, errors.json | generated-skills/<name>/SKILL.md, patterns.json, ~/.claude/skills/ (optional) | — |
+| wrap-up | iteration-log.md, errors.json, test-results.json, code-reviews.json, learnings.json, working/current-session.json | session-summary.md, learnings.json, learnings.md, user.md, working/current-session.json; cross-project handoff + status-board + Sharepoint | pattern-extractor (3+ iters), obsidian-sync (Step 7.5), memory-maintenance (on request) |
+| memory-maintenance | all .agent-memory/ files, improvements/state.json (precondition) | archives/*, repaired JSON, compacted session-summary.md + learnings.md | pattern-extractor (patterns.md refresh) |
+| sync-context | local patterns/learnings, ~/.claude-memory/global/* | local + ~/.claude-memory/global/{patterns,learnings,projects}.json | — |
+| research-pipeline | (external: Perplexity, NotebookLM) | research/<topic>-*.md | — (external notebooklm CLI) |
+| obsidian-sync | config.json, session-summary.md, iteration-log.md, learnings.json/.md, patterns.json/.md, decisions.json, ~/wiki/{index.md,log.md,entities,synthesis} | ~/wiki/wiki/queries/*.md, ~/wiki/{index.md,log.md}, entity + synthesis (append), **patterns.json (promotion_status only)** | — |
+| wiki-query | config.json, ~/wiki/ pages (read-only) | ~/wiki/wiki/queries/ (only on explicit consent) | — |
+| self-improve | improvements/state.json, skills/*/SKILL.md, patterns.json, iteration-log.md, errors.json | skills/*/SKILL.md, research/research-cache.json, improvements/iterations-*.md, state.json | pattern-extractor (Phase 2.1) |
 
 ## Agents
 
-| Agent | Used By | Purpose |
-|-------|---------|---------|
-| context-detective | /agentic-os:init (optional) | Auto-detect project stack from manifests |
-| quality-gate | pre-commit, manual, self-improve | Combined code review + test validation |
-| improvement-agent | self-improve (inline iterations) | Run single iteration (research→analysis→improvement→validation) |
-| research-agent | self-improve research phase (optional) | Deep web + NotebookLM research |
+| Agent | Used By | Reads / Writes | Purpose |
+|-------|---------|----------------|---------|
+| context-detective | /agentic-os:init (optional) | reads manifests + docs/ (docs-first); writes project-context.md | Auto-detect project stack |
+| improvement-agent | self-improve (one per iteration) | invokes the self-improve skill; returns structured result | Run a single improvement iteration |
+| quality-gate (agent) | quality-gate skill, self-improve, manual | reads git diff; writes quality/*.json | Combined review + test validation (execution helper; distinct from the skill) |
+| research-agent | self-improve research phase (optional) | WebSearch/WebFetch; writes nothing (returns JSON) | Deep web + NotebookLM research |
 
 ## Consolidated Skills (v3)
 
-Previously 20 skills, now 10 core + 3 auxiliary:
+13 active skills, grouped by layer (see `references/skill-template.md` Layer Guide):
 
-| # | Skill | Absorbed / Note |
-|---|-------|----------|
-| 1 | session-bootstrap | — |
-| 2 | iteration-logger | — |
-| 3 | pattern-extractor | — |
-| 4 | context-keeper | — |
-| 5 | quality-gate | code-reviewer, test-validator, tdd |
-| 6 | self-improve | loop-orchestrator, research-phase, analysis-phase, improvement-phase, validation-phase, meta-improve, schedule-manager |
-| 7 | wrap-up | — (memory maintenance split out in v3.1) |
-| 8 | memory-maintenance | extracted from wrap-up Step 9 in v3.1 — owns JSON integrity, archiving, pruning, reporting |
-| 9 | skill-generator | — |
-| 10 | sync-context | — |
+| Layer | Skills | Note |
+|-------|--------|------|
+| core | session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, skill-generator, sync-context, memory-maintenance | memory-maintenance split out of wrap-up in v3.1 |
+| quality | quality-gate | absorbed code-reviewer + test-validator + tdd |
+| knowledge | research-pipeline, wiki-query, obsidian-sync | external research + wiki read/write |
+| self-improve | self-improve | absorbed loop-orchestrator, research/analysis/improvement/validation phases, meta-improve, schedule-manager |
 
-Auxiliary: `research-pipeline` (external research tool), `obsidian-sync` (write-path into wiki), `wiki-query` (read-only lookup in wiki).
+Removed agents (2026-04-30): `improvement-scout`, `fix-reviewer` → use `improvement-agent` + `self-improve`.
 
 ## Key Design Principles
 
-1. **No circular dependencies** — DAG only
-2. **No auto-triggers on code changes** — user/CLAUDE.md driven
-3. **session-bootstrap is read-only** — never writes during startup
-4. **wrap-up and self-improve are the only skills that call other skills/agents**
-5. **sync-context is manual-only** — no auto-sync
-6. **self-improve has all phases inline** — no external skill delegation for pipeline steps
-7. **P9 safety: git revert over git stash pop** — stash may already be dropped
-8. **Max 20% mutation per skill per iteration** — prevents scope creep
-9. **Circuit breaker stops on diminishing returns** — adaptive scheduling built into self-improve
+1. **No circular dependencies** — DAG only.
+2. **No auto-triggers on code changes** — user/CLAUDE.md driven (the only hook-driven skills are session-bootstrap on start and wrap-up on end).
+3. **session-bootstrap is read-only** — never writes during startup.
+4. **Skills that invoke other skills:** `wrap-up` (pattern-extractor, obsidian-sync, memory-maintenance), `self-improve` (pattern-extractor), `memory-maintenance` (pattern-extractor). All other skills are leaf nodes. (`quality-gate` lists pattern-extractor/context-keeper in its `depends-on` metadata, but its body does not invoke them — legacy, like self-improve's metadata.)
+5. **sync-context is manual-only** — no auto-sync.
+6. **self-improve has all pipeline phases inline** — only pattern-extractor is delegated; `iteration-logger`/`quality-gate` in its `depends-on` metadata are legacy and not invoked by the body.
+7. **P9 safety: git revert over git stash pop** — stash may already be dropped.
+8. **Max 20% mutation per skill per iteration** — prevents scope creep.
+9. **Circuit breaker stops on diminishing returns** — adaptive scheduling built into self-improve.
+10. **docs/ is the source of truth for project-context.md** — context-keeper (and context-detective, /init) read docs first; project-context.md is a cache (Regel 13 / L9).

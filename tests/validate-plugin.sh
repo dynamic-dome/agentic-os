@@ -779,6 +779,49 @@ else
 fi
 
 
+# 41b. DEPENDENCIES.md inter-skill-call accuracy (Design Principle 4).
+#      Principle 4 names the skills that invoke OTHER skills. If a skill's SKILL.md
+#      contains a real cross-skill invocation (`invoke ... <other-skill>`) but is NOT
+#      listed as an invoker in DEPENDENCIES.md (or vice versa), the graph has drifted.
+#      Catches the v3.2.4 finding: wrap-up invokes obsidian-sync (Step 7.5) but the
+#      old graph omitted it, and Principle 4 wrongly claimed only wrap-up + self-improve call others.
+echo ""
+echo "-- DEPENDENCIES.md inter-skill-call accuracy (Principle 4) --"
+if [ -f "$DEPS" ]; then
+    OTHER_SKILLS="pattern-extractor obsidian-sync memory-maintenance context-keeper iteration-logger"
+    CALL_DRIFT=""
+    for skill_dir in "$PLUGIN_ROOT/skills"/*/; do
+        [ -d "$skill_dir" ] || continue
+        sname=$(basename "$skill_dir")
+        SFILE="$skill_dir/SKILL.md"
+        [ -f "$SFILE" ] || continue
+        # Does this skill REALLY invoke another skill? (an "invoke ... <other>" line,
+        # excluding self-references and the depends-on metadata block)
+        REAL_CALL=false
+        for other in $OTHER_SKILLS; do
+            [ "$other" = "$sname" ] && continue
+            if grep -iE "(invoke|trigger|call)[^.]*\`?$other\`?" "$SFILE" \
+                 | grep -ivE "depends-on|owned by|no longer|does NOT|not replicate|instead of" >/dev/null 2>&1; then
+                REAL_CALL=true
+                break
+            fi
+        done
+        # Is this skill listed as an invoker in DEPENDENCIES.md Principle 4 line?
+        LISTED=false
+        grep -E "^4\. \*\*Skills that invoke" "$DEPS" | grep -q "\`$sname\`" && LISTED=true
+        if [ "$REAL_CALL" = true ] && [ "$LISTED" = false ]; then
+            CALL_DRIFT="$CALL_DRIFT $sname(calls-but-unlisted)"
+        fi
+    done
+    if [ -z "$CALL_DRIFT" ]; then
+        pass "DEPENDENCIES.md Principle 4 lists every skill that invokes another skill"
+    else
+        fail "DEPENDENCIES.md Principle 4 drift — these skills invoke others but aren't listed as invokers:$CALL_DRIFT"
+    fi
+else
+    fail "DEPENDENCIES.md not found"
+fi
+
 
 # 42. status command must show code-reviews count in statistics
 #     The status command tracks iterations, patterns, errors, and decisions.
