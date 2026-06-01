@@ -64,23 +64,38 @@ if [ ! -d "$MEMORY_DIR" ] && [ "$SCHEMA_OK" = true ]; then
     fi
   done
 
+  # Full 7-section layout — matches context-keeper's structure so a later
+  # context-keeper run refines this cache instead of reshaping it (no format drift).
   cat > "$MEMORY_DIR/context/project-context.md" << EOFILE
 # Project Context
 
+*Source: docs/ (PROJECT.md, ARCHITECTURE.md) once they exist. This file is a cache.*
+
 ## Project
-- **Name:** ${PROJECT_NAME}
+${PROJECT_NAME} — (one-line description: to be documented)
+
+## Tech Stack
 - **Language:** ${LANG:-unknown}
 - **Framework:** ${FRAMEWORK:-none detected}
 - **Package Manager:** ${PKG_MGR:-none detected}
 
 ## Architecture
-- (To be documented)
+- (To be documented — run /agentic-os:init or context-keeper to distill from docs/)
+
+## Key Dependencies
+| Package | Version | Purpose |
+|---------|---------|---------|
+| (none recorded) | | |
 
 ## Constraints
 - (To be documented)
 
 ## Current Status
-- Fresh initialization
+- **Phase:** fresh initialization
+- **Priority:** review project context
+
+## Open Questions
+- (none yet)
 EOFILE
 
   INIT_MSG="[Agentic OS] Memory system initialized for '${PROJECT_NAME}'. Stack: ${LANG:-?} + ${FRAMEWORK:-?}. Please review .agent-memory/context/project-context.md."

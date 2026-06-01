@@ -32,8 +32,24 @@ Maintain `.agent-memory/context/project-context.md` and `.agent-memory/context/d
 
 | File | Mode | Purpose |
 |------|------|---------|
-| `project-context.md` | Overwrite | Living document — always reflects current state |
+| `project-context.md` | Overwrite | **Cache** — a compact agent view distilled from the project docs |
 | `decisions.json` | Append-only | Decision log — never delete, only supersede |
+
+## Source-of-Truth Hierarchy (IMPORTANT)
+
+`project-context.md` is NOT the source of truth — the project docs are (Regel 13):
+
+1. **`docs/PROJECT.md`** — name, status, stack, one-liner, open items, dependencies
+2. **`docs/ARCHITECTURE.md`** — components, data flow, persistence
+3. **`docs/CAPABILITIES.md`** — features/tools and their status
+4. **`HOW-TO-USE.md`** — entry-point map
+5. **`CLAUDE.md`** — project conventions
+
+`project-context.md` is a **cache**: a compact distillation of those docs for fast
+agent restore. When docs and cache disagree, the **docs win** — refresh the cache
+from them, never treat the cache as truth. Runtime-only knowledge that is not yet in
+the docs (a fresh decision, a just-discovered constraint) may live in the cache until
+it is promoted into the docs.
 
 ## Step 1: Classify the Update
 
@@ -47,9 +63,32 @@ Determine the type:
 | `dependency-note` | New dependency with rationale | project-context.md |
 | `status-update` | Project milestone or phase change | project-context.md |
 
-## Step 2: Update project-context.md
+## Step 1.5: Read the Project Docs (primary source)
 
-Read the current file, then overwrite with updated content. Maintain this structure:
+Before writing the cache, gather the authoritative state from the docs. Read each
+that exists; skip silently if absent (a project may not have the full Regel-13 skeleton):
+
+1. `docs/PROJECT.md` — frontmatter (`stack`, `status`, `repo`) + "Einzeiler", "Aktueller Stand", "Offene Baustellen", "Abhaengigkeiten"
+2. `docs/ARCHITECTURE.md` — "Ueberblick" + "Kernkomponenten" (for the Architecture section)
+3. `docs/CAPABILITIES.md` — the tools/features table (for status notes)
+4. `HOW-TO-USE.md` and `CLAUDE.md` — for build/test commands and conventions
+
+**Rules:**
+- The docs are the source of truth. Derive the cache's Tech Stack / Architecture /
+  Constraints / Status from them — do NOT re-infer the stack from config files when a
+  doc already states it (that is `/init`'s job on first run, not context-keeper's).
+- If a doc CONTRADICTS the current `project-context.md`, the doc wins. Note the drift
+  in the Step 5 output so the user knows the cache was stale.
+- If NO docs exist at all → fall back to reading config files / asking the user, and
+  add a note suggesting the user create the Regel-13 skeleton.
+- This step is read-only.
+
+## Step 2: Update project-context.md (cache)
+
+Read the current file, then overwrite with content distilled from Step 1.5. Keep the
+cache compact (~60 lines) — it summarizes the docs, it does not duplicate them. Add a
+pointer line `*Source: docs/ (PROJECT.md, ARCHITECTURE.md). This file is a cache.*`.
+Maintain this structure:
 
 ```markdown
 # Project Context
