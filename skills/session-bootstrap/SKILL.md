@@ -37,8 +37,10 @@ Restore full project context at the start of every coding session.
 ### (a) Central handoff — last session, any project
 
 1. Read `C:\Users\domes\AI\.agent-memory\session-summary.md` (the **central handoff**).
-   This is the single, always-overwritten last-session handoff per SESSION-WORKFLOW.md
-   (one file, complete overwrite — NOT per-project sections).
+   It is a STACKED file: the most recent session is at the TOP, older sessions are
+   preserved below under `# Vorherige Session (...erhalten)` headings (wrap-up Step 7.6a
+   prepends, it does NOT blank-overwrite). The TOP block is the last session, possibly
+   from a different project — read it; older blocks are history, scan only if needed.
 2. Read `C:\Users\domes\AI\SESSION-WORKFLOW.md` **only if** the central handoff references it or if this is the first session in a new project
 
 It tells you:

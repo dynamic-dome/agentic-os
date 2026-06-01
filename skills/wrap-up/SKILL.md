@@ -249,15 +249,29 @@ Write the full last-session handoff to
 §1/§3 — NOTE: it lives under `.agent-memory\`, NOT flat in `~/AI\`).
 
 **Rules:** ONE file, but **PREPEND** the new session at the TOP and **PRESERVE the
-previous content below** under a `# Vorherige Session (...erhalten)` heading. Do NOT
-blank-overwrite. This deviates intentionally from SESSION-WORKFLOW.md §3's literal
-"complete overwrite" wording — the lived practice (stacked sessions, older ones kept)
-is robust against cross-project data loss: this file may hold a DIFFERENT project's
-handoff chain, and blind overwrite would destroy another agent's work (observed
-2026-06-01: a 267-line orchestrated-bridge chain was nearly overwritten by an
-unrelated agentic-os wrap-up). Read the file FIRST; if it contains another project's
-handoff, prepend yours and keep theirs. Optionally trim very old blocks (>5 sessions
-deep), but never drop the most recent foreign project's block.
+previous content below**. Do NOT blank-overwrite. This deviates intentionally from
+SESSION-WORKFLOW.md §3's literal "complete overwrite" wording — the lived practice
+(stacked sessions, older ones kept) is robust against cross-project data loss: this
+file may hold a DIFFERENT project's handoff chain, and blind overwrite would destroy
+another agent's work (observed 2026-06-01: a 267-line orchestrated-bridge chain was
+nearly overwritten by an unrelated agentic-os wrap-up).
+
+**Deterministic prepend algorithm (avoids nested wrappers + unbounded growth):**
+
+1. Read the file FIRST. Its structure is always:
+   - line 1: `# Letzte Session` (the current TOP block), then
+   - zero or more `# Vorherige Session (...erhalten)` blocks below.
+2. Demote the existing TOP block: change ONLY its first line from `# Letzte Session`
+   to `# Vorherige Session ({its own date} {its own project}, erhalten)`. Do NOT wrap
+   an already-demoted block again — only the single `# Letzte Session` line is ever
+   rewritten. This prevents nested/duplicated `Vorherige Session` wrappers on repeat runs.
+3. Write your new block with `# Letzte Session` as its first line, then a `---`, then
+   the demoted old content.
+4. **Hard cap (mandatory, not optional):** keep at most **5** session blocks total
+   (1 current + 4 history). Drop the OLDEST blocks beyond that — BUT never drop a block
+   whose project differs from every block you are keeping (preserve at least the most
+   recent block per distinct project). If the cap forces dropping a foreign project's
+   only block, instead move its 1-line state into `cross-project-status.md` (7.6b) first.
 
 Use the SESSION-WORKFLOW.md template (German headings, do not invent your own format):
 
