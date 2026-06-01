@@ -131,10 +131,16 @@ echo ""
 echo "-- wrap-up session-summary template language consistency --"
 WU_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
 if [ -f "$WU_FILE" ]; then
-    if grep -q "## Was wurde gemacht\|## Offene Punkte\|## Naechste Schritte\|## Aktive Warnungen" "$WU_FILE"; then
-        fail "wrap-up: session-summary.md template uses German section headers — template must use English for consistency with the rest of the plugin"
+    # The LOCAL .agent-memory/session-summary.md template (Step 5) must use English
+    # for consistency with the rest of the plugin. The CENTRAL cross-project handoff
+    # (Step 7.6a) is EXEMPT: it follows the external SESSION-WORKFLOW.md spec, which
+    # mandates German headers ("# Letzte Session" etc.) and forbids inventing other
+    # formats. So we scan only the body BEFORE Step 7.6.
+    WU_LOCAL_PART=$(awk '/^## Step 7.6/{exit} {print}' "$WU_FILE")
+    if echo "$WU_LOCAL_PART" | grep -q "## Was wurde gemacht\|## Offene Punkte\|## Naechste Schritte\|## Aktive Warnungen"; then
+        fail "wrap-up: LOCAL session-summary.md template (Step 5) uses German section headers — must use English (Step 7.6a central handoff is exempt by SESSION-WORKFLOW.md)"
     else
-        pass "wrap-up: session-summary.md template uses English section headers"
+        pass "wrap-up: LOCAL session-summary.md template uses English section headers (central handoff in Step 7.6a correctly exempt)"
     fi
 fi
 

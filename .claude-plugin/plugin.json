@@ -1,5 +1,5 @@
 {
   "name": "agentic-os",
-  "version": "3.1.7",
+  "version": "3.1.8",
   "description": "Self-improving agent memory system with 13 skills (core + quality + knowledge + self-improve) and 5 lifecycle hooks. Self-improve runs are policy-gated (single-cluster, no-self-mod, rollback-tagged). MCP-Tool-Bridge Policy enforces clear roles (tool/introspection/knowledge) and hard no-gos against MCP-as-truth or cross-project mutation."
 }

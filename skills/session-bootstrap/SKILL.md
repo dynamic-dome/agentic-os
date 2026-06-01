@@ -31,21 +31,36 @@ Restore full project context at the start of every coding session.
 
 ## Step 0.5: Cross-Project Handoff (SESSION-WORKFLOW)
 
-**Before** reading local project state, read the central handoff file:
+**Before** reading local project state, read TWO cross-project files. Both are
+**read-only** here — the write-side lives in `wrap-up`.
 
-1. Read `C:\Users\domes\AI\session-summary.md` (the **central handoff**)
+### (a) Central handoff — last session, any project
+
+1. Read `C:\Users\domes\AI\.agent-memory\session-summary.md` (the **central handoff**).
+   This is the single, always-overwritten last-session handoff per SESSION-WORKFLOW.md
+   (one file, complete overwrite — NOT per-project sections).
 2. Read `C:\Users\domes\AI\SESSION-WORKFLOW.md` **only if** the central handoff references it or if this is the first session in a new project
 
-This is the cross-project agent-to-agent handoff per SESSION-WORKFLOW.md. It tells you:
+It tells you:
 - Which project was worked on last (may differ from the current project)
 - What was accomplished and what's still open
 - Which agent wrote it (Claude, Codex, etc.)
 
+### (b) Cross-project status board — all projects at a glance
+
+3. Read `C:\Users\domes\AI\cross-project-status.md` (the **status board**).
+   Unlike the central handoff (only the *last* session, often 10+/day), this file
+   holds **one section per project**, each updated only when that project is wrapped up.
+   Use it to see the current state of every touched project at once — and to surface
+   cross-project items flagged as relevant for ALL projects.
+
 **Rules:**
+- The central handoff (a) is authoritative for "what happened last". The status board (b) is authoritative for "where does each project currently stand".
 - If the central handoff is **newer** than the local `.agent-memory/session-summary.md`, the central handoff takes precedence for the LAST SESSION block in the briefing
 - If the central handoff references a **different project** than the current one, note this in the briefing ("Last handoff was from project X — switching context to Y")
-- If the central handoff does not exist or is unreadable → skip silently, continue with Step 1
-- This step is **read-only** — do not modify the central handoff
+- From the status board, pull (i) the section matching the **current** project, if present, and (ii) any `## Cross-Project Notes` block (items relevant for all projects).
+- If either file does not exist or is unreadable → skip THAT file silently, continue. Never block on a missing cross-project file.
+- This step is **read-only** — do not modify either file
 
 ## Step 1: Check Memory System Exists
 
@@ -54,11 +69,12 @@ Read `.agent-memory/session-summary.md`:
 - If `.agent-memory/` does not exist → this should not happen (SessionStart hook auto-creates it). If it does, output "Memory system not found. This is unexpected — the SessionStart hook should have created it. Try restarting the session." and stop.
 - If it exists but `session-summary.md` is missing → note "No previous session found", continue with other files.
 
-**Two session-summaries may exist:**
-- **Central handoff** (from Step 0.5): the cross-project agent-to-agent handoff — authoritative for "what happened last"
-- **Local `.agent-memory/session-summary.md`**: project-specific operational state — authoritative for "where this project stands"
+**Three cross-project/local sources may exist:**
+- **Central handoff** (`~/AI/.agent-memory/session-summary.md`, from Step 0.5a): the cross-project agent-to-agent handoff — authoritative for "what happened last"
+- **Status board** (`~/AI/cross-project-status.md`, from Step 0.5b): per-project current state of ALL touched projects — authoritative for "where does each project stand"
+- **Local `.agent-memory/session-summary.md`**: project-specific operational state — authoritative for "where THIS project stands"
 
-Both are valid. The briefing merges them (see Step 4).
+All are valid. The briefing merges them (see Step 4).
 
 ## Step 2: Load Knowledge Files
 
@@ -190,6 +206,11 @@ HANDOFF (central)
   {1-2 lines: what was done, key outcome}
   {if different project: "Context switch: last work was in {project}, now in {current project}"}
   {omit this block entirely if central handoff doesn't exist or is older than local summary}
+
+CROSS-PROJECT (status board)
+  This project: {1-line current state from the matching section in cross-project-status.md}
+  Notes: {any "Cross-Project Notes" items relevant for ALL projects}
+  {omit this block entirely if cross-project-status.md doesn't exist or has nothing relevant}
 
 LAST SESSION (this project)
   {2-3 lines from LOCAL .agent-memory/session-summary.md}

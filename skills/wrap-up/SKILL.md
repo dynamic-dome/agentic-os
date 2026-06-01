@@ -238,7 +238,92 @@ Skip silently. Output nothing about wiki sync.
 ### Error Handling
 If obsidian-sync fails: **warn and continue**. Never let wiki sync failure block wrap-up. Output: "Wiki sync failed: {reason}. Session data is safe in .agent-memory/."
 
-## Step 7.6: Sharepoint-Push-Vermerk (Cross-Device)
+## Step 7.6: Central Cross-Project Handoff (SESSION-WORKFLOW)
+
+Two distinct cross-project files are written here. Read-side counterpart: `session-bootstrap` Step 0.5.
+
+### 7.6a — Central handoff (last session, complete overwrite)
+
+Write the full last-session handoff to
+**`C:\Users\domes\AI\.agent-memory\session-summary.md`** (path per SESSION-WORKFLOW.md
+§1/§3 — NOTE: it lives under `.agent-memory\`, NOT flat in `~/AI\`).
+
+**Rules (SESSION-WORKFLOW.md §3):** ONE file, **complete overwrite** of the previous
+content — this is intentional. No per-agent variants, no per-project sections here.
+Old session details belong in the project (git log, session notes), not in this file.
+
+Use the SESSION-WORKFLOW.md template (German headings, do not invent your own format):
+
+```markdown
+# Letzte Session
+
+*Datum: {YYYY-MM-DD HH:MM}*
+*Agent: Claude Code*
+*Projekt: {current project name}*
+
+## Was wurde gemacht
+- {bullet points, mirror Step 2}
+
+## Aktueller Stand
+- {where things stand right now}
+
+## Repo-Status
+- Branch: {branch}
+- Uncommitted changes: {ja/nein}
+- Letzter Commit: {hash} {message}
+
+## Offene Punkte / Blocker
+- {open items from Step 5 / session-summary Open Items}
+- Blocker: {keine | description}
+
+## Checks
+- Tests: {bestanden | fehlgeschlagen | nicht gelaufen | n/a}
+- Lint/Validation: {bestanden | fehlgeschlagen | nicht gelaufen | n/a}
+
+## Naechste Schritte
+1. {highest priority}
+
+## Wichtige Pfade
+- {key paths touched this session}
+```
+
+If the directory `C:\Users\domes\AI\.agent-memory\` does not exist → skip 7.6a silently
+(do not create it; the AI-workspace may not be set up on this machine).
+
+### 7.6b — Cross-project status board (per-project, partial update)
+
+Update **`C:\Users\domes\AI\cross-project-status.md`** — the at-a-glance board of ALL
+projects. Unlike 7.6a, this is **NOT** overwritten; you touch ONLY this project's section.
+
+1. If the file does not exist, create it with this skeleton:
+   ```markdown
+   # Cross-Project Status Board
+
+   *One section per project. Each wrap-up updates only its own project's section.*
+   *Read by session-bootstrap Step 0.5b. Last-session detail lives in the central handoff.*
+
+   ## Cross-Project Notes
+   - (items relevant for ALL projects — added on explicit user request only)
+
+   ---
+   ```
+2. Find the `## {current project name}` section. If it exists → **replace only that
+   section** (heading to the next `---`). If it does not exist → append a new one
+   before EOF. Never touch other projects' sections.
+3. Section format (keep it to ~5 lines — this is a dashboard, not a log):
+   ```markdown
+   ## {project name}
+   *Updated: {YYYY-MM-DD HH:MM} by Claude Code*
+   - State: {1-line current state}
+   - Next: {1-line highest-priority next step}
+   - Repo: branch {branch}, uncommitted {ja/nein}, last {hash}
+
+   ---
+   ```
+4. Only add to `## Cross-Project Notes` when the user explicitly flags something as
+   relevant for all projects. Never auto-populate it.
+
+### 7.6c — Sharepoint-Push-Vermerk (Cross-Device)
 
 If this session touched the Google-Drive Sharepoint (new/changed files under `G:\Meine Ablage\dynamic-AI\dynamic_sharepoint`):
 
@@ -246,11 +331,11 @@ If this session touched the Google-Drive Sharepoint (new/changed files under `G:
 2. **Hygiene-sweep**: no stackdumps, `.git`, `node_modules`, or `.env` dragged in (§7).
 3. **INDEX.md** update if a new package was added.
 4. Write **one** delta-handoff: `01_HANDOFFS/YYYY-MM-DD-from-claude-code-to-owner-session-sharepoint-delta.md`.
-5. Add one line to the central handoff `C:\Users\domes\AI\session-summary.md`: `Sharepoint touched: yes, delta: <path>`.
+5. Add one line to the central handoff (`## Wichtige Pfade` section of 7.6a): `Sharepoint touched: yes, delta: <path>`.
 
-If **not touched**: add only the line `Sharepoint unchanged this session` to the central handoff (`C:\Users\domes\AI\session-summary.md`). Do NOT write an empty handoff.
+If **not touched**: no Sharepoint line is needed. Do NOT write an empty handoff.
 
-If the Sharepoint path is not mounted: skip silently.
+If the Sharepoint path is not mounted: skip 7.6c silently.
 
 ## Step 8: Suggest Git Commit (Optional)
 
