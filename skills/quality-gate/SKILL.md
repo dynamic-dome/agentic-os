@@ -177,7 +177,20 @@ When `code-reviews.json` contains more than 100 entries: keep newest 100, archiv
 
 Also check `CLAUDE.md` for project-specific test commands.
 
-## Step T.2: Run Tests
+## Step T.2: Collect Pytest Tests Before Running
+
+For pytest projects, run collection first:
+
+```bash
+python -m pytest --co -q 2>&1
+```
+
+Parse the collected test count from pytest output. Treat any collection error,
+pytest exit code 5, "no tests ran", or `0 tests collected` / `collected 0 items`
+as a hard test failure with `total = 0` and `health_score = 0`. Do not report a
+pytest project as green when no tests were collected.
+
+## Step T.3: Run Tests
 
 ```bash
 python -m pytest --tb=short -q 2>&1
@@ -185,7 +198,7 @@ python -m pytest --tb=short -q 2>&1
 
 Capture: passed, failed, errors, skipped, duration, warnings.
 
-## Step T.3: Calculate Health Score (0-100)
+## Step T.4: Calculate Health Score (0-100)
 
 ```
 base_score = (passed / total) * 100
@@ -200,7 +213,7 @@ health_score = max(0, base_score - penalties)
 | 50-69 | Warning |
 | 0-49 | Critical — prioritize fixes |
 
-## Step T.4: Regression Check
+## Step T.5: Regression Check
 
 Read previous `test-results.json` and compare:
 - **REGRESSION**: Previously passed, now failing
@@ -208,7 +221,7 @@ Read previous `test-results.json` and compare:
 - **GROWTH**: New tests added
 - **FLAKY**: Alternates between passed/failed
 
-## Step T.5: Update test-results.json
+## Step T.6: Update test-results.json
 
 ```json
 {
@@ -220,7 +233,7 @@ Read previous `test-results.json` and compare:
 }
 ```
 
-## Step T.6: Output Result
+## Step T.7: Output Result
 
 ```
 Test result: <health_score>/100 (<rating>)
@@ -229,7 +242,7 @@ Test result: <health_score>/100 (<rating>)
    Trend: <improving|stable|declining>
 ```
 
-## Step T.7: Escalate on Critical
+## Step T.8: Escalate on Critical
 
 When health_score < 50: recommend blocking further feature work, list failing tests in priority order.
 

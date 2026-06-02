@@ -1376,6 +1376,17 @@ if [ -f "$QGA_FILE" ]; then
 fi
 
 echo ""
+echo "-- quality-gate agent: pytest collection gate --"
+QGA_FILE="$PLUGIN_ROOT/agents/quality-gate.md"
+if [ -f "$QGA_FILE" ]; then
+    if grep -q -- "--co -q" "$QGA_FILE" && grep -qiE "0 tests collected|collected 0 items|no tests ran|exit code 5" "$QGA_FILE" && grep -qiE "test health 0|health.*0" "$QGA_FILE"; then
+        pass "quality-gate agent: pytest collection gate fails closed on zero collected tests"
+    else
+        fail "quality-gate agent: missing pytest collection gate — must run pytest --co -q and fail when zero tests are collected"
+    fi
+fi
+
+echo ""
 echo "-- improvement-agent: no stale git-stash safety rule --"
 IA2_FILE="$PLUGIN_ROOT/agents/improvement-agent.md"
 if [ -f "$IA2_FILE" ]; then

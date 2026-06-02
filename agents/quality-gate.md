@@ -58,12 +58,17 @@ Calculate overall: `round(((mean(all 6) - 1) / 4) * 100)`
 
 ### 3. Run Tests
 
-Detect test framework from project files and run tests. Capture: passed, failed, errors, skipped, duration.
+Detect test framework from project files and run tests. For pytest projects, run
+`python -m pytest --co -q` before the real test command and parse the collected
+test count. Treat collection errors, pytest exit code 5, "no tests ran", or
+`0 tests collected` / `collected 0 items` as FAIL with test health 0. Do not
+report a pytest project as green when no tests were collected. Capture: passed,
+failed, errors, skipped, duration.
 
 Calculate health score:
 ```
 base = (passed / total) * 100
-penalties: -5 per failure, -10 per error, -5 if duration > 60s
+penalties: -5 per failure, -10 per error, no tests = 0, -5 if duration > 60s
 health = max(0, base - penalties)
 ```
 

@@ -42,9 +42,13 @@ for skill_dir in "$SKILLS_DIR"/*/; do
             pass "$skill_name: has description"
             # Handle both inline and multiline (| or >) YAML descriptions
             desc_line=$(grep "^description:" "$skill_file" | head -1)
-            if echo "$desc_line" | grep -qE '\|$|>$'; then
+            if echo "$desc_line" | grep -qE '\|[[:space:]]*$|>[[:space:]]*$'; then
                 # Multiline: measure content after description: line until next frontmatter key or ---
-                desc_len=$(sed -n '/^description:/,/^[a-z_]*:\|^---/{/^description:/d;/^[a-z_]*:/d;/^---/d;p;}' "$skill_file" | wc -c)
+                desc_len=$(awk '
+                    /^description:/ { in_desc=1; next }
+                    in_desc && (/^[a-z_][a-z_]*:/ || /^---/) { exit }
+                    in_desc { print }
+                ' "$skill_file" | wc -c)
             else
                 desc_len=$(echo "$desc_line" | sed 's/^description: *//' | wc -c)
             fi
@@ -362,6 +366,17 @@ if [ -f "$QG_FILE" ]; then
         pass "quality-gate: WARN verdict criteria includes regression check"
     else
         fail "quality-gate: WARN verdict ignores regressions — a build with regressions should never be WARN (only FAIL)"
+    fi
+fi
+
+echo ""
+echo "-- quality-gate: pytest collection gate --"
+QG_FILE="$SKILLS_DIR/quality-gate/SKILL.md"
+if [ -f "$QG_FILE" ]; then
+    if grep -q -- "--co -q" "$QG_FILE" && grep -qiE "0 tests collected|collected 0 items|no tests ran|exit code 5" "$QG_FILE" && grep -q "health_score = 0" "$QG_FILE"; then
+        pass "quality-gate: pytest collection gate fails closed on zero collected tests"
+    else
+        fail "quality-gate: missing pytest collection gate — must run pytest --co -q and fail when zero tests are collected"
     fi
 fi
 
