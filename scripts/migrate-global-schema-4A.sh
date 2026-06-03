@@ -79,7 +79,18 @@ def migrate_entry(e, ftype, counter, default_from):
     out["valid_from"] = vf
     out.setdefault("valid_until", None)
     out.setdefault("last_relevant", e.get("last_relevant") or e.get("last_seen") or vf)
-    out["lifecycle"] = e.get("lifecycle") or "active"
+    # Lifecycle is decided by the SAME promotion gate Phase 2 enforces, so a backfilled
+    # entry is never `active` unless it would actually pass the gate (no two classes of
+    # active). An already-superseded/archived lifecycle is preserved as-is.
+    prior = e.get("lifecycle")
+    if prior in ("superseded", "archived"):
+        out["lifecycle"] = prior
+    else:
+        conf = float(out["confidence"])
+        occ = int(out["occurrences"])
+        nproj = len(out["source_projects"])
+        gate = conf >= 0.6 and occ >= 3 and nproj >= 2
+        out["lifecycle"] = "active" if gate else "candidate"
     out["scope"] = compute_scope(ftype, e.get("tags") or [])
     out.setdefault("superseded_by", e.get("superseded_by"))
     out["id"] = f"G-{ftype}-{counter:03d}"

@@ -62,6 +62,30 @@ is_denied api_key; assert_rc "denied tag is blocked" 0 $?
 is_denied credentials; assert_rc "credentials blocked" 0 $?
 is_denied pytest; assert_rc "ordinary tag is allowed" 1 $?
 
+echo "-- migration: lifecycle decided by the promotion gate (no two classes of active) --"
+MIG="$PLUGIN_ROOT/scripts/migrate-global-schema-4A.sh"
+if [ -f "$MIG" ]; then
+  MIGTMP=$(mktemp -d)/global
+  mkdir -p "$MIGTMP"
+  # one entry that PASSES the gate (conf>=0.6, occ>=3, 2 projects), one that FAILS (1 project)
+  cat > "$MIGTMP/patterns.json" <<'JSON'
+[
+  {"id":"X1","description":"passing","confidence":0.8,"occurrences":4,"source_projects":["a","b"],"tags":["x"]},
+  {"id":"X2","description":"failing","confidence":0.9,"occurrences":5,"source_project":"a","tags":["y"]}
+]
+JSON
+  echo '[]' > "$MIGTMP/learnings.json"
+  echo '{"projects":[]}' > "$MIGTMP/projects.json"
+  CLAUDE_MEMORY_GLOBAL="$MIGTMP" bash "$MIG" --apply >/dev/null 2>&1
+  # Read via stdin pipe, not a path arg — Git-Bash /c/... paths break python's open() on Windows.
+  LC_PASS=$(cat "$MIGTMP/patterns.json" | python -c "import sys,json;print(json.load(sys.stdin)[0]['lifecycle'])" 2>/dev/null)
+  LC_FAIL=$(cat "$MIGTMP/patterns.json" | python -c "import sys,json;print(json.load(sys.stdin)[1]['lifecycle'])" 2>/dev/null)
+  assert_eq "migration: gate-passing entry -> active" "active" "$LC_PASS"
+  assert_eq "migration: gate-failing (1 project) entry -> candidate" "candidate" "$LC_FAIL"
+else
+  fail "scripts/migrate-global-schema-4A.sh missing — cannot verify gate-consistent lifecycle"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ] && exit 0 || exit 1
