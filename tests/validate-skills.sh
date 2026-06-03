@@ -568,6 +568,26 @@ if [ -f "$PE_SCHEMA_FILE" ]; then
     fi
 fi
 
+# --- sync-context recency supersession (Audit-Hebel #4, 2026-06-03) ---
+# Conflicting facts in the same scope must be resolved by recency (write-time supersession),
+# NOT by confidence alone — a stale high-confidence fact must not beat a newer one (Mem0
+# interference). Max one `active` per (fact_type, scope); the older one becomes `superseded`
+# (never deleted). Confidence-merge for NON-conflicting same-fact entries stays.
+SC_SUP_FILE="$SKILLS_DIR/sync-context/SKILL.md"
+
+echo ""
+echo "-- sync-context: recency supersession on conflict (not confidence-only) --"
+if [ -f "$SC_SUP_FILE" ]; then
+    if grep -qiE "\(recency-supersession\)" "$SC_SUP_FILE" \
+       && grep -qiE "supersed" "$SC_SUP_FILE" \
+       && grep -qiE "max(imum)? (one|1) active|one active per|never delete" "$SC_SUP_FILE" \
+       && grep -qiE "recency|newer.*wins|timestamp|last_seen.*wins" "$SC_SUP_FILE"; then
+        pass "sync-context: recency supersession present — conflicts resolved by recency, stale entry superseded not deleted"
+    else
+        fail "sync-context: recency supersession missing — same-scope CONFLICTS must be resolved by recency (write-time supersession: max 1 active per scope, older -> superseded, never deleted), not by confidence alone (stale-high-confidence interference)"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

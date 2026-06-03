@@ -91,11 +91,25 @@ Run the auto-setup from Prerequisites:
 2. Read `~/.claude-memory/global/patterns.json`
 3. Filter by matching `stack_tags` (only pull relevant patterns)
 4. Only pull patterns with `confidence >= 0.5`
-5. Merge into local `patterns.json`:
-   - Same `id` → keep higher confidence, merge `source_projects`
-   - Same description (fuzzy) but different `id` → deduplicate
-   - Never overwrite local with lower-confidence global
-   - On any merge conflict (same id, different content) → keep higher confidence version, log conflict in report (Step 6)
+5. Merge into local `patterns.json`. Distinguish a **merge** (same fact, more evidence) from
+   a **conflict** (contradicting fact in the same scope) — they are resolved differently:
+
+   **Merge (same fact):**
+   - Same `id`, compatible content → keep higher confidence, merge `source_projects` and `evidence`.
+   - Same description (fuzzy ≥0.6) but different `id` → deduplicate into one entry.
+   - Never overwrite local with lower-confidence global for a non-conflicting same fact.
+
+   **Conflict — resolve by recency, NOT confidence (recency-supersession):**
+   The scope of a fact is `(type, normalized description/tags)`. There may be at most **one
+   `active` entry per scope**. When a new entry **contradicts** an existing active one in the
+   same scope (e.g. "use pytest" vs "use unittest" for the same tag-scope):
+   - The **newer** entry (by `last_seen` timestamp) wins and stays `active`; the older one is
+     marked `lifecycle: "superseded"` with `superseded_by: <new id>` and `superseded_at`.
+   - **Never delete** the superseded entry — it stays for audit / "what did we believe before?"
+     queries. Resolution happens at **write time**, so reads only ever see one `active` per scope.
+   - Confidence does NOT decide a conflict: a stale high-confidence fact must not beat a newer
+     one (Mem0 interference). Confidence only ranks NON-conflicting same-fact merges (above).
+   - Log every supersession in the Step 6 report.
 
 ## Step 5: Push (if applicable)
 
@@ -122,7 +136,8 @@ Cross-Project Sync Complete:
   Pulled: {n} patterns (from {n} projects)
   Pushed: {n} patterns, {n} learnings
   Skipped: {n} (below threshold)
-  Conflicts: {n} (resolved by higher confidence)
+  Merges: {n} (same fact, confidence-ranked)
+  Superseded: {n} (conflicts resolved by recency — older entry kept as superseded)
 ```
 
 ## What NOT to Do

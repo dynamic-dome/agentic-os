@@ -137,9 +137,14 @@ Use **Jaccard similarity on word tokens** to determine if two descriptions refer
   "last_seen": "YYYY-MM-DD",
   "occurrences": 3,
   "recommendation": "Specific action to take or avoid",
-  "skill_candidate": false
+  "skill_candidate": false,
+  "lifecycle": "active"
 }
 ```
+
+`lifecycle` is `"active"` by default. When a newer entry supersedes this one in the same scope
+(see `sync-context` recency-supersession), it becomes `"superseded"` and gains
+`superseded_by: <new id>` + `superseded_at: <ISO>`. Superseded entries are never deleted.
 
 Set `skill_candidate: true` when:
 - `occurrences >= 3` AND `confidence >= 0.7`
