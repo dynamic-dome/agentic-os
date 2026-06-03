@@ -1449,12 +1449,14 @@ else
         bash "$SCHEMA_FILE" "$SCHEMA_TMP/.agent-memory" >/dev/null 2>&1
         MISSING=""
         for req in identity/soul.md identity/user.md \
+                   identity/user-changelog.json identity/soul-candidates.md \
                    context/decisions.json context/open-tasks.json \
                    iterations/iteration-log.md iterations/errors.json \
                    patterns/patterns.md patterns/patterns.json \
                    quality/test-results.json quality/code-reviews.json quality/quality-score.json \
                    learnings/learnings.md learnings/learnings.json \
                    knowledge/notebook-registry.md working/current-session.json \
+                   working/user-candidates.json \
                    session-summary.md; do
             [ -f "$SCHEMA_TMP/.agent-memory/$req" ] || MISSING="$MISSING $req"
         done

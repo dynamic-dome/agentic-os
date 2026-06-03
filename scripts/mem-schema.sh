@@ -34,6 +34,8 @@ MEM_JSON_ARRAY=(
   quality/test-results.json
   quality/code-reviews.json
   learnings/learnings.json
+  working/user-candidates.json
+  identity/user-changelog.json
 )
 
 # create_memory_structure <memory_dir>
@@ -68,6 +70,11 @@ EOFILE
   [ -f "$MEMORY_DIR/iterations/iteration-log.md" ] || printf '# Iteration Log\n\n*No entries yet.*\n' > "$MEMORY_DIR/iterations/iteration-log.md"
   [ -f "$MEMORY_DIR/patterns/patterns.md" ]        || printf '# Pattern Catalog\n\n*No patterns detected yet.*\n' > "$MEMORY_DIR/patterns/patterns.md"
   [ -f "$MEMORY_DIR/learnings/learnings.md" ]      || printf '# Learnings\n\n*No session learnings yet.*\n' > "$MEMORY_DIR/learnings/learnings.md"
+
+  # identity/soul-candidates.md — soul.md growth queue (Stufe B): wrap-up appends proposed
+  # identity signals here; session-bootstrap surfaces them for a [j/n] gate. NEVER auto-written
+  # into soul.md without explicit user confirmation (trust boundary: conversation-only).
+  [ -f "$MEMORY_DIR/identity/soul-candidates.md" ] || printf '# Soul Candidates\n\n*Keine offenen Kandidaten.*\n' > "$MEMORY_DIR/identity/soul-candidates.md"
 
   # knowledge/notebook-registry.md
   [ -f "$MEMORY_DIR/knowledge/notebook-registry.md" ] || printf '# NotebookLM Knowledge Base Registry\n\n*No notebooks registered yet. Add entries here as you create NotebookLM knowledge bases.*\n\n## Active Notebooks\n\n(none)\n\n## When to consult NotebookLM\n- For expert knowledge on topics covered by a notebook\n- When best practices or reference material is needed\n- When uncertain about the right approach\n' > "$MEMORY_DIR/knowledge/notebook-registry.md"
