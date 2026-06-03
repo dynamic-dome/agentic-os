@@ -56,6 +56,14 @@ Report age-based risks (the dimension the manual audit got wrong from old data):
    carries `superseded_by`. Flag dangling supersessions.
 3. **JSON validity** — for each JSON store, confirm it parses. Flag any that would need
    `.corrupt.bak` recovery (but do NOT perform the recovery here).
+4. **global provenance (global-provenance-audit)** — only if `~/.claude-memory/global/`
+   exists. This is read-only reporting of the 4.A invariants — it heals nothing:
+   - Flag global entries missing `scope` / `valid_from` / `source_projects` / `lifecycle`
+     (un-migrated → name the count; heals via `migrate-global-schema-4A.sh`).
+   - Count `active` global entries with `|source_projects| < 2` → "promotion-gate violation"
+     (should be `candidate`, not `active`).
+   - Count entries with `confidence <= 0.3` AND `lifecycle != archived` older than 365d →
+     "decay-due" (heals via `memory-maintenance` Step 4b).
 
 ## Step 4: Report
 
@@ -80,8 +88,13 @@ PROVENANCE
   dangling supersessions: {n}
   JSON validity:         {all ok | corrupt: <file>}
 
+GLOBAL (~/.claude-memory/global/ — omit block if absent)
+  entries w/o provenance: {n} (un-migrated → migrate-global-schema-4A.sh)
+  promotion-gate violations: {n} (active but |source_projects| < 2)
+  decay-due:             {n} (conf<=0.3, not archived, >365d)
+
 VERDICT: {clean | N drift items, M staleness items — see above}
-Heals via: {memory-maintenance | wrap-up | none needed}
+Heals via: {memory-maintenance | wrap-up | migrate-global-schema-4A.sh | none needed}
 ```
 
 Keep it under 20 lines. Report only — never mutate. End by naming which skill heals any

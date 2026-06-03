@@ -1588,6 +1588,23 @@ else
     else
         fail "memory-audit: must report drift (root open-tasks, schema), staleness (learnings layer age, quality last_updated) and provenance/schema consistency"
     fi
+
+    # 4.A: memory-audit must also report the global provenance layer (read-only).
+    if grep -qiE "\(global-provenance-audit\)" "$MA_CMD" \
+       && grep -qiE "scope" "$MA_CMD" && grep -qiE "valid_from" "$MA_CMD" \
+       && grep -qiE "source_projects" "$MA_CMD" \
+       && grep -qiE "promotion-gate violation" "$MA_CMD"; then
+        pass "memory-audit: reports global provenance (scope/valid_from/source_projects, promotion-gate violation)"
+    else
+        fail "memory-audit: must report the 4.A global layer (global-provenance-audit) — entries missing scope/valid_from/source_projects and active promotion-gate violations"
+    fi
+
+    # 4.A: the global audit must stay read-only — allowed_tools may not gain a write tool.
+    if grep -qiE "^allowed_tools:.*(Write|Edit|Bash)" "$MA_CMD"; then
+        fail "memory-audit: allowed_tools gained a write/exec tool — the audit MUST stay read-only"
+    else
+        pass "memory-audit: allowed_tools stays read-only (no Write/Edit/Bash)"
+    fi
 fi
 
 echo ""
