@@ -548,6 +548,26 @@ if [ -f "$MM_GROW_FILE" ]; then
     fi
 fi
 
+# --- patterns.json schema canon (Audit-Hebel #3, 2026-06-03) ---
+# pattern-extractor is the sole writer of patterns.json, so its documented schema is the
+# Single Source of Truth. The canonical fields are description / recommendation / evidence
+# (NOT the legacy name/solution/source_errors or title/prevention/error_ids shapes). The skill
+# must also instruct normalization of legacy entries on read, so the store converges to one shape.
+PE_SCHEMA_FILE="$SKILLS_DIR/pattern-extractor/SKILL.md"
+
+echo ""
+echo "-- pattern-extractor: canonical patterns.json schema (description/recommendation/evidence) --"
+if [ -f "$PE_SCHEMA_FILE" ]; then
+    if grep -qiE "\(pattern-schema-canon\)" "$PE_SCHEMA_FILE" \
+       && grep -qE '"recommendation"' "$PE_SCHEMA_FILE" \
+       && grep -qE '"evidence"' "$PE_SCHEMA_FILE" \
+       && grep -qiE "normaliz|legacy.*(solution|source_errors|prevention|error_ids)|solution.*->.*recommendation" "$PE_SCHEMA_FILE"; then
+        pass "pattern-extractor: canonical schema pinned + legacy-normalization instruction present"
+    else
+        fail "pattern-extractor: patterns.json schema canon missing — must declare description/recommendation/evidence as canonical AND instruct normalizing legacy name/solution/source_errors + title/prevention/error_ids entries on read (single-shape convergence)"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

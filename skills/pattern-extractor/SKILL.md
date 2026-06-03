@@ -148,6 +148,27 @@ Set `skill_candidate: true` when:
 
 Append to `patterns.json` array.
 
+### Canonical schema + legacy normalization (pattern-schema-canon)
+
+pattern-extractor is the **only** writer of `patterns.json`, so the field set above is the
+**single canonical schema**. The canonical fields are `description` (what the pattern is),
+`recommendation` (what to do/avoid), and `evidence` (source error/iteration ids) — plus
+`id/type/confidence/severity/tags/source_projects/first_seen/last_seen/occurrences/skill_candidate`.
+
+Older entries in the wild used divergent shapes. Before appending, **normalize any legacy
+entry you read** to the canonical schema (one-shape convergence):
+
+| Legacy field | Canonical field | Action |
+|---|---|---|
+| `solution` (P00x) / `prevention` (pattern-001) | `recommendation` | rename, keep value |
+| `source_errors` (P00x) / `error_ids` (pattern-001) | `evidence` | rename, keep value |
+| `name` (P00x) / `title` (pattern-001) | `description` | prepend to `description` as `"{name} — {description}"` if `description` exists, else move into `description` |
+| legacy `id` like `pattern-001` | `P{n}` | renumber to the `P{n}` sequence; keep the old id in a `previous_id` field for provenance |
+
+Do this normalization in place when you touch `patterns.json`; do not create a parallel entry.
+After normalization, re-run the Step 4 Jaccard dedup so entries that were duplicates under
+different shapes collapse.
+
 ## Step 6: Update patterns.md
 
 Write a human-readable summary:
