@@ -392,6 +392,75 @@ if [ -f "$SG_FILE" ]; then
     fi
 fi
 
+# --- self-improve hardening levers (Wiki-TODO 2026-06-02-self-improve-mechanismus-haerten) ---
+# Each test pins one of the 5 levers into the SKILL.md body so they cannot silently
+# drift back out. SI_HARDEN_FILE is the self-improve skill.
+SI_HARDEN_FILE="$SKILLS_DIR/self-improve/SKILL.md"
+
+# Each lever carries a unique "(lever N)" marker in the SKILL.md body. The tests bind to
+# that marker AND a concept phrase, so stripping the hardening removes the marker and the
+# test goes red — verified via a strip-and-restore counter-probe (2026-06-03).
+
+echo ""
+echo "-- self-improve: lever 1 (global pattern-fixing before commit) --"
+if [ -f "$SI_HARDEN_FILE" ]; then
+    # Phase 3 must grep the just-fixed signature tree-wide before commit, not stop at the first hit.
+    if grep -qiE "\(lever 1\)" "$SI_HARDEN_FILE" \
+       && grep -qiE "all occurrences of the pattern before commit|fix all occurrences" "$SI_HARDEN_FILE"; then
+        pass "self-improve: lever 1 present — global pattern-fixing across the tree before commit"
+    else
+        fail "self-improve: lever 1 missing — Phase 3 must grep the fixed pattern across the whole skill/plugin tree and fix every occurrence before commit (else the loop re-fixes the same pattern in a later iteration)"
+    fi
+fi
+
+echo ""
+echo "-- self-improve: lever 2 (substance-based diminishing-returns stop) --"
+if [ -f "$SI_HARDEN_FILE" ]; then
+    # Circuit breaker must consider substance (only language/count fixes), not just fix-count.
+    if grep -qiE "\(lever 2\)" "$SI_HARDEN_FILE" \
+       && grep -qiE "only cosmetic fixes|SUBSTANCE-CONVERGENCE" "$SI_HARDEN_FILE"; then
+        pass "self-improve: lever 2 present — substance-based diminishing-returns stop"
+    else
+        fail "self-improve: lever 2 missing — circuit breaker must also stop when N consecutive iterations produce only language/count fixes (no functional bug), not just on fix-count"
+    fi
+fi
+
+echo ""
+echo "-- self-improve: lever 3 (functional analysis lens in Phase 2) --"
+if [ -f "$SI_HARDEN_FILE" ]; then
+    # Phase 2 must include a functional/runtime lens, not only frontmatter/language/counts.
+    if grep -qiE "\(lever 3\)" "$SI_HARDEN_FILE" \
+       && grep -qiE "Functional Lens|functional lens" "$SI_HARDEN_FILE"; then
+        pass "self-improve: lever 3 present — functional analysis lens in Phase 2"
+    else
+        fail "self-improve: lever 3 missing — Phase 2 must add a functional lens (e.g. does a skill declare outputs no step writes? does a gate ignore regressions?), not only frontmatter/language/count checks"
+    fi
+fi
+
+echo ""
+echo "-- self-improve: lever 4 (state<->.md atomicity check) --"
+if [ -f "$SI_HARDEN_FILE" ]; then
+    # Every state.json history entry must have a matching .md block; the two writes are coupled.
+    if grep -qiE "\(lever 4\)" "$SI_HARDEN_FILE" \
+       && grep -qiE "STATE-MD-DRIFT" "$SI_HARDEN_FILE"; then
+        pass "self-improve: lever 4 present — state.json<->.md atomicity / consistency check"
+    else
+        fail "self-improve: lever 4 missing — every state.json history entry must have a matching iterations-*.md block; the .md write must be coupled atomically to the state.json update"
+    fi
+fi
+
+echo ""
+echo "-- self-improve: lever 5 (absolute baseline sanity check) --"
+if [ -f "$SI_HARDEN_FILE" ]; then
+    # Absolute test-count sanity (halved / zero -> STOP), not only per-iteration delta.
+    if grep -qiE "\(lever 5\)" "$SI_HARDEN_FILE" \
+       && grep -qiE "BASELINE-SANITY" "$SI_HARDEN_FILE"; then
+        pass "self-improve: lever 5 present — absolute baseline sanity check"
+    else
+        fail "self-improve: lever 5 missing — Phase 0/4 must add an absolute baseline sanity check (test count halved or zero -> STOP + report), not only the per-iteration delta"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

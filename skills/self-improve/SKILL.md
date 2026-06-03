@@ -167,6 +167,20 @@ bash tests/run-all.sh
 ```
 If tests fail, abort with: "ABORTED: baseline tests already failing".
 
+**Baseline sanity check (lever 5).** Record the absolute baseline test count as
+`BASELINE_TEST_COUNT` (total tests reported by `run-all.sh`). Compare it against the
+`tests_after` of the most recent `state.json` history entry (`PREV_TEST_COUNT`):
+
+- If `BASELINE_TEST_COUNT == 0`, or it has **dropped to half or less** of
+  `PREV_TEST_COUNT`, ABORT with `BASELINE-SANITY: test count collapsed
+  ({PREV} -> {BASELINE}) — the suite is broken or not running; refusing to iterate`.
+- This is an **absolute** guard. The per-iteration delta check (Phase 4) only catches
+  regressions *within* a run; it would not have caught iteration 64's `0` plugin tests,
+  which should have raised an alarm. Lever 5 catches that class.
+
+If there is no previous entry to compare against, skip the comparison but still store
+`BASELINE_TEST_COUNT` for the Phase 4 per-iteration check.
+
 Record the current commit hash as a safety checkpoint:
 ```bash
 git rev-parse HEAD
@@ -268,6 +282,30 @@ Read all `skills/*/SKILL.md` files. Check each for:
 4. **Safety**: Error handling? Rollback guidance?
 5. **Consistency**: Same formatting, section names, detail level across skills
 
+## Step 2.3.5: Functional Lens (lever 3)
+
+The historical analysis phase was trained on frontmatter / language / count checks and
+was weak on runtime/logic defects: only ~8% of 80 iterations were real logic bugs, and
+those surfaced late or twice (iter 30 `knowledge/` dir missing; iter 53 `code-reviewer`
+never writes `quality-score.json`; iter 76/80 `quality-gate` ignores regressions).
+
+Before ranking, run a deliberate **functional lens** over every skill — questions that
+target behaviour, not surface:
+
+1. **Output gaps:** Does the skill declare or promise an output (a file it writes, a
+   JSON key it updates, a return verdict) that no Step actually produces? Grep the
+   declared output path/key and confirm a Step writes it.
+2. **Gate integrity:** Does a gate/verdict skill (quality-gate, validators) ignore a
+   condition it should fail on — e.g. a WARN verdict that does not check regressions?
+3. **Lifecycle dead-ends:** Does a Step read a file that no skill in the DAG creates
+   (init/backfill mismatch, cf. L4)? Does a consumer expect a format the writer never
+   emits (read/write asymmetry, cf. L6)?
+4. **Control flow:** Abort/rollback paths that can never be reached, or success paths
+   that skip the safety guard.
+
+Findings from this lens are **functional** weaknesses (lever 2 classification) and
+should be ranked above cosmetic ones in Step 2.5.
+
 ## Step 2.4: Cross-Reference with Research
 
 Compare skills against best practices from Phase 1. If research findings include `agentic_os_context` with `open_issues_from_memory`, treat each as an additional weakness candidate.
@@ -312,6 +350,27 @@ Mutation strategies (informed by research findings):
 
 **Constraint**: Max 20% of the file's lines may change per iteration.
 
+**GLOBAL — Fix all occurrences of the pattern before commit (lever 1):**
+After the minimal fix, do NOT stop at the first occurrence. The historical loop
+wasted ~6–8 iterations re-fixing the same pattern in a second file one run later
+(e.g. `sync-context` DE→EN trigger in iter 41 → body in iter 50; `tools:` →
+`allowed_tools:` in iter 5 → again in iter 56; "10 skills" in `plugin.json` iter 32
+→ `marketplace.json` in iter 52). Prevent this:
+
+1. Derive a literal or regex signature for the weakness you just fixed (e.g. the old
+   string `tools:`, a DE trigger phrase, a stale skill count `10 skills`).
+2. `Grep` that signature across the WHOLE skill/plugin tree
+   (`skills/`, `agents/`, `commands/`, `.claude-plugin/`, top-level manifests),
+   not just the file you started in.
+3. Apply the same fix to every remaining occurrence in the SAME iteration, still
+   respecting the per-file 20% constraint (if a file would exceed it, log the
+   remainder as a follow-up finding rather than splitting the pattern across runs).
+4. Record the grep signature + occurrence count in the iteration's state entry so a
+   later run can confirm the pattern is exhausted.
+
+A pattern fixed in one file but left in three others is NOT done — it is a
+guaranteed future duplicate iteration.
+
 **REFACTOR — Clean up:**
 Ensure consistent formatting. Run all tests:
 ```bash
@@ -351,6 +410,13 @@ cd {target_dir} && bash tests/run-all.sh
 
 Capture: total tests, passed, failed, error output.
 
+**Baseline sanity re-check (lever 5).** Compare this iteration's total test count
+against `BASELINE_TEST_COUNT` from Phase 0. If it is `0` or has dropped to half or less,
+treat it as a broken suite, not a passing run: rollback to `checkpoint_sha` and report
+`BASELINE-SANITY: test count collapsed mid-run ({BASELINE} -> {now}) — rollback applied`.
+A shrinking absolute count means the harness stopped discovering tests; never interpret
+"0 failures of 0 tests" as success.
+
 ## Step 4.2: Evaluate Quality
 
 **If NotebookLM is available** and a notebook exists for this plugin, use it to compare original vs modified content and score 1-10 on clarity, trigger accuracy, safety, and completeness.
@@ -382,8 +448,25 @@ Write to `improvements/iterations-{batch_start:03d}-{batch_end:03d}.md`:
 ### Quality Score
 - Fixes/Findings ratio: X/Y
 - False alarm rate: Z%
+- Functional fixes: F | Cosmetic fixes: C   <!-- lever 2 substance classification -->
 ### Verdict: PASSED / FAILED
 ```
+
+### State<->.md atomicity (lever 4)
+
+In the historical record one third of iterations (56–80) had NO `.md` log block, and
+iter 29 was missing entirely — the `.md` write and the `state.json` history append had
+drifted apart. They must move together:
+
+1. **Couple the two writes.** Treat "append history entry to `state.json`" and "write
+   the `## Iteration {N}` block to the batch `.md`" as one atomic unit per iteration —
+   write the `.md` block FIRST, then the `state.json` entry. Never record an iteration
+   in `state.json` without its `.md` block.
+2. **Consistency check (Step F.2 / wrap-up).** Before finishing the run, assert the
+   invariant: *every* `history[*].iteration` in `state.json` has a matching
+   `## Iteration {N}` heading in some `improvements/iterations-*.md` file. If any entry
+   has no `.md` block, report `STATE-MD-DRIFT: iteration(s) {list} missing .md block`
+   and backfill the missing block from the state entry before reporting success.
 
 ---
 
@@ -395,6 +478,29 @@ For each iteration (1 to 4), run Phases 1-4 sequentially.
 - If previous iteration reported **"diminishing-returns"**: skip remaining iterations
 - If previous iteration reported **"rollback"**: skip remaining iterations
 - If 2+ consecutive iterations reported "diminishing-returns": note convergence and stop
+
+## Substance-based diminishing-returns stop (lever 2)
+
+The fix-count alone is a poor convergence signal: in the historical retro the
+count-based exit (added in iteration 18) NEVER fired across iterations 35–54, even
+though the loop there ran almost only translations / consistency edits (`[warning]`).
+Add a **substance** criterion on top of the count criterion.
+
+Classify every fix applied in an iteration as either:
+- **functional** — fixes a runtime/logic defect (a step that never writes a declared
+  output, a gate that ignores regressions, a missing directory, broken control flow), or
+- **cosmetic** — language (DE→EN), wording, count/version strings, formatting,
+  frontmatter tidy-ups.
+
+Then, in addition to the count-based breaker:
+- If **3 consecutive iterations** produced **only cosmetic fixes** (zero functional
+  fixes), STOP the loop and report `SUBSTANCE-CONVERGENCE: N iterations of only
+  language/count fixes — pausing for review`. Do not keep grinding cosmetic edits.
+- Record `functional_fixes` and `cosmetic_fixes` counts in each iteration's state entry
+  so this breaker is evaluable from history, not just in-memory.
+
+This is independent of the count breaker: a run can have a healthy fix count and still
+be cosmetically converged — that is exactly the failure mode lever 2 catches.
 
 **Important:** If running in acceptEdits mode, subagents may lack Bash access. In that case, run iterations inline to ensure git and test commands can execute.
 
