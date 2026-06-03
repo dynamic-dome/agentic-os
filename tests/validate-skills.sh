@@ -590,6 +590,40 @@ if [ -f "$SC_SUP_FILE" ]; then
     fi
 fi
 
+# --- sync-context 4.A privacy pre-filter (must run BEFORE the gate) ---
+# A denied tag (credentials/pii/secret) or signal_type "mood" must be dropped from the
+# push set BEFORE the confidence threshold / promotion gate — privacy cannot be bought
+# back by a high confidence or occurrence count.
+echo ""
+echo "-- sync-context: privacy pre-filter precedes the gate --"
+if [ -f "$SC_SUP_FILE" ]; then
+    if grep -qiE "\(privacy-filter\)" "$SC_SUP_FILE" \
+       && grep -qiE "MEM_GLOBAL_DENY_TAGS|is_denied" "$SC_SUP_FILE" \
+       && grep -qiE "Denied \(privacy\)" "$SC_SUP_FILE" \
+       && grep -qiE "BEFORE the (threshold|gate)|runs BEFORE|checked first" "$SC_SUP_FILE"; then
+        pass "sync-context: privacy pre-filter present and ordered before the gate"
+    else
+        fail "sync-context: privacy pre-filter missing or not ordered — denied tags / signal_type mood must be dropped BEFORE the confidence/promotion gate (Denied (privacy)), reading MEM_GLOBAL_DENY_TAGS via is_denied"
+    fi
+fi
+
+# --- sync-context 4.A global provenance schema on push ---
+# Every entry written to the global store carries the G-<type>-<n> provenance contract:
+# scope (conflict key), valid_from, source_evidence, lifecycle.
+echo ""
+echo "-- sync-context: global provenance schema stamped on push --"
+if [ -f "$SC_SUP_FILE" ]; then
+    if grep -qiE "\(provenance-schema\)" "$SC_SUP_FILE" \
+       && grep -qiE "G-<?fact_type>?-|G-pattern-" "$SC_SUP_FILE" \
+       && grep -qiE "valid_from" "$SC_SUP_FILE" \
+       && grep -qiE "source_evidence" "$SC_SUP_FILE" \
+       && grep -qiE "scope.*compute_scope|compute_scope\(fact_type" "$SC_SUP_FILE"; then
+        pass "sync-context: global provenance schema present (G-<type>-<n>, scope, valid_from, source_evidence)"
+    else
+        fail "sync-context: global provenance schema missing — push must stamp G-<fact_type>-<n> id, scope=compute_scope(fact_type,tags), valid_from, source_evidence, lifecycle on every global entry"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

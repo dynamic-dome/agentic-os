@@ -113,13 +113,48 @@ Run the auto-setup from Prerequisites:
 
 ## Step 5: Push (if applicable)
 
+Source the helpers once: `. scripts/global-schema.sh` and `. scripts/mem-schema.sh`
+(the latter provides the `MEM_GLOBAL_DENY_TAGS` denylist that `is_denied()` reads).
+
 1. Read local `.agent-memory/patterns/patterns.json`
-2. Filter: only push patterns with `confidence >= 0.6`
-3. Merge into `~/.claude-memory/global/patterns.json`:
+2. **Privacy pre-filter (privacy-filter) — runs BEFORE the threshold and gate.** Drop any
+   entry where `is_denied(tag)` returns true for ANY of its `tags`, OR whose `signal_type`
+   is `"mood"`. These never reach the global store. Count them as `Denied (privacy)`.
+   Privacy is checked first on purpose: a denied fact must not survive on the strength of a
+   high confidence or occurrence count.
+3. Filter: only push patterns with `confidence >= 0.6`
+4. **Stamp the global provenance schema (provenance-schema) on every entry written to
+   `~/.claude-memory/global/patterns.json`:**
+   ```json
+   {
+     "id": "G-<fact_type>-<3-digit>",          // e.g. G-pattern-001; fact_type ∈ {pattern,learning,preference}
+     "value": "<normalized-cleartext description>",
+     "fact_type": "pattern",
+     "source_project": "<this project>",
+     "source_projects": ["<this project>", ...],
+     "source_evidence": ["E12", "P003"],        // local evidence/error/pattern ids this came from
+     "confidence": 0.72,                          // 0.0..1.0
+     "occurrences": 4,
+     "first_seen": "<iso>",
+     "last_relevant": "<iso>",
+     "valid_from": "<= first_seen>",              // valid_until=null ⇔ lifecycle active
+     "valid_until": null,
+     "lifecycle": "active",                       // ∈ {candidate,active,superseded,archived}
+     "scope": "<compute_scope(fact_type, tags)>", // conflict key — max 1 active per scope
+     "superseded_by": null,
+     "tags": ["windows", "shell"]
+   }
+   ```
+   Build `id` from `fact_type` + next free 3-digit counter; `scope = compute_scope(fact_type, tags)`;
+   `valid_from = first_seen`; `value = normalize(description)`. Learnings carry `source_projects`
+   (a list) — never the legacy singular `source_project` alone.
+5. Merge into `~/.claude-memory/global/patterns.json`:
    - Increment `occurrences` on merge
    - Merge `source_projects` arrays
    - Patterns with `occurrences >= 3` across projects get confidence boost (+0.1)
-4. Push generalizable learnings from `.agent-memory/learnings/learnings.md` to global
+   - Conflict resolution is the v3.3.1 recency-supersession (Step 4) — do NOT duplicate it here.
+6. Push generalizable learnings from `.agent-memory/learnings/learnings.md` to global,
+   under the same privacy pre-filter and provenance schema.
 
 ## Step 6: Update Registry
 
