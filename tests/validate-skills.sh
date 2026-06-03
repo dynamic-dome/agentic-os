@@ -655,6 +655,38 @@ if [ -f "$SC_SUP_FILE" ]; then
     fi
 fi
 
+# --- memory-maintenance 4.A global decay ---
+# -0.1 per 90 days without recall, floor 0.3, lifecycle:archived (never hard-delete).
+MM_FILE="$SKILLS_DIR/memory-maintenance/SKILL.md"
+echo ""
+echo "-- memory-maintenance: global confidence decay (floor 0.3, archive not delete) --"
+if [ -f "$MM_FILE" ]; then
+    if grep -qiE "\(global-decay\)" "$MM_FILE" \
+       && grep -qiE "apply_decay" "$MM_FILE" \
+       && grep -qiE "0\.1 per .*90|90-day step" "$MM_FILE" \
+       && grep -qiE "floor(ed)? at 0\.3" "$MM_FILE" \
+       && grep -qiE "lifecycle: ?.archived|never hard-delete" "$MM_FILE"; then
+        pass "memory-maintenance: global decay present — -0.1/90d, floor 0.3, archive not delete"
+    else
+        fail "memory-maintenance: global decay missing — must apply_decay (-0.1 per 90 days, floor 0.3), set lifecycle:archived past 365d, never hard-delete"
+    fi
+fi
+
+# --- session-bootstrap 4.A staleness wrap (read-only display, NO write) ---
+SB_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
+echo ""
+echo "-- session-bootstrap: staleness wrap is read-only display (no decay/write) --"
+if [ -f "$SB_FILE" ]; then
+    if grep -qiE "\(staleness-wrap\)" "$SB_FILE" \
+       && grep -qiE "90 days|> ?90" "$SB_FILE" \
+       && grep -qiE "display only|read-time annotation|never .*(write|mutate)" "$SB_FILE" \
+       && grep -qiE "do NOT .*(decay|write).*confidence|only marks, never mutates"  "$SB_FILE"; then
+        pass "session-bootstrap: staleness wrap present and read-only (marks, never mutates)"
+    else
+        fail "session-bootstrap: staleness wrap missing or not read-only — must mark entries >90d for display WITHOUT writing/decaying confidence (decay belongs to memory-maintenance)"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

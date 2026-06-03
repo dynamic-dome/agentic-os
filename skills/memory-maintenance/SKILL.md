@@ -103,6 +103,24 @@ Read `.agent-memory/patterns/patterns.json`:
 
 **Exception:** Never prune patterns with `skill_candidate: true` — these are actively being evaluated for promotion.
 
+## Step 4b: Decay the Global Layer (global-decay)
+
+Only when the global store exists (`~/.claude-memory/global/`). This is the **only** place
+confidence decays — never on the read path (session-bootstrap stays read-only). Source the
+helper: `. scripts/global-schema.sh`.
+
+For each entry in the global `patterns.json` / `learnings.json`:
+
+1. `new_confidence = apply_decay(confidence, days_since(last_relevant))` — i.e. **−0.1 per
+   full 90-day step without recall, floored at 0.3**. Write the decayed confidence back.
+2. If the decayed `confidence <= 0.3` AND `days_since(last_relevant) > 365` →
+   set `lifecycle: "archived"` (the pull-lifecycle-filter then stops serving it).
+3. **Never hard-delete** — an archived entry stays in the file for audit / "what did we
+   believe before?" queries, exactly like a `superseded` one. Only `lifecycle` changes.
+
+`last_relevant` is bumped only on a genuine recall (an entry actually pulled into a local
+store), never by this maintenance pass and never by a read.
+
 ## Step 5: Compact Decisions
 
 Archive decisions with `status: "superseded"` older than 90 days. Keep all `status: "active"` decisions regardless of age.

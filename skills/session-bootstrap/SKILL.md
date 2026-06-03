@@ -109,6 +109,13 @@ tag_overlap = matching_tags / total_tags  (match against project-context.md stac
 - Prefer `layer: "long-term"` over `"short-term"` at equal scores
 - Do NOT update `last_relevant` here — bootstrap is strictly read-only. The wrap-up skill updates `last_relevant` when it processes learnings at session end.
 
+**Staleness wrapping (staleness-wrap) — display only, never a write.** When an entry pulled
+into the briefing has `now − last_relevant > 90 days`, wrap it visually so the reader sees it
+is aging, e.g. `[STALE? last relevant {date}, conf {c}] {text}`. This is a pure read-time
+annotation: do NOT recompute, decay, or write `confidence`/`last_relevant` here. Confidence
+decay is exclusively memory-maintenance's job (Step 4b global-decay) — bootstrap only marks,
+never mutates, preserving the read-only rule.
+
 ## Step 2.5: Wiki Context Loading (optional)
 
 Load relevant context from the Obsidian Wiki if configured.
