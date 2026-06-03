@@ -4,6 +4,18 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-03] Global Memory Layer 4.A — Provenance, Promotion, Decay, Privacy (v3.4.0)
+
+Macht den globalen Cross-Project-Layer (`~/.claude-memory/global/`) von einem flachen Pattern-Store zu einem provenance-grounded, selektiv promotenden, alterungsfaehigen Gedaechtnis. Master-Plan: `Downloads/2026-06-03-global-memory-layer-4A-master-plan.md`. **Architektur-Entscheidung: Hybrid** — pure testbare Logik in `scripts/global-schema.sh` (sourcebar), Orchestrierung im sync-context-Prompt, damit die kritischen Invarianten echte strip→FAIL-Unit-Tests bekommen statt nur Marker-greps (L11). Durchgehend TDD, bidirektional verifiziert.
+
+- **Phase 0 — Denylist + Helper (SSoT):** `MEM_GLOBAL_DENY_TAGS` in `mem-schema.sh` (credentials/pii/secrets); 5 pure Helfer in `scripts/global-schema.sh` (`normalize`, `compute_scope`, `passes_promotion_gate`, `apply_decay`, `is_denied`) mit 14 echten Unit-Tests in neuer `tests/test-global-schema.sh` (in run-all.sh).
+- **Phase 1 — Provenance-Schema + Privacy-Pre-Filter:** sync-context Push stempelt `G-<type>-<n>`, `scope`, `valid_from`, `source_evidence`, `lifecycle`, `source_projects`. Privacy-Filter laeuft VOR dem Gate (denied tags / `signal_type:mood` erreichen den globalen Store nie). `migrate-global-schema-4A.sh` (idempotent, `--dry-run`-Default, Backups `*.4A.bak`).
+- **Phase 2 — Promotion-Gate + Pull-Filter + Migration angewandt:** Promotion zu `active` nur bei `confidence≥0.6 ∧ occurrences≥3 ∧ |source_projects|≥2` (0.6-Schwelle woertlich erhalten); Pull serviert nur `lifecycle:active`. **Migration real angewandt:** 44 Eintraege (12 Patterns + 32 Learnings) → 44, 0 Verlust, alle Provenance-Felder gesetzt, `schema_version:4A`.
+- **Phase 3 — Decay + Staleness-Wrap:** memory-maintenance Step 4b: globaler Decay −0.1/90 Tage ohne Recall, Floor 0.3, `lifecycle:archived` ab 365d (nie hartes Loeschen). session-bootstrap: read-only `[STALE? …]`-Anzeige >90d (kein Write — Decay bleibt Maintenance-Job).
+- **Phase 4 — /memory-audit GLOBAL-Sicht:** read-only Report ueber un-migrierte Eintraege, promotion-gate-Verstoesse, decay-due — nennt den heilenden Skill, mutiert nie.
+
+Tests gruen: validate-plugin 185/185, validate-skills 161/161, test-global-schema 14/14 (von 183/155). Boundaries gewahrt: sync-context manuell, bootstrap read-only, nie hartes Loeschen, Privacy-vor-Gate.
+
 ## [2026-06-03] Memory-Audit restliche Hebel #3–#6 (v3.3.1)
 
 Die nach Ground-Truth-Verifikation real verbliebenen Hebel aus dem Memory-Audit (nach Sprint #1+#2). Wiki-TODO: `2026-06-03-agentic-os-memory-growth-restliche-hebel`. Durchgehend TDD, marker-basierte bidirektional verifizierte Drift-Tests.
