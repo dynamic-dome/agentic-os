@@ -461,6 +461,82 @@ if [ -f "$SI_HARDEN_FILE" ]; then
     fi
 fi
 
+# --- Memory Growth Engine (Master-Plan 2026-06-03, Sprint user.md + soul.md) ---
+# Pins the growth mechanics into the owning skill bodies. Marker-based + concept phrase,
+# bidirectionally verified (strip -> FAIL, restore -> PASS).
+WU_GROW_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+SB_GROW_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
+MM_GROW_FILE="$SKILLS_DIR/memory-maintenance/SKILL.md"
+
+echo ""
+echo "-- wrap-up: user.md growth engine (candidate queue + 3-stage classification) --"
+if [ -f "$WU_GROW_FILE" ]; then
+    if grep -qiE "\(user-growth\)" "$WU_GROW_FILE" \
+       && grep -qiE "user-candidates\.json" "$WU_GROW_FILE" \
+       && grep -qiE "observed.*inferred.*confirmed|observed / inferred / confirmed" "$WU_GROW_FILE"; then
+        pass "wrap-up: user.md growth engine present — candidate queue + observed/inferred/confirmed"
+    else
+        fail "wrap-up: user.md growth engine missing — Step 6 must use working/user-candidates.json with an observed/inferred/confirmed classification instead of the dead '3+ corrections' direct-write"
+    fi
+fi
+
+echo ""
+echo "-- wrap-up: user.md growth — mood never promoted + changelog/rollback --"
+if [ -f "$WU_GROW_FILE" ]; then
+    if grep -qiE "signal:mood|mood.*never promot|never promot.*mood" "$WU_GROW_FILE" \
+       && grep -qiE "user-changelog\.json" "$WU_GROW_FILE"; then
+        pass "wrap-up: user.md growth — mood-marker excluded from promotion + user-changelog.json audit/rollback"
+    else
+        fail "wrap-up: user.md growth missing safeguards — must exclude signal:mood from promotion AND log every change to identity/user-changelog.json (audit + rollback)"
+    fi
+fi
+
+echo ""
+echo "-- wrap-up: user.md growth — trust boundary (conversation-only) --"
+if [ -f "$WU_GROW_FILE" ]; then
+    # Candidates must originate from user conversation, NEVER from web/docs/notebooklm/wiki (poisoning).
+    # Marker-bound so the test goes red if the trust-boundary spec is stripped.
+    if grep -qiE "\(trust-boundary\)" "$WU_GROW_FILE" \
+       && grep -qiE "trust_source|conversation" "$WU_GROW_FILE"; then
+        pass "wrap-up: user.md growth — trust boundary enforced (conversation-only candidates)"
+    else
+        fail "wrap-up: user.md growth missing trust boundary — candidates must come only from user conversation, never from web/docs/notebooklm/wiki content (memory poisoning)"
+    fi
+fi
+
+echo ""
+echo "-- wrap-up: soul.md growth — candidate queue (Stufe B, no auto-write) --"
+if [ -f "$WU_GROW_FILE" ]; then
+    if grep -qiE "\(soul-growth\)" "$WU_GROW_FILE" \
+       && grep -qiE "soul-candidates\.md" "$WU_GROW_FILE"; then
+        pass "wrap-up: soul.md growth present — appends to soul-candidates.md, no direct soul.md write"
+    else
+        fail "wrap-up: soul.md growth missing — must append proposed identity signals to identity/soul-candidates.md (never auto-write soul.md)"
+    fi
+fi
+
+echo ""
+echo "-- session-bootstrap: soul.md candidate gate ([j/n], confirmed-write only) --"
+if [ -f "$SB_GROW_FILE" ]; then
+    if grep -qiE "soul-candidates\.md" "$SB_GROW_FILE" \
+       && grep -qiE "\[j/n\]|j/n" "$SB_GROW_FILE" \
+       && grep -qiE "only (on|after) (confirm|user|explicit)|confirmed.*write|nur bei" "$SB_GROW_FILE"; then
+        pass "session-bootstrap: soul candidate gate present — [j/n], soul.md write only on explicit confirmation"
+    else
+        fail "session-bootstrap: soul candidate gate missing — must surface soul-candidates.md with a [j/n] gate and write soul.md ONLY on explicit user confirmation (the single read-only exception)"
+    fi
+fi
+
+echo ""
+echo "-- memory-maintenance: soul.md 80-line anti-bloat cap --"
+if [ -f "$MM_GROW_FILE" ]; then
+    if grep -qiE "soul\.md" "$MM_GROW_FILE" && grep -qiE "80[ -]?(line|Zeile)" "$MM_GROW_FILE"; then
+        pass "memory-maintenance: soul.md 80-line cap present (anti-bloat linter)"
+    else
+        fail "memory-maintenance: soul.md 80-line cap missing — consistency check must warn when soul.md exceeds 80 lines (identity dilution)"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

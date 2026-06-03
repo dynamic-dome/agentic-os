@@ -266,6 +266,25 @@ RECOMMENDED NEXT STEPS
 
 **Priority:** Central handoff open items that reference THIS project come first. Then local open items. Then system-level warnings.
 
+## Step 6.5: Soul Candidate Gate (the single read-only exception)
+
+`wrap-up` proposes identity changes into `identity/soul-candidates.md` but never writes
+`soul.md` autonomously (Stufe B). This step surfaces those proposals for a one-line gate.
+
+1. Read `identity/soul-candidates.md`. If it is missing or only the empty stub
+   (`*Keine offenen Kandidaten.*`) → skip silently, nothing to show.
+2. If it has open candidates, add ONE line to the briefing:
+   `SOUL CANDIDATES: {n} warten — übernehmen? [j/n]`
+3. **Only on an explicit `j`** from the user: merge the candidates into `soul.md` in a single
+   write, append a `field: soul` entry to `identity/user-changelog.json` (audit/rollback), and
+   reset `soul-candidates.md` to the empty stub.
+4. On `n`, no answer, or anything else: do nothing — candidates stay queued for next time.
+
+This confirmed soul.md write is the **one and only** exception to bootstrap's read-only rule.
+It is user-triggered (gated on `j`), never autonomous, and only touches `soul.md` +
+`user-changelog.json` + the candidate queue — nothing else. The briefing read-path itself
+stays strictly read-only.
+
 ## Error Handling
 
 - Missing `session-summary.md`: "No previous session found" — continue
@@ -276,7 +295,8 @@ RECOMMENDED NEXT STEPS
 ## What NOT to Do
 
 - Do NOT dump full file contents to the user
-- Do NOT write to any files (bootstrap is read-only)
+- Do NOT write to any files (bootstrap is read-only) — the SINGLE exception is the
+  user-confirmed soul.md write in Step 6.5, which happens only on an explicit `j`
 - Do NOT scan skill registries or build context matrices (Claude already knows available skills)
 - Do NOT estimate token budgets (unreliable, leads to false warnings)
 - Do NOT call sync-context (removed — no auto-sync on start)

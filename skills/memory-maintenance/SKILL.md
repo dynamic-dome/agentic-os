@@ -133,6 +133,7 @@ Verify cross-file integrity after maintenance:
 2. **No duplicate open-tasks.json** — verify `.agent-memory/open-tasks.json` does NOT exist at root level; canonical location is `context/open-tasks.json` only. If both exist, merge into `context/` and delete the root copy.
 3. **Quality staleness** — if `quality-score.json` has `last_updated: null` AND `iterations/iteration-log.md` has entries: warn "Quality metrics never initialized — consider running quality-gate"
 4. **learnings.md vs learnings.json** — if `learnings.json` exists, verify `learnings.md` header contains "Auto-generated from learnings.json". If not, regenerate from JSON.
+5. **soul.md anti-bloat** — if `identity/soul.md` exceeds **80 lines**, warn: "soul.md is {n} lines (cap 80) — condense; an overlong identity file dilutes its effect". Do NOT auto-edit soul.md (it is user-owned); only flag it for the user to prune.
 
 ## Step 9: Memory Report
 
