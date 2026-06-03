@@ -1562,6 +1562,30 @@ if [ -f "$SE_HOOKS" ]; then
     fi
 fi
 
+# --- /memory-audit command (Audit-Hebel #5, 2026-06-03) ---
+# A repeatable read-only drift/provenance/staleness report. The whole point is that running
+# it instead of trusting a months-old manual audit prevents stale-data conclusions.
+echo ""
+echo "-- /memory-audit command exists and is read-only --"
+MA_CMD="$PLUGIN_ROOT/commands/memory-audit.md"
+if [ ! -f "$MA_CMD" ]; then
+    fail "commands/memory-audit.md missing — Audit-Hebel #5: a repeatable read-only drift/provenance/staleness report"
+else
+    pass "commands/memory-audit.md exists"
+    # Must be read-only: no write tools in allowed_tools (Read/Glob/Grep/Bash only).
+    if grep -qE "^allowed_tools:" "$MA_CMD" && ! grep -qiE "\"(Write|Edit|NotebookEdit)\"" "$MA_CMD"; then
+        pass "memory-audit: read-only (no Write/Edit in allowed_tools)"
+    else
+        fail "memory-audit: must be read-only — declare allowed_tools without Write/Edit (an audit must never mutate the store it inspects)"
+    fi
+    # Must cover the three audit dimensions the manual audit got wrong from stale data.
+    if grep -qiE "drift" "$MA_CMD" && grep -qiE "staleness|stale" "$MA_CMD" && grep -qiE "provenance|schema" "$MA_CMD"; then
+        pass "memory-audit: covers drift + staleness + provenance/schema dimensions"
+    else
+        fail "memory-audit: must report drift (root open-tasks, schema), staleness (learnings layer age, quality last_updated) and provenance/schema consistency"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

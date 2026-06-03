@@ -28,7 +28,7 @@ No build step. No package manager. The plugin is pure Markdown + JSON + Bash.
 hooks/hooks.json           → 5 lifecycle hooks (SessionStart, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop)
 skills/*/SKILL.md          → 13 skills with YAML frontmatter (trigger phrases, descriptions)
 agents/*.md                → 4 active agents (context-detective, improvement-agent, quality-gate, research-agent)
-commands/*.md              → 11 slash commands (init, status, run-loop, rollback, auto-commit, sync, log, patterns, research, quality-gate, wrap-up)
+commands/*.md              → 12 slash commands (init, status, run-loop, rollback, auto-commit, sync, log, patterns, research, quality-gate, wrap-up, memory-audit)
 improvements/state.json    → Self-improve loop state tracker
 scripts/                   → Hook helper scripts (session-start.sh — only active command hook)
 ```

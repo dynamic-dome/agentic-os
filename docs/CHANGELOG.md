@@ -4,6 +4,17 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-03] Memory-Audit restliche Hebel #3–#6 (v3.3.1)
+
+Die nach Ground-Truth-Verifikation real verbliebenen Hebel aus dem Memory-Audit (nach Sprint #1+#2). Wiki-TODO: `2026-06-03-agentic-os-memory-growth-restliche-hebel`. Durchgehend TDD, marker-basierte bidirektional verifizierte Drift-Tests.
+
+- **#3 patterns.json-Schema vereinheitlicht:** 3 divergierende Schemata → Kanon = `pattern-extractor` (der einzige Schreiber): `description`/`recommendation`/`evidence` + `severity`. Legacy-Normalisierungs-Tabelle im Skill (`solution`/`prevention`→`recommendation`, `source_errors`/`error_ids`→`evidence`, `name`/`title`→`description`, `pattern-001`→`P{n}`+`previous_id`) + Re-Dedup. Reale 4 Bestands-Einträge lokal mit-normalisiert.
+- **#4 Recency-Supersession in sync-context:** Konflikt-Auflösung von Confidence-only auf Write-Time-Supersession umgestellt — neuerer Eintrag bleibt `active`, älterer → `lifecycle:superseded`+`superseded_by` (nie gelöscht), max 1 `active` pro `(type, scope)`. Behebt die Mem0-Interferenz (stale-high-confidence schlägt neu). Confidence rankt nur noch nicht-widersprechende Merges. `lifecycle`-Feld im pattern-extractor-Schema.
+- **#5 `/memory-audit`-Command:** read-only Drift/Staleness/Provenance-Report über `.agent-memory/`. Verhindert genau die veraltete-Daten-Panne, die das manuelle Audit hatte (es maß 3 statt 10 learnings → Phantom-Gaps). Meldet nur, mutiert nie, nennt den heilenden Skill. 11 → 12 Slash-Commands.
+- **#6 open-tasks-Drift-Trigger:** Heal-Mechanismus existierte (`memory-maintenance` Step 8.2), war aber threshold-gated → lief nie. Fix: Schritt 1.5 im SessionEnd-Hook (liest `context/open-tasks.json` ohnehin) erkennt stray Root-Datei, merged, löscht. Alt-Root-Datei (leer, seit 25. Mai) entfernt.
+
+Tests gruen: validate-plugin 181/181, validate-skills 155/155. Codex-Verifier: durch.
+
 ## [2026-06-03] Memory Growth Engine — user.md + soul.md wachsen mit (v3.3.0)
 
 Sprint #1+#2 aus dem Memory-Audit (`Downloads/agentic-os-memory-audit-2026-06.md`). Behebt, dass `user.md` nach 80 Iterationen noch der Init-Stub war und `soul.md` nicht mitwuchs — ohne die Sicherheits-Boundary zu brechen, dass nichts Untrusted autonom in die Agent-Identität schreibt. Master-Plan: `docs/plans/2026-06-03-memory-growth-engine-master-plan.md`. Durchgehend TDD, bidirektional verifizierte Drift-Tests.
