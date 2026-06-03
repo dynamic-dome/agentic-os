@@ -1555,10 +1555,13 @@ if [ -f "$SE_HOOKS" ]; then
     # The SessionEnd prompt must mention the root-level open-tasks.json drift and merging it
     # into the canonical context/ path (not just reading context/open-tasks.json).
     SE_PROMPT=$(awk '/"SessionEnd"/,/"SubagentStop"|"UserPromptSubmit"/' "$SE_HOOKS")
-    if echo "$SE_PROMPT" | grep -qiE "open-tasks\.json at (the )?root|root-level open-tasks|\.agent-memory/open-tasks\.json"; then
-        pass "SessionEnd hook: checks for root-level open-tasks.json drift"
+    # Require the full heal action (detect root + merge + delete), not just a mention (Codex MINOR).
+    if echo "$SE_PROMPT" | grep -qiE "open-tasks\.json at (the )?root|root-level open-tasks|ROOT" \
+       && echo "$SE_PROMPT" | grep -qiE "merge" \
+       && echo "$SE_PROMPT" | grep -qiE "delete (the )?root"; then
+        pass "SessionEnd hook: detects root open-tasks drift AND merges into context/ AND deletes root copy"
     else
-        fail "SessionEnd hook: missing open-tasks root-drift check — must detect a stray .agent-memory/open-tasks.json (root) and merge it into context/open-tasks.json, since memory-maintenance is threshold-gated and rarely runs"
+        fail "SessionEnd hook: missing open-tasks root-drift heal — must detect a stray root .agent-memory/open-tasks.json, MERGE it into context/open-tasks.json, and DELETE the root copy (memory-maintenance is threshold-gated and rarely runs)"
     fi
 fi
 
@@ -1572,11 +1575,12 @@ if [ ! -f "$MA_CMD" ]; then
     fail "commands/memory-audit.md missing — Audit-Hebel #5: a repeatable read-only drift/provenance/staleness report"
 else
     pass "commands/memory-audit.md exists"
-    # Must be read-only: no write tools in allowed_tools (Read/Glob/Grep/Bash only).
-    if grep -qE "^allowed_tools:" "$MA_CMD" && ! grep -qiE "\"(Write|Edit|NotebookEdit)\"" "$MA_CMD"; then
-        pass "memory-audit: read-only (no Write/Edit in allowed_tools)"
+    # Must be read-only: allowed_tools may contain ONLY non-mutating tools. Bash is excluded too
+    # because `echo > file` / `rm` through Bash would bypass the read-only boundary (Codex MAJOR).
+    if grep -qE "^allowed_tools:" "$MA_CMD" && ! grep -qiE "\"(Write|Edit|NotebookEdit|Bash)\"" "$MA_CMD"; then
+        pass "memory-audit: read-only enforced by tool boundary (no Write/Edit/Bash in allowed_tools)"
     else
-        fail "memory-audit: must be read-only — declare allowed_tools without Write/Edit (an audit must never mutate the store it inspects)"
+        fail "memory-audit: read-only not tool-enforced — allowed_tools must exclude Write/Edit/NotebookEdit AND Bash (Bash would let the audit mutate the store it inspects via echo>/rm)"
     fi
     # Must cover the three audit dimensions the manual audit got wrong from stale data.
     if grep -qiE "drift" "$MA_CMD" && grep -qiE "staleness|stale" "$MA_CMD" && grep -qiE "provenance|schema" "$MA_CMD"; then

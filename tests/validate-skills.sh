@@ -561,6 +561,7 @@ if [ -f "$PE_SCHEMA_FILE" ]; then
     if grep -qiE "\(pattern-schema-canon\)" "$PE_SCHEMA_FILE" \
        && grep -qE '"recommendation"' "$PE_SCHEMA_FILE" \
        && grep -qE '"evidence"' "$PE_SCHEMA_FILE" \
+       && grep -qE '"severity"' "$PE_SCHEMA_FILE" \
        && grep -qiE "normaliz|legacy.*(solution|source_errors|prevention|error_ids)|solution.*->.*recommendation" "$PE_SCHEMA_FILE"; then
         pass "pattern-extractor: canonical schema pinned + legacy-normalization instruction present"
     else
@@ -581,8 +582,9 @@ if [ -f "$SC_SUP_FILE" ]; then
     if grep -qiE "\(recency-supersession\)" "$SC_SUP_FILE" \
        && grep -qiE "supersed" "$SC_SUP_FILE" \
        && grep -qiE "max(imum)? (one|1) active|one active per|never delete" "$SC_SUP_FILE" \
-       && grep -qiE "recency|newer.*wins|timestamp|last_seen.*wins" "$SC_SUP_FILE"; then
-        pass "sync-context: recency supersession present — conflicts resolved by recency, stale entry superseded not deleted"
+       && grep -qiE "recency|newer.*wins|timestamp|last_seen.*wins" "$SC_SUP_FILE" \
+       && grep -qiE "confidence (only|does not|only ranks)|ranks .*non-conflicting|non-conflicting.*merge" "$SC_SUP_FILE"; then
+        pass "sync-context: recency supersession present — conflicts by recency (superseded not deleted), confidence-merge kept for non-conflicts"
     else
         fail "sync-context: recency supersession missing — same-scope CONFLICTS must be resolved by recency (write-time supersession: max 1 active per scope, older -> superseded, never deleted), not by confidence alone (stale-high-confidence interference)"
     fi

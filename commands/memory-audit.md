@@ -1,7 +1,7 @@
 ---
 name: memory-audit
 description: Read-only drift, provenance, and staleness report over .agent-memory/. Run this instead of trusting a months-old manual audit — it reads the live store so conclusions can never be stale.
-allowed_tools: ["Read", "Glob", "Grep", "Bash"]
+allowed_tools: ["Read", "Glob", "Grep"]
 ---
 
 # Memory Audit
