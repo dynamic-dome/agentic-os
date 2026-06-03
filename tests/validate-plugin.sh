@@ -1544,6 +1544,24 @@ else
     fail "a project-context.md writer does not honor docs-as-source-of-truth — cache can silently diverge from docs/"
 fi
 
+# --- SessionEnd open-tasks drift trigger (Audit-Hebel #6, 2026-06-03) ---
+# memory-maintenance already heals the root-vs-context open-tasks.json drift, but it is
+# threshold-gated and rarely runs. The SessionEnd hook (which reads context/open-tasks.json
+# anyway) must also catch the drift so it gets healed reliably at session end.
+echo ""
+echo "-- SessionEnd hook: open-tasks root-drift check --"
+SE_HOOKS="$PLUGIN_ROOT/hooks/hooks.json"
+if [ -f "$SE_HOOKS" ]; then
+    # The SessionEnd prompt must mention the root-level open-tasks.json drift and merging it
+    # into the canonical context/ path (not just reading context/open-tasks.json).
+    SE_PROMPT=$(awk '/"SessionEnd"/,/"SubagentStop"|"UserPromptSubmit"/' "$SE_HOOKS")
+    if echo "$SE_PROMPT" | grep -qiE "open-tasks\.json at (the )?root|root-level open-tasks|\.agent-memory/open-tasks\.json"; then
+        pass "SessionEnd hook: checks for root-level open-tasks.json drift"
+    else
+        fail "SessionEnd hook: missing open-tasks root-drift check — must detect a stray .agent-memory/open-tasks.json (root) and merge it into context/open-tasks.json, since memory-maintenance is threshold-gated and rarely runs"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]
