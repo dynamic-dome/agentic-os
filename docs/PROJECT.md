@@ -14,7 +14,7 @@ Ein Claude-Code-Plugin, das ein selbst-verbesserndes Agent-Gedaechtnis bereitste
 
 ## Aktueller Stand
 
-v3.2.6, aktiv. 13 Skills (core + quality + knowledge + self-improve), 4 Agents, 11 Slash-Commands, 5 Lifecycle-Hooks. Das `.agent-memory/`-Schema ist seit v3.2.0 in einer Single Source of Truth (`scripts/mem-schema.sh`) definiert, von Hook UND `/init` konsumiert. Cross-Project-Handoff (zentral + Status-Board) seit v3.1.8. Test-Suite gruen (validate-plugin + validate-skills).
+v3.3.0, aktiv. 13 Skills (core + quality + knowledge + self-improve), 4 Agents, 11 Slash-Commands, 5 Lifecycle-Hooks. Das `.agent-memory/`-Schema ist seit v3.2.0 in einer Single Source of Truth (`scripts/mem-schema.sh`) definiert, von Hook UND `/init` konsumiert. Cross-Project-Handoff (zentral + Status-Board) seit v3.1.8. Test-Suite gruen (validate-plugin + validate-skills).
 
 ## Kernfaehigkeiten
 
