@@ -39,6 +39,22 @@ def normalize(s):
     s = re.sub(r"[^a-z0-9\s]", "", s)
     return re.sub(r"\s+", " ", s).strip()
 
+# Legacy stores carry qualitative confidence ("low"/"medium"/"high") alongside numeric
+# values. Coerce to a float so the promotion gate never sees float("low") and crashes.
+_QUAL_CONF = {"very low": 0.1, "low": 0.3, "medium": 0.5, "high": 0.8, "very high": 0.9}
+def coerce_conf(v, default=0.5):
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in _QUAL_CONF:
+            return _QUAL_CONF[s]
+        try:
+            return float(s)
+        except ValueError:
+            return default
+    return default
+
 def compute_scope(ftype, tags):
     norm = sorted({(t or "").strip().lower() for t in (tags or []) if t and t.strip()})
     return f"{ftype}|{','.join(norm)}"
@@ -72,7 +88,7 @@ def migrate_entry(e, ftype, counter, default_from):
     if "source_project" not in out and sp:
         out["source_project"] = sp[0]
     out["source_evidence"] = e.get("source_evidence") or e.get("evidence") or []
-    out.setdefault("confidence", e.get("confidence", 0.5))
+    out["confidence"] = coerce_conf(e.get("confidence", 0.5))
     out.setdefault("occurrences", e.get("occurrences", 1))
     vf = e.get("first_seen") or e.get("date") or default_from
     out["first_seen"] = vf

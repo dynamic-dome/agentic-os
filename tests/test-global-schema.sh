@@ -68,20 +68,29 @@ if [ -f "$MIG" ]; then
   MIGTMP=$(mktemp -d)/global
   mkdir -p "$MIGTMP"
   # one entry that PASSES the gate (conf>=0.6, occ>=3, 2 projects), one that FAILS (1 project)
+  # X3 carries a QUALITATIVE confidence ("low") — legacy stores have these. It must not
+  # crash float() and must coerce to 0.3 (-> candidate, since 0.3 < 0.6 gate threshold).
   cat > "$MIGTMP/patterns.json" <<'JSON'
 [
   {"id":"X1","description":"passing","confidence":0.8,"occurrences":4,"source_projects":["a","b"],"tags":["x"]},
-  {"id":"X2","description":"failing","confidence":0.9,"occurrences":5,"source_project":"a","tags":["y"]}
+  {"id":"X2","description":"failing","confidence":0.9,"occurrences":5,"source_project":"a","tags":["y"]},
+  {"id":"X3","description":"qualitative","confidence":"low","occurrences":4,"source_projects":["a","b"],"tags":["z"]}
 ]
 JSON
   echo '[]' > "$MIGTMP/learnings.json"
   echo '{"projects":[]}' > "$MIGTMP/projects.json"
   CLAUDE_MEMORY_GLOBAL="$MIGTMP" bash "$MIG" --apply >/dev/null 2>&1
+  MIG_RC=$?
+  assert_rc "migration: survives qualitative confidence (no float crash)" 0 "$MIG_RC"
   # Read via stdin pipe, not a path arg — Git-Bash /c/... paths break python's open() on Windows.
   LC_PASS=$(cat "$MIGTMP/patterns.json" | python -c "import sys,json;print(json.load(sys.stdin)[0]['lifecycle'])" 2>/dev/null)
   LC_FAIL=$(cat "$MIGTMP/patterns.json" | python -c "import sys,json;print(json.load(sys.stdin)[1]['lifecycle'])" 2>/dev/null)
+  CONF_QUAL=$(cat "$MIGTMP/patterns.json" | python -c "import sys,json;print(json.load(sys.stdin)[2]['confidence'])" 2>/dev/null)
+  LC_QUAL=$(cat "$MIGTMP/patterns.json" | python -c "import sys,json;print(json.load(sys.stdin)[2]['lifecycle'])" 2>/dev/null)
   assert_eq "migration: gate-passing entry -> active" "active" "$LC_PASS"
   assert_eq "migration: gate-failing (1 project) entry -> candidate" "candidate" "$LC_FAIL"
+  assert_eq "migration: qualitative 'low' confidence coerced to 0.3" "0.3" "$CONF_QUAL"
+  assert_eq "migration: qualitative-confidence entry -> candidate" "candidate" "$LC_QUAL"
 else
   fail "scripts/migrate-global-schema-4A.sh missing — cannot verify gate-consistent lifecycle"
 fi
