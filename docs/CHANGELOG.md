@@ -4,6 +4,15 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-03] Fix: qualitative Confidence in 4.A-Migration (v3.4.1)
+
+`migrate-global-schema-4A.sh` stuerzte auf realen globalen Stores mit `ValueError: could not convert string to float: 'low'` ab: Legacy-Patterns tragen qualitative Confidence (`low`/`medium`/`high`) neben numerischen Werten, und die Promotion-Gate-Berechnung rief blind `float(out["confidence"])`. Beobachtet am Live-Store `~/.claude-memory/global/` (23 Patterns, 5 mit String-Confidence).
+
+- **Fix:** `coerce_conf()` mappt `very low`/`low`/`medium`/`high`/`very high` → `0.1`/`0.3`/`0.5`/`0.8`/`0.9` (numerische Strings parsen weiterhin; Unbekanntes → Default `0.5`). `out["confidence"]` wird durchnormalisiert, sodass auch der gespeicherte Wert numerisch ist.
+- **Regressionstest:** `test-global-schema.sh` erhaelt einen `confidence: "low"`-Pattern, der ohne Crash migrieren, zu `0.3` coercen und als `candidate` landen muss (4 neue Assertions).
+
+Tests gruen: test-global-schema 19/19 (von 16), run-all ALL PASSED. Migration bleibt idempotent, `--dry-run`-Default, Backups `*.4A.bak`, row-count-invariant (in==out).
+
 ## [2026-06-03] Global Memory Layer 4.A — Provenance, Promotion, Decay, Privacy (v3.4.0)
 
 Macht den globalen Cross-Project-Layer (`~/.claude-memory/global/`) von einem flachen Pattern-Store zu einem provenance-grounded, selektiv promotenden, alterungsfaehigen Gedaechtnis. Master-Plan: `Downloads/2026-06-03-global-memory-layer-4A-master-plan.md`. **Architektur-Entscheidung: Hybrid** — pure testbare Logik in `scripts/global-schema.sh` (sourcebar), Orchestrierung im sync-context-Prompt, damit die kritischen Invarianten echte strip→FAIL-Unit-Tests bekommen statt nur Marker-greps (L11). Durchgehend TDD, bidirektional verifiziert.
