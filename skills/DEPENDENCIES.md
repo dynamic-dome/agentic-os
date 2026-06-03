@@ -126,7 +126,7 @@ Removed agents (2026-04-30): `improvement-scout`, `fix-reviewer` → use `improv
 
 1. **No circular dependencies** — DAG only.
 2. **No auto-triggers on code changes** — user/CLAUDE.md driven (the only hook-driven skills are session-bootstrap on start and wrap-up on end).
-3. **session-bootstrap is read-only** — never writes during startup.
+3. **session-bootstrap is read-only** — never writes during startup, with ONE exception: the user-confirmed soul.md candidate gate (Step 6.5) writes soul.md + user-changelog.json + soul-candidates.md, but only on an explicit `j` from the user (never autonomously).
 4. **Skills that invoke other skills:** `wrap-up` (pattern-extractor, obsidian-sync, memory-maintenance), `self-improve` (pattern-extractor), `memory-maintenance` (pattern-extractor). All other skills are leaf nodes. (`quality-gate` lists pattern-extractor/context-keeper in its `depends-on` metadata, but its body does not invoke them — legacy, like self-improve's metadata.)
 5. **sync-context is manual-only** — no auto-sync.
 6. **self-improve has all pipeline phases inline** — only pattern-extractor is delegated; `iteration-logger`/`quality-gate` in its `depends-on` metadata are legacy and not invoked by the body.

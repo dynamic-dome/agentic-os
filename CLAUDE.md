@@ -45,7 +45,7 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and data flow.
 
 - **Language policy:** Trigger phrases in SKILL.md frontmatter MUST be English (tests enforce this). Body text English. User-facing communication in German.
 - **SKILL.md format:** YAML frontmatter with `name`, `description` (used for matching — be specific), `type: skill`, trigger phrases. Body is the skill prompt.
-- **Memory dir:** Skills read/write `.agent-memory/` in the target project (not this repo). `session-bootstrap` is strictly read-only.
+- **Memory dir:** Skills read/write `.agent-memory/` in the target project (not this repo). `session-bootstrap` is read-only, with ONE exception: the user-confirmed soul.md candidate gate (Step 6.5) writes soul.md only on an explicit `j` (never autonomously — Stufe-B growth, v3.3.0).
 - **Hooks:** Lightweight by design. SessionStart (15s, command) auto-inits + injects context; PreCompact (15s, prompt) outputs survival summary; SessionEnd (15s, prompt) task guard + delegates to wrap-up; UserPromptSubmit (10s, prompt) advisory-only; SubagentStop (10s, prompt) commit suggestion for quality-gate/improvement-agent. (The legacy Stop hook was removed in v3.1.1 — it caused an infinite feedback loop.)
 - **Self-improve safety:** Max 20% mutation per skill per iteration. Git revert over git stash pop. Circuit breaker on diminishing returns.
 - **Self-Improve Policy (2026-04-30):** 6 hard rules in `skills/self-improve/SKILL.md` — single-cluster-rule, pattern-confirmation-threshold, wrap-up-discipline, MCP-audit-as-diagnosis-only, no-self-mod-boundary, rollback-tag-tightness. The `self-improve` skill MUST NOT modify its own SKILL.md body — meta-suggestions go to `improvements/meta-suggestions.md` for manual review.

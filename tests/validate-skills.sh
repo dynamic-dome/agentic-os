@@ -471,12 +471,17 @@ MM_GROW_FILE="$SKILLS_DIR/memory-maintenance/SKILL.md"
 echo ""
 echo "-- wrap-up: user.md growth engine (candidate queue + 3-stage classification) --"
 if [ -f "$WU_GROW_FILE" ]; then
+    # Also pin the promotion rule (inferred + occ>=2 + conf>=0.6) and the changelog-before-write
+    # atomicity — otherwise the test stays green if those guarantees are stripped (Codex MAJOR #1).
     if grep -qiE "\(user-growth\)" "$WU_GROW_FILE" \
        && grep -qiE "user-candidates\.json" "$WU_GROW_FILE" \
-       && grep -qiE "observed.*inferred.*confirmed|observed / inferred / confirmed" "$WU_GROW_FILE"; then
-        pass "wrap-up: user.md growth engine present — candidate queue + observed/inferred/confirmed"
+       && grep -qiE "observed.*inferred.*confirmed|observed / inferred / confirmed" "$WU_GROW_FILE" \
+       && grep -qiE "inferred.*AND.*occurrences|occurrences.*AND.*confidence" "$WU_GROW_FILE" \
+       && grep -qE "0\.6" "$WU_GROW_FILE" \
+       && grep -qiE "changelog BEFORE|before the user\.md|changelog.*before the|first.*append.*changelog" "$WU_GROW_FILE"; then
+        pass "wrap-up: user.md growth engine present — queue + 3-stage + promotion rule + changelog-before-write"
     else
-        fail "wrap-up: user.md growth engine missing — Step 6 must use working/user-candidates.json with an observed/inferred/confirmed classification instead of the dead '3+ corrections' direct-write"
+        fail "wrap-up: user.md growth engine missing — Step 6 must use working/user-candidates.json with observed/inferred/confirmed, the promotion rule (inferred + occ>=2 + conf>=0.6) AND changelog-before-write atomicity, replacing the dead '3+ corrections' direct-write"
     fi
 fi
 
@@ -495,23 +500,29 @@ echo ""
 echo "-- wrap-up: user.md growth — trust boundary (conversation-only) --"
 if [ -f "$WU_GROW_FILE" ]; then
     # Candidates must originate from user conversation, NEVER from web/docs/notebooklm/wiki (poisoning).
-    # Marker-bound so the test goes red if the trust-boundary spec is stripped.
-    if grep -qiE "\(trust-boundary\)" "$WU_GROW_FILE" \
-       && grep -qiE "trust_source|conversation" "$WU_GROW_FILE"; then
-        pass "wrap-up: user.md growth — trust boundary enforced (conversation-only candidates)"
+    # Bind the forbidden-source list to the (trust-boundary) marker's own block (grep -A2), so an
+    # unrelated 'NotebookLM' elsewhere (Step 7 sync) can't keep this green if the boundary is stripped
+    # (Codex MAJOR #2 — verified strip->FAIL on the marker block).
+    TB_BLOCK=$(grep -A2 -iE "\(trust-boundary\)" "$WU_GROW_FILE")
+    if [ -n "$TB_BLOCK" ] \
+       && echo "$TB_BLOCK" | grep -qiE "trust_source|conversation" \
+       && echo "$TB_BLOCK" | grep -qiE "web/docs|NotebookLM|wiki content|untrusted"; then
+        pass "wrap-up: user.md growth — trust boundary enforced (conversation-only, forbidden sources named in marker block)"
     else
-        fail "wrap-up: user.md growth missing trust boundary — candidates must come only from user conversation, never from web/docs/notebooklm/wiki content (memory poisoning)"
+        fail "wrap-up: user.md growth missing trust boundary — the (trust-boundary) block must name the forbidden sources (web/docs/NotebookLM/wiki) candidates may NEVER come from (memory poisoning)"
     fi
 fi
 
 echo ""
 echo "-- wrap-up: soul.md growth — candidate queue (Stufe B, no auto-write) --"
 if [ -f "$WU_GROW_FILE" ]; then
+    # Also pin the no-autonomous-write invariant, not just the queue file (Codex MAJOR #3).
     if grep -qiE "\(soul-growth\)" "$WU_GROW_FILE" \
-       && grep -qiE "soul-candidates\.md" "$WU_GROW_FILE"; then
-        pass "wrap-up: soul.md growth present — appends to soul-candidates.md, no direct soul.md write"
+       && grep -qiE "soul-candidates\.md" "$WU_GROW_FILE" \
+       && grep -qiE "[Nn]ever write .?soul\.md|[Nn]ever auto-write|NEVER auto-written|not write .?soul\.md here" "$WU_GROW_FILE"; then
+        pass "wrap-up: soul.md growth present — appends to soul-candidates.md, never auto-writes soul.md"
     else
-        fail "wrap-up: soul.md growth missing — must append proposed identity signals to identity/soul-candidates.md (never auto-write soul.md)"
+        fail "wrap-up: soul.md growth missing — must append to identity/soul-candidates.md AND state the never-write-soul.md-directly invariant"
     fi
 fi
 
