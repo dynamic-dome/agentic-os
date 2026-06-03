@@ -33,6 +33,17 @@ else
 fi
 
 echo ""
+
+# Run global-schema helper unit tests (4.A)
+echo ">>> Running global-schema helper tests..."
+if bash "$SCRIPT_DIR/test-global-schema.sh"; then
+    echo ">>> Global-schema tests: ALL PASSED"
+else
+    echo ">>> Global-schema tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
 echo "========================================"
 if [ "$TOTAL_ERRORS" -eq 0 ]; then
     echo "  ALL TEST SUITES PASSED"

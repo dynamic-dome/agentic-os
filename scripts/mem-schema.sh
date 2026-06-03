@@ -38,6 +38,17 @@ MEM_JSON_ARRAY=(
   identity/user-changelog.json
 )
 
+# Tags/signals that are NEVER promoted into the global cross-project layer
+# (privacy / memory-poisoning guard). The sync-context Push pre-filter (4.A) drops any
+# entry carrying one of these tags BEFORE the promotion gate, so denied facts never
+# reach ~/.claude-memory/global/. Read by is_denied() in scripts/global-schema.sh.
+# This array creates no files — it is a sourceable constant, not part of the store schema.
+MEM_GLOBAL_DENY_TAGS=(
+  credentials secret token api_key api-key password
+  personal pii email phone address
+  client-name internal-only private
+)
+
 # create_memory_structure <memory_dir>
 # Idempotent: only creates files/dirs that are absent. Never overwrites existing data.
 create_memory_structure() {
