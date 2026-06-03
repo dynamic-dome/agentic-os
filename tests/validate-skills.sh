@@ -624,6 +624,37 @@ if [ -f "$SC_SUP_FILE" ]; then
     fi
 fi
 
+# --- sync-context 4.A promotion gate (local -> global) ---
+# Three hard conditions to promote to active: confidence>=0.6 AND occurrences>=3 AND
+# |source_projects|>=2. Failing the gate keeps the entry as candidate (never active).
+echo ""
+echo "-- sync-context: promotion gate (conf>=0.6 ∧ occ>=3 ∧ projects>=2) --"
+if [ -f "$SC_SUP_FILE" ]; then
+    if grep -qiE "\(promotion-gate\)" "$SC_SUP_FILE" \
+       && grep -qiE "passes_promotion_gate" "$SC_SUP_FILE" \
+       && grep -qiE "occurrences >= 3" "$SC_SUP_FILE" \
+       && grep -qiE "source_projects\` ?>= 2|source_projects\| ?>= 2|\|source_projects\| >= 2" "$SC_SUP_FILE" \
+       && grep -qiE "lifecycle: ?candidate|stays .candidate" "$SC_SUP_FILE"; then
+        pass "sync-context: promotion gate present — 3 conditions, fail keeps candidate"
+    else
+        fail "sync-context: promotion gate missing — promotion to active needs confidence>=0.6 AND occurrences>=3 AND |source_projects|>=2 (passes_promotion_gate); failing keeps lifecycle:candidate"
+    fi
+fi
+
+# --- sync-context 4.A pull lifecycle filter ---
+# Pull serves ONLY lifecycle:active; candidate/superseded/archived are never pulled.
+echo ""
+echo "-- sync-context: pull serves only lifecycle:active --"
+if [ -f "$SC_SUP_FILE" ]; then
+    if grep -qiE "\(pull-lifecycle-filter\)" "$SC_SUP_FILE" \
+       && grep -qiE "lifecycle: ?active" "$SC_SUP_FILE" \
+       && grep -qiE "[Ss]kip .*(candidate|superseded|archived)" "$SC_SUP_FILE"; then
+        pass "sync-context: pull lifecycle filter present — only active served"
+    else
+        fail "sync-context: pull lifecycle filter missing — Pull must serve ONLY lifecycle:active and skip candidate/superseded/archived"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

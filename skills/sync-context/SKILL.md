@@ -90,8 +90,11 @@ Run the auto-setup from Prerequisites:
 1. Read project's stack from `.agent-memory/context/project-context.md`
 2. Read `~/.claude-memory/global/patterns.json`
 3. Filter by matching `stack_tags` (only pull relevant patterns)
-4. Only pull patterns with `confidence >= 0.5`
-5. Merge into local `patterns.json`. Distinguish a **merge** (same fact, more evidence) from
+4. **Lifecycle filter (pull-lifecycle-filter): pull ONLY entries with `lifecycle: active`.**
+   Skip `candidate`, `superseded`, and `archived` entries entirely — a held candidate, a
+   recency-superseded fact, or a decayed-out entry must never re-enter a local store.
+5. Only pull patterns with `confidence >= 0.5`
+6. Merge into local `patterns.json`. Distinguish a **merge** (same fact, more evidence) from
    a **conflict** (contradicting fact in the same scope) — they are resolved differently:
 
    **Merge (same fact):**
@@ -122,7 +125,14 @@ Source the helpers once: `. scripts/global-schema.sh` and `. scripts/mem-schema.
    is `"mood"`. These never reach the global store. Count them as `Denied (privacy)`.
    Privacy is checked first on purpose: a denied fact must not survive on the strength of a
    high confidence or occurrence count.
-3. Filter: only push patterns with `confidence >= 0.6`
+3. **Promotion gate (promotion-gate) — `passes_promotion_gate(confidence, occurrences, |source_projects|)`.**
+   An entry is promoted to `lifecycle: active` in the global store ONLY if all three hold:
+   `confidence >= 0.6` (the existing push threshold, unchanged) AND `occurrences >= 3`
+   (the existing +0.1-boost trigger, now a hard requirement) AND `|source_projects| >= 2`
+   (NEW — keeps single-project quirks out of the global layer). An entry that fails the
+   gate stays `lifecycle: candidate` (written/kept as candidate, never `active`, and the
+   pull-lifecycle-filter never serves it). Report passes as `Promoted` and fails as
+   `Candidates held`.
 4. **Stamp the global provenance schema (provenance-schema) on every entry written to
    `~/.claude-memory/global/patterns.json`:**
    ```json
@@ -170,6 +180,9 @@ Cross-Project Sync Complete:
   Direction: {pull|push|bidirectional}
   Pulled: {n} patterns (from {n} projects)
   Pushed: {n} patterns, {n} learnings
+  Promoted: {n} (passed the promotion gate → active)
+  Candidates held: {n} (failed gate — kept as candidate, not active)
+  Denied (privacy): {n} (denylist tag or signal_type mood — never pushed)
   Skipped: {n} (below threshold)
   Merges: {n} (same fact, confidence-ranked)
   Superseded: {n} (conflicts resolved by recency — older entry kept as superseded)
