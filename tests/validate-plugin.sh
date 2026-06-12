@@ -1607,6 +1607,28 @@ else
     fi
 fi
 
+# --- Command/Skill name shadowing guard (L17, 2026-06-12) ---
+# A command with the same name as a skill SHADOWS the skill in the Skill tool:
+# invoking 'agentic-os:<name>' returns the command wrapper (which says "invoke the
+# skill") instead of the skill body -> infinite indirection loop (observed live
+# 2026-06-12 with wrap-up). Skills are directly slash-invocable, so delegating
+# wrapper commands are redundant. No command may share a name with a skill.
+echo ""
+echo "-- command/skill name shadowing (L17) --"
+SHADOWED=""
+for CMD_FILE in "$PLUGIN_ROOT"/commands/*.md; do
+    [ -f "$CMD_FILE" ] || continue
+    CMD_NAME="$(basename "$CMD_FILE" .md)"
+    if [ -d "$PLUGIN_ROOT/skills/$CMD_NAME" ]; then
+        SHADOWED="$SHADOWED $CMD_NAME"
+    fi
+done
+if [ -z "$SHADOWED" ]; then
+    pass "no command shadows a skill name (Skill-tool loop guard, L17)"
+else
+    fail "command(s) shadow skill name(s):$SHADOWED — the Skill tool resolves the name to the command wrapper, causing an invoke loop (L17). Delete or rename the wrapper command."
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

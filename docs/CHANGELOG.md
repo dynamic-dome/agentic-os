@@ -4,6 +4,29 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-12] Fix: Command/Skill-Namensschatten entfernt (v3.5.1)
+
+Ein Command mit demselben Namen wie ein Skill beschattet den Skill im Skill-Tool: der Aufruf
+`agentic-os:wrap-up` lieferte den COMMAND-Wrapper zurueck (der wiederum "invoke the skill" sagt)
+statt des Skill-Bodys — Endlos-Indirektion (L17, live beobachtet 2026-06-12, zwei identische
+Versuche). Betroffen waren genau die zwei Wrapper, deren Name mit einem Skill kollidierte:
+`commands/wrap-up.md` und `commands/quality-gate.md`.
+
+- **Fix:** beide Wrapper-Commands GELOESCHT (nicht umbenannt). Skills sind direkt
+  slash-invocierbar (ground-truth: `/agentic-os:session-bootstrap` laeuft ohne Command-Wrapper)
+  — `/agentic-os:wrap-up` und `/agentic-os:quality-gate` funktionieren weiter und treffen jetzt
+  direkt den Skill. Umbenennen haette den Schatten nur verschoben.
+- **Guard-Test (TDD, erst rot):** validate-plugin.sh prueft, dass KEIN `commands/<name>.md` ein
+  `skills/<name>/`-Verzeichnis spiegelt; fing vor der Loeschung beide Kollisionen.
+- Doku nachgezogen: CLAUDE.md (10 Commands + Schatten-Verbot), PROJECT.md, CAPABILITIES bleibt
+  unveraendert (listete Commands nie), architecture-map.html Sektion 2 (5 Wrapper / 5 Inline /
+  8 Skills ohne Command).
+- 12 → 10 Slash-Commands. hooks.json (SessionEnd "invoke agentic-os:wrap-up") loest jetzt
+  eindeutig zum Skill auf — unveraendert gelassen.
+
+Tests gruen: 180 validate-plugin (−6 Frontmatter-Checks der geloeschten Dateien, +1 Guard) +
+165 validate-skills + 19 global-schema.
+
 ## [2026-06-12] Handoff-Ownership — lokale vs. globale Uebergaben (v3.5.0)
 
 Next Steps leben jetzt genau einmal — projekt-lokal in `context/open-tasks.json` (neuer

@@ -89,8 +89,8 @@
 <body>
 
 <header>
-  <h1>Agentic OS v3.4.0 — Interaktionskarte</h1>
-  <p>Wie die 12 Commands, 13 Skills, 4 Agents und 5 Hooks dieses Plugins zusammenspielen
+  <h1>Agentic OS v3.5.1 — Interaktionskarte</h1>
+  <p>Wie die 10 Commands, 13 Skills, 4 Agents und 5 Hooks dieses Plugins zusammenspielen
   und welche Datenspeicher sie verbinden. Quelle: <code>skills/DEPENDENCIES.md</code> (verifiziert
   gegen die Live-SKILL.md-Dateien am 2026-06-12) + <code>commands/*.md</code> + <code>hooks/hooks.json</code>.</p>
 </header>
@@ -148,9 +148,12 @@ flowchart TB
 <!-- ================= 2 COMMANDS ================= -->
 <section id="commands">
   <h2><span class="num">2</span>Commands → Skills — wer ist nur Wrapper, wer denkt selbst?</h2>
-  <p class="lead">7 Commands sind dünne Wrapper, die 1:1 einen Skill aufrufen. 5 Commands tragen
-  ihre Logik inline (kein Skill dahinter). Und 6 Skills haben <em>gar keinen</em> Command —
-  sie laufen nur über Hooks, Trigger-Phrasen oder werden von anderen Skills aufgerufen.</p>
+  <p class="lead">5 Commands sind dünne Wrapper, die 1:1 einen Skill aufrufen. 5 Commands tragen
+  ihre Logik inline (kein Skill dahinter). Und 8 Skills haben <em>gar keinen</em> Command —
+  sie laufen über Hooks, Trigger-Phrasen, direkte Skill-Invocation oder werden von anderen
+  Skills aufgerufen. <strong>v3.5.1:</strong> Die Wrapper <code>/wrap-up</code> und
+  <code>/quality-gate</code> wurden entfernt — ein Command mit Skill-Namen beschattet den Skill
+  im Skill-Tool (Invoke-Loop, L17); beide Namen treffen jetzt direkt den Skill.</p>
   <div class="panel">
     <pre class="mermaid">
 flowchart LR
@@ -159,14 +162,12 @@ flowchart LR
   classDef inline fill:#2d1d1d,stroke:#ef5350,color:#ffc4c4
   classDef orphan fill:#241d33,stroke:#ab7df8,color:#e2d4ff
 
-  subgraph CMDS["12 Commands"]
+  subgraph CMDS["10 Commands"]
     direction TB
     c_log["/log"]:::cmd
     c_pat["/patterns"]:::cmd
-    c_qg["/quality-gate"]:::cmd
     c_res["/research"]:::cmd
     c_sync["/sync"]:::cmd
-    c_wrap["/wrap-up"]:::cmd
     c_loop["/run-loop"]:::cmd
     c_init["/init"]:::inline
     c_status["/status"]:::inline
@@ -179,16 +180,16 @@ flowchart LR
     direction TB
     s_il["iteration-logger"]:::skill
     s_pe["pattern-extractor"]:::skill
-    s_qg["quality-gate"]:::skill
     s_rp["research-pipeline"]:::skill
     s_sc["sync-context"]:::skill
-    s_wu["wrap-up"]:::skill
     s_si["self-improve"]:::skill
   end
 
-  subgraph NOCMD["Skills OHNE Command<br/><small>nur Hook / Trigger-Phrase / Skill-Aufruf</small>"]
+  subgraph NOCMD["Skills OHNE Command<br/><small>Hook / Trigger-Phrase / direkte Skill-Invocation / Skill-Aufruf</small>"]
     direction TB
     s_sb["session-bootstrap<br/><small>(SessionStart-Hook)</small>"]:::orphan
+    s_wu["wrap-up<br/><small>(SessionEnd-Hook + direkt, seit v3.5.1)</small>"]:::orphan
+    s_qg["quality-gate<br/><small>(direkt, seit v3.5.1)</small>"]:::orphan
     s_ck["context-keeper"]:::orphan
     s_sg["skill-generator"]:::orphan
     s_mm["memory-maintenance"]:::orphan
@@ -198,10 +199,8 @@ flowchart LR
 
   c_log --> s_il
   c_pat --> s_pe
-  c_qg --> s_qg
   c_res --> s_rp
   c_sync --> s_sc
-  c_wrap --> s_wu
   c_loop --> s_si
     </pre>
   </div>
@@ -209,10 +208,8 @@ flowchart LR
     <tr><th>Command</th><th>Typ</th><th>Was er tut</th><th>Besonderheit</th></tr>
     <tr><td><code>/log</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ iteration-logger</td><td>optionales Summary-Argument</td></tr>
     <tr><td><code>/patterns</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ pattern-extractor</td><td></td></tr>
-    <tr><td><code>/quality-gate</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ quality-gate</td><td>go/no-go-Verdict</td></tr>
     <tr><td><code>/research</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ research-pipeline</td><td>extern: Perplexity + NotebookLM</td></tr>
     <tr><td><code>/sync</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ sync-context</td><td>manuell-only by design</td></tr>
-    <tr><td><code>/wrap-up</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ wrap-up</td><td></td></tr>
     <tr><td><code>/run-loop</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ self-improve (max 4 Iterationen)</td><td>Circuit-Breaker, Rollback-Tags</td></tr>
     <tr><td><code>/init</code></td><td><span class="tag inline">Inline</span></td><td>Memory-Struktur via <code>mem-schema.sh</code> (SSoT)</td><td><span class="tag agent">context-detective</span> optional für Stack-Detection</td></tr>
     <tr><td><code>/status</code></td><td><span class="tag inline">Inline</span> <span class="tag ro">read-only</span></td><td>Health + Statistiken anzeigen</td><td></td></tr>
@@ -396,11 +393,11 @@ flowchart LR
     <tr><td><b>iteration-logger</b></td><td>core</td><td><code>/log</code> + Phrasen</td><td>errors, iteration-log, working/</td><td>iteration-log, errors, working/, Archive</td><td>schlägt pattern-extractor vor</td></tr>
     <tr><td><b>pattern-extractor</b></td><td>core</td><td><code>/patterns</code> + von 3 Skills</td><td>errors, iteration-log, patterns.json</td><td>patterns.json, patterns.md</td><td>—</td></tr>
     <tr><td><b>context-keeper</b></td><td>core</td><td>Phrasen (Entscheidungen)</td><td>docs/ (SoT!), project-context, decisions</td><td>project-context (Cache), decisions.json, Wiki-Entity (opt.)</td><td>—</td></tr>
-    <tr><td><b>wrap-up</b></td><td>core</td><td><code>/wrap-up</code> + SessionEnd-Hook</td><td>iteration-log, errors, quality/*, learnings, working/</td><td>session-summary, learnings, identity/user.md, Handoff, Status-Board, Sharepoint (opt.)</td><td>pattern-extractor, obsidian-sync, memory-maintenance</td></tr>
+    <tr><td><b>wrap-up</b></td><td>core</td><td>Skill direkt (<code>/agentic-os:wrap-up</code>) + SessionEnd-Hook</td><td>iteration-log, errors, quality/*, learnings, working/</td><td>session-summary, learnings, identity/user.md, Handoff, Status-Board, Sharepoint (opt.)</td><td>pattern-extractor, obsidian-sync, memory-maintenance</td></tr>
     <tr><td><b>skill-generator</b></td><td>core</td><td>Phrasen + pattern-Flag</td><td>patterns.json, errors</td><td>generated-skills/, patterns.json (Back-Ref)</td><td>—</td></tr>
     <tr><td><b>sync-context</b></td><td>core</td><td><code>/sync</code> <span class="tag gate">manuell-only</span></td><td>lokale + globale Stores, global-schema.sh</td><td>beide Seiten (Provenance-Schema, Gate, Denylist)</td><td>—</td></tr>
     <tr><td><b>memory-maintenance</b></td><td>core</td><td>Phrasen / wrap-up Step 9</td><td>alle Stores, improvements/state.json</td><td>Archive, reparierte JSONs, global Decay (4b)</td><td>pattern-extractor</td></tr>
-    <tr><td><b>quality-gate</b></td><td>quality</td><td><code>/quality-gate</code> + Phrasen</td><td>project-context, patterns.md, quality/*</td><td>code-reviews, test-results, quality-score</td><td>quality-gate-Agent</td></tr>
+    <tr><td><b>quality-gate</b></td><td>quality</td><td>Skill direkt + Phrasen</td><td>project-context, patterns.md, quality/*</td><td>code-reviews, test-results, quality-score</td><td>quality-gate-Agent</td></tr>
     <tr><td><b>research-pipeline</b></td><td>knowledge</td><td><code>/research</code> + Phrasen</td><td>extern (Perplexity, NotebookLM)</td><td>research/*.md</td><td>—</td></tr>
     <tr><td><b>wiki-query</b></td><td>knowledge</td><td>Phrasen (mid-session)</td><td>~/wiki/ <span class="tag ro">read-only</span></td><td>queries/ nur mit Consent</td><td>—</td></tr>
     <tr><td><b>obsidian-sync</b></td><td>knowledge</td><td>Phrasen / wrap-up 7.5</td><td>config, summary, learnings, patterns, decisions</td><td>~/wiki/ (Notes, Entity, Synthese), patterns.json (nur promotion_status)</td><td>—</td></tr>
@@ -411,7 +408,7 @@ flowchart LR
 </main>
 
 <footer>
-  Generiert 2026-06-12 aus den Live-Dateien (Repo-Stand v3.4.0). Bei Widerspruch gilt:
+  Generiert 2026-06-12 aus den Live-Dateien (Header + Sektion 2 aktualisiert für v3.5.1, Rest Stand v3.4.0/v3.5.0). Bei Widerspruch gilt:
   SKILL.md &gt; DEPENDENCIES.md &gt; diese Karte. Befunde der Verifikation: Sharepoint-Push (wrap-up 7.6c)
   und global-decay (memory-maintenance 4b) waren in DEPENDENCIES.md unterdokumentiert — hier ergänzt.
 </footer>
