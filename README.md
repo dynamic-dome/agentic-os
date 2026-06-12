@@ -6,7 +6,7 @@ Self-improving agent memory system that works across any project.
 
 - **Project Memory** (`.agent-memory/`): Per-project knowledge — iterations, patterns, decisions, quality scores
 - **Session Lifecycle**: Auto-bootstrap at start, user-driven during work, auto-wrap-up at end
-- **Lean Hook Surface**: 5 lifecycle hooks (SessionStart, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop), no per-edit triggers
+- **Lean Hook Surface**: 6 hooks with one deterministic `PreToolUse` Bash circuit breaker plus 5 lifecycle hooks
 - **Wiki / Knowledge Layer**: `wiki-query` + `obsidian-sync` skills bridge into Obsidian / NotebookLM stores
 - **Optional Cross-Project Sync**: Manual pattern sharing via `sync-context` skill
 
@@ -51,10 +51,11 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and consolidated skil
 
 (`improvement-scout` and `fix-reviewer` were deprecated and removed in 2026-04 — use `improvement-agent` and the inline validation phase of `self-improve` instead.)
 
-## Hooks (5)
+## Hooks (6)
 
 | Event | Timeout | Type | Action |
 |-------|---------|------|--------|
+| `PreToolUse` | 5s | command | Block dangerous Bash commands before execution with exit code `2` |
 | `SessionStart` | 15s | command | Auto-init `.agent-memory/`, inject session-summary briefing |
 | `UserPromptSubmit` | 10s | prompt | Advisory-only context hint |
 | `PreCompact` | 15s | prompt | Emit survival summary before context compaction |
@@ -78,6 +79,7 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and consolidated skil
 ## Session Lifecycle
 
 ```
+Guard:  PreToolUse blocks dangerous Bash commands before execution (5s, command, exit 2)
 Start:  SessionStart hook reads context silently (15s, command)
 Work:   User-driven — log iterations, record decisions, review code
         UserPromptSubmit (10s) injects context-hints, advisory-only
@@ -86,11 +88,17 @@ Work:   User-driven — log iterations, record decisions, review code
 End:    SessionEnd hook (15s) delegates to wrap-up
 ```
 
-No per-edit overhead. No auto-triggers on code changes. Skills are invoked by the user or via CLAUDE.md rules.
+No per-edit overhead. The only per-tool hook is a deterministic Bash safety circuit breaker. Skills are invoked by the user or via CLAUDE.md rules.
+
+## Shell Circuit Breaker
+
+`PreToolUse` runs `scripts/pre-tool-use-circuit-breaker.sh` for Bash tool calls. It reads the Claude Code hook JSON from stdin and exits `2` when a command matches a dangerous shell pattern, which prevents the tool call from running. Safe commands exit `0` without output.
+
+Blocked classes include recursive force deletes (`rm -rf`, PowerShell `Remove-Item -Recurse -Force`, `rmdir /s /q`), destructive Git history/worktree operations (`git reset --hard`, `git clean -fd/-xdf`, forced pushes), broad permission/ownership changes (`chmod 777`, `chown -R`), filesystem formatting, raw block-device writes, and download-to-shell pipes.
 
 ## Design Principles
 
-1. **Lean hook surface** — 5 lifecycle hooks, total budget ≤ 65s per session
+1. **Lean hook surface** — 1 deterministic safety gate + 5 lifecycle hooks
 2. **User-driven** — no auto-triggers on every edit
 3. **Read-only bootstrap** — `session-bootstrap` never writes
 4. **Append-only decisions** — `decisions.json` is never deleted, only superseded

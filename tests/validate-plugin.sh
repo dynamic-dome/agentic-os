@@ -65,6 +65,33 @@ if [ -f "$HOOKS" ]; then
     else
         fail "hooks.json: prompt hook timeout too low (min: ${min_timeout}s) — risk of silent failure"
     fi
+    pretooluse_guard=$(node -e "
+      const h = JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'));
+      const groups = (((h.hooks || {}).PreToolUse) || []);
+      const ok = groups.some(g => g.matcher === 'Bash' && (g.hooks || []).some(x =>
+        x.type === 'command' &&
+        String(x.command || '').includes('pre-tool-use-circuit-breaker.sh') &&
+        Number(x.timeout || 0) > 0 &&
+        Number(x.timeout || 0) <= 5
+      ));
+      process.exit(ok ? 0 : 1);
+    " "$HOOKS" 2>/dev/null; echo $?)
+    if [ "$pretooluse_guard" -eq 0 ]; then
+        pass "hooks.json: PreToolUse Bash circuit breaker registered as command hook"
+    else
+        fail "hooks.json: missing PreToolUse Bash command hook for pre-tool-use-circuit-breaker.sh"
+    fi
+    if [ -f "$PLUGIN_ROOT/scripts/pre-tool-use-circuit-breaker.sh" ]; then
+        if grep -q "exit 2" "$PLUGIN_ROOT/scripts/pre-tool-use-circuit-breaker.sh" \
+           && grep -q "rm -rf" "$PLUGIN_ROOT/scripts/pre-tool-use-circuit-breaker.sh" \
+           && grep -q "git reset --hard" "$PLUGIN_ROOT/scripts/pre-tool-use-circuit-breaker.sh"; then
+            pass "pre-tool-use-circuit-breaker.sh: deterministic exit-2 blocking rules present"
+        else
+            fail "pre-tool-use-circuit-breaker.sh: missing exit-2 blocking rules for dangerous shell actions"
+        fi
+    else
+        fail "pre-tool-use-circuit-breaker.sh not found"
+    fi
 else
     fail "hooks.json not found"
 fi
