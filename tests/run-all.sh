@@ -44,6 +44,18 @@ else
 fi
 
 echo ""
+
+# Run Python unit tests
+echo ">>> Running Python unit tests..."
+if python -m unittest discover -s "$SCRIPT_DIR" -p "test_*.py"; then
+    echo ">>> Python unit tests: ALL PASSED"
+else
+    echo ">>> Python unit tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 echo "========================================"
 if [ "$TOTAL_ERRORS" -eq 0 ]; then
     echo "  ALL TEST SUITES PASSED"

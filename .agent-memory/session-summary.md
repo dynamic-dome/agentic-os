@@ -1,31 +1,43 @@
 # Last Session
 
-*Date: 2026-05-25 10:45*
-*Agent: Claude Code*
+*Date: 2026-06-13*
+*Agent: Codex*
+*Project: dual-bridge work loop loop-20260613-005527-082526-0-b25b*
 
 ## What Was Done
-- Cross-Device-Sharepoint-Loop in agentic-os integriert (v3.1.5 → 3.1.6): session-bootstrap Step 3.5 (Pull-Check), wrap-up Step 7.6 (Push-Vermerk)
-- Pull-Script ins Plugin kopiert (`skills/session-bootstrap/scripts/sharepoint-pull-check.ps1`, self-contained via ${CLAUDE_PLUGIN_ROOT})
-- AGENTIC-OS-INTEGRATION-PLAN.md verifiziert + 2 Pfad-Bugs korrigiert (plugin.json liegt unter .claude-plugin/, keine CHANGELOG.md)
-- Test-Reparatur: validate-plugin.sh Tests 12+26 von gelöschtem improvement-scout auf improvement-agent/self-improve portiert
-- Repo-URL-Korrektur committet (willneverusegit/argentic-os → dynamic-dome/agentic-os)
-- 3 Commits gepusht (178d12f feat, 5d265bf fix-tests, 04c672b chore-url), Marketplace + Plugin auf 3.1.6 aktualisiert
+- Implemented `tools/verified_scanner.py` with `find_min_verified_date(docs_root)`.
+- Scanner recursively reads `.md` files, matches indented/spaced `verified: YYYY-MM-DD` variants, validates ISO dates, skips malformed dates and unreadable files, and returns `{min_date, entries}`.
+- Added stdlib Python unit tests in `tests/test_verified_scanner.py` for multi-file minimum date, spacing variants, empty directory, no matches, malformed dates, and `VERIFIED_SCANNER_DOCS_ROOT` fallback.
+- Wired Python unit tests into `tests/run-all.sh`.
+- Added the canonical changelog entry to `docs/CHANGELOG.md`.
 
-## Open Items
-- v2-Verfeinerung (aus Plan): Index-Drift-Check im Pull-Script matcht Ordnernamen statt Pfade → False-Positives bei INDEX.md vs MANIFEST-Paketen
-- Standalone-Skill ~/.claude/skills/sharepoint-loop/ existiert parallel — Plugin-Variante ist jetzt self-contained, Standalone ggf. redundant
+## Current Status
+- Scanner implementation is complete.
+- Tests are green under Git Bash, which matches this repo's Windows/Git-Bash test convention.
+- No commit was created in this session.
+
+## Repo Status
+- Branch: `bridge/loop-20260613-005527-082526-0-b25b`
+- Uncommitted changes: yes: `docs/CHANGELOG.md`, `tests/run-all.sh`, `tests/test_verified_scanner.py`, `tools/verified_scanner.py`
+- Last commit: `a3b49ac feat(wrap-up): v3.6.0 - Session-Bracket-Coverage (session-harvest + decision-scan)`
+
+## Open Items / Blockers
+- No blocker for the scanner task.
+- Heartbeat audit reports pre-existing Agentic OS drift items in README/references and missing root `AGENTS.md`; these were not changed as part of this task.
+
+## Checks
+- `python -m unittest tests.test_verified_scanner` -> 6 tests passed.
+- `python -m py_compile tools\verified_scanner.py tests\test_verified_scanner.py` -> passed.
+- `C:\Program Files\Git\bin\bash.exe tests/run-all.sh` -> ALL TEST SUITES PASSED (180 plugin, 165 skill, 19 global-schema, 6 Python unit tests).
+- `git diff --check` -> passed; only Windows line-ending warnings for `docs/CHANGELOG.md` and `tests/run-all.sh`.
+- `python ~/.codex/agentic-os-runtime/agentic_os_cli.py status` -> completed.
+- `python ~/.codex/agentic-os-runtime/agentic_os_cli.py audit` -> failed on pre-existing drift outside this task scope.
 
 ## Next Steps
-1. Bei nächster Session: Pull-Check Step 3.5 live testen (Drive gemountet → Output prüfen)
-2. v2: Index-Drift-Check auf Pfad-Matching umstellen
-3. Standalone-Skill vs Plugin-Variante: Redundanz klären
+1. Review the four changed files.
+2. Commit if the scanner task should be preserved on this branch.
 
-## Statistics
-- Iterations: 1 (feature) + 1 (test-fix) + 1 (chore)
-- Errors: 0
-- New Patterns: 0
-- Test Health: 311/311 (170+141) passed
-- Code Quality: n/a (Markdown/JSON/Bash)
-
-## Active Warnings
-- Tests prüfen teils gelöschte Artefakte → bei Agent-Löschungen validate-plugin.sh mitprüfen
+## Important Paths
+- `C:\Users\domes\AI\dual-bridge\scripts\state\work\loop-20260613-005527-082526-0-b25b\tools\verified_scanner.py`
+- `C:\Users\domes\AI\dual-bridge\scripts\state\work\loop-20260613-005527-082526-0-b25b\tests\test_verified_scanner.py`
+- `C:\Users\domes\AI\dual-bridge\scripts\state\work\loop-20260613-005527-082526-0-b25b\docs\CHANGELOG.md`
