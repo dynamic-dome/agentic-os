@@ -61,6 +61,11 @@ It tells you:
 - If the central handoff is **newer** than the local `.agent-memory/session-summary.md`, the central handoff takes precedence for the LAST SESSION block in the briefing
 - If the central handoff references a **different project** than the current one, note this in the briefing ("Last handoff was from project X — switching context to Y")
 - From the status board, pull (i) the section matching the **current** project, if present, and (ii) any `## Cross-Project Notes` block (items relevant for all projects).
+- **Next-steps ownership (open-tasks-priority):** the central handoff's "Naechste Schritte"
+  section is a POINTER, not a list. The authoritative source for THIS project's next steps
+  is the local `context/open-tasks.json` (rendered by the local session-summary). From the
+  central handoff, import ONLY items prefixed `[cross-project]`. Never harvest project
+  next steps from stacked history blocks — they no longer exist (one block per project).
 - If either file does not exist or is unreadable → skip THAT file silently, continue. Never block on a missing cross-project file.
 - This step is **read-only** — do not modify either file
 
@@ -91,6 +96,7 @@ Read files in this priority order. Skip any that don't exist:
 7. **`quality/quality-score.json`** — test health + code quality trends
 8. **`iterations/errors.json`** — last 3 entries only (tail, not full load)
 9. **`working/current-session.json`** — if exists, resume working memory from interrupted session
+10. **`context/open-tasks.json`** — open/blocked tasks (SSoT for next steps; feeds Step 6)
 
 Apply identity settings from `soul.md` silently (communication style, guard rails).
 
@@ -223,7 +229,7 @@ CROSS-PROJECT (status board)
 
 LAST SESSION (this project)
   {2-3 lines from LOCAL .agent-memory/session-summary.md}
-  Next steps: {numbered list from summary}
+  Next steps: {open/blocked items from context/open-tasks.json; fallback: summary "Next Steps" if the file is missing/empty}
   {if no local summary exists: "No previous session in this project."}
 
 PROJECT STATUS
@@ -264,14 +270,14 @@ Based on the briefing, suggest 2-3 concrete actions:
 
 ```
 RECOMMENDED NEXT STEPS
-  1. {from central handoff open items, if they apply to this project}
-  2. {from local session summary open items}
+  1. {open/blocked tasks from context/open-tasks.json — highest priority first}
+  2. {[cross-project] items from the central handoff that apply to this project}
   3. {from pattern warnings or quality alerts}
 
   Ready — was steht heute an?
 ```
 
-**Priority:** Central handoff open items that reference THIS project come first. Then local open items. Then system-level warnings.
+**Priority:** Local `context/open-tasks.json` comes first — it owns this project's next steps. Then `[cross-project]` items from the central handoff. Then system-level warnings. Deduplicate: if an item appears both locally and centrally, show it ONCE (local wording wins).
 
 ## Step 6.5: Soul Candidate Gate (the single read-only exception)
 
