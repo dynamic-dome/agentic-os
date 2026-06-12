@@ -4,6 +4,21 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-13] PreToolUse Shell Circuit Breaker
+
+Neuer deterministischer Command-Hook `scripts/pre-tool-use-circuit-breaker.sh`,
+registriert in `hooks/hooks.json` fuer `PreToolUse`/`Bash`. Der Hook liest das
+Claude-Code-Hook-JSON ueber stdin, prueft gefaehrliche Shell-Muster und blockiert
+vor Ausfuehrung mit Exit-Code `2`.
+
+Blockierte Klassen: rekursive Force-Deletes (`rm -rf`,
+`Remove-Item -Recurse -Force`, `rmdir /s /q`), destruktive Git-Aktionen
+(`git reset --hard`, `git clean -fd/-xdf`, Force-Push), globale Rechte-/
+Ownership-Aenderungen, Format-/Blockdevice-Schreiboperationen und
+Download-to-Shell-Pipes.
+
+Tests: neue Unit-Tests in `tests/test_pre_tool_use_circuit_breaker.py`.
+
 ## [2026-06-13] Refresh Verify Status Wrapper
 
 Neues Python-Artefakt `tools/refresh_verify_status.py` mit `main`: ruft den
