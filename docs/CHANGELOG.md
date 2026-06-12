@@ -4,6 +4,18 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-13] Verified-Frontmatter-Scanner
+
+Neues Python-Artefakt `tools/verified_scanner.py` mit
+`find_min_verified_date(docs_root)`: traversiert Markdown-Dokumentation rekursiv,
+extrahiert robuste `verified: YYYY-MM-DD`-Varianten, validiert ISO-Daten und gibt
+`{"min_date": "...", "entries": [...]}` zurueck. Die Doku-Wurzel kann direkt uebergeben
+oder per `VERIFIED_SCANNER_DOCS_ROOT` gesetzt werden; leere Verzeichnisse, fehlende
+Treffer, malformed Daten und unlesbare Dateien erzeugen keine Exception.
+
+Tests: neue Python-Unit-Tests in `tests/test_verified_scanner.py`, eingebunden in
+`tests/run-all.sh`.
+
 ## [2026-06-12] Session-Bracket-Coverage: wrap-up Session-Harvest + Decision-Scan (v3.6.0)
 
 Der minimal unterstuetzte Workflow ist die Zwei-Aufruf-Klammer (bootstrap am Anfang, wrap-up
