@@ -1,8 +1,20 @@
 # Scripts
 
+## pre-tool-use-circuit-breaker.sh (aktiv)
+
+Deterministischer `PreToolUse`-Command-Hook fuer Bash-Tool-Aufrufe. Das Skript
+liest das Hook-JSON ueber stdin, prueft gefaehrliche Shell-Muster und blockiert
+vor Ausfuehrung mit Exit-Code `2`.
+
+**Blockiert u.a.:**
+- rekursive Force-Deletes (`rm -rf`, `Remove-Item -Recurse -Force`, `rmdir /s /q`)
+- destruktive Git-Aktionen (`git reset --hard`, `git clean -fd/-xdf`, Force-Push)
+- globale Rechte-/Ownership-Aenderungen (`chmod 777`, `chown -R`)
+- Format-/Blockdevice-Schreiboperationen und Download-to-Shell-Pipes
+
 ## session-start.sh (v3 — aktiv)
 
-Einziges Shell-Skript das noch aktiv genutzt wird, da `SessionStart` nur `command`-Hooks unterstuetzt (keine Prompt-Hooks).
+Shell-Skript fuer den `SessionStart`-Command-Hook.
 
 **Features:**
 - Auto-Init: Erstellt `.agent-memory/` mit allen 14 Dateien falls nicht vorhanden
