@@ -4,6 +4,17 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-13] README-Wasserscheide-Anzeige
+
+Neues Python-Artefakt `tools/generate_watermark.py` mit
+`inject_verify_watermark(readme_path, min_date)`: schreibt die README-Konvention
+`<!-- Doku verifiziert bis: YYYY-MM-DD -->` als einzelne Watermark-Zeile direkt nach
+dem ersten H1-Heading oder, falls kein H1 existiert, am Dateianfang. Bestehende
+Watermarks werden ersetzt und Duplikate auf eine kanonische Zeile reduziert.
+
+Tests: neue Python-Unit-Tests in `tests/test_generate_watermark.py` fuer
+Idempotenz, Datums-Updates, Duplikat-Bereinigung und README-Dateien ohne H1.
+
 ## [2026-06-13] Verified-Frontmatter-Scanner
 
 Neues Python-Artefakt `tools/verified_scanner.py` mit
