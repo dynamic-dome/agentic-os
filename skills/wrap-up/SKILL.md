@@ -200,6 +200,25 @@ Overwrite `.agent-memory/session-summary.md` with:
 
 **Keep it under 30 lines.**
 
+## Step 5.5: Persist Next Steps to open-tasks.json (open-tasks-ssot)
+
+`context/open-tasks.json` is the single source of truth for this project's open tasks.
+The SessionEnd guard and the PreCompact hook already read it; session-bootstrap Step 6
+builds its recommendations from it. The summary's "Next Steps" section (Step 5) is a
+RENDERING of this file — never the other way around.
+
+1. Read `context/open-tasks.json` (JSON array; treat as `[]` if missing).
+2. For every item in Step 5's "Next Steps" and "Open Items": if no entry with the same
+   `title` exists (case-insensitive compare) → append:
+   `{"id": "T-{next free number}", "title": "{item}", "status": "open", "created": "{today}", "updated": "{today}", "source": "wrap-up", "cross_project": false}`
+   Items described as blocked go in with `"status": "blocked"`.
+3. Mark entries as `"status": "done", "updated": "{today}"` when this session completed
+   them (compare against Step 2's What-Was-Done list). Never delete entries — done items
+   stay for audit; memory-maintenance archives them.
+4. Set `"cross_project": true` ONLY for items the user explicitly flagged as relevant
+   beyond this project. This flag is the sole feed for the central handoff's inline list
+   (Step 7.6a) — everything else stays local.
+
 ## Step 6: Grow user.md via Candidate Queue (user-growth)
 
 The old "update user.md only after 3+ identical corrections" rule never fired — after 80
@@ -328,13 +347,26 @@ nearly overwritten by an unrelated agentic-os wrap-up).
    to `# Vorherige Session ({its own date} {its own project}, erhalten)`. Do NOT wrap
    an already-demoted block again — only the single `# Letzte Session` line is ever
    rewritten. This prevents nested/duplicated `Vorherige Session` wrappers on repeat runs.
+2.5. **Ownership-Dedup (handoff-dedup):** after demoting, DELETE every older
+   `# Vorherige Session (...)` block whose project equals the NEW block's project —
+   the file keeps at most one block per project. A second block of the same project is
+   pure duplication: its detail already lives in that project's own
+   `.agent-memory/session-summary.md`, so nothing is lost.
 3. Write your new block with `# Letzte Session` as its first line, then a `---`, then
    the demoted old content.
-4. **Hard cap (mandatory, not optional):** keep at most **5** session blocks total
-   (1 current + 4 history). Drop the OLDEST blocks beyond that — BUT never drop a block
+4. **Hard cap (mandatory, not optional):** keep at most **5** session blocks total —
+   after rule 2.5 these are 5 DISTINCT projects (1 current + 4 history).
+   Drop the OLDEST blocks beyond that — BUT never drop a block
    whose project differs from every block you are keeping (preserve at least the most
    recent block per distinct project). If the cap forces dropping a foreign project's
    only block, instead move its 1-line state into `cross-project-status.md` (7.6b) first.
+
+**Naechste Schritte = pointer, not copy (next-steps-pointer):** the central block does
+NOT replicate the project's next steps. It carries ONE pointer line to the local source
+(`{project}/.agent-memory/context/open-tasks.json` — open count + top item) plus ONLY
+entries with `cross_project: true` from Step 5.5, each prefixed `[cross-project]`.
+Project-specific steps live exclusively in the local store (ownership principle, per
+SESSION-WORKFLOW.md §3 as amended 2026-06-12).
 
 Use the SESSION-WORKFLOW.md template (German headings, do not invent your own format):
 
@@ -365,7 +397,8 @@ Use the SESSION-WORKFLOW.md template (German headings, do not invent your own fo
 - Lint/Validation: {bestanden | fehlgeschlagen | nicht gelaufen | n/a}
 
 ## Naechste Schritte
-1. {highest priority}
+- Projekt-Next-Steps: {project}/.agent-memory/context/open-tasks.json ({N} offen; Top: {1 Zeile})
+- [cross-project] {items with cross_project=true — omit this line entirely if none}
 
 ## Wichtige Pfade
 - {key paths touched this session}

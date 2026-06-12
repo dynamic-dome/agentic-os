@@ -148,6 +148,47 @@ if [ -f "$WU_FILE" ]; then
     fi
 fi
 
+# --- Handoff-Ownership (2026-06-12): vier Marker, je strip->FAIL-verifiziert (L11) ---
+echo ""
+echo "-- handoff ownership (open-tasks SSoT, one-block-per-project, pointer) --"
+WU_HO_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+if [ -f "$WU_HO_FILE" ]; then
+    # (open-tasks-ssot): wrap-up persistiert Next Steps nach context/open-tasks.json
+    OTS_BLOCK=$(grep -A4 "(open-tasks-ssot)" "$WU_HO_FILE")
+    if echo "$OTS_BLOCK" | grep -q "context/open-tasks.json" && echo "$OTS_BLOCK" | grep -qi "single source of truth"; then
+        pass "wrap-up: (open-tasks-ssot) — Next Steps persisted to context/open-tasks.json as SSoT"
+    else
+        fail "wrap-up: missing (open-tasks-ssot) block — wrap-up must write Next Steps/Open Items into context/open-tasks.json (SSoT), summary is only a rendering"
+    fi
+
+    # (handoff-dedup): 7.6a prepend droppt aeltere Bloecke desselben Projekts
+    HD_BLOCK=$(grep -A4 "(handoff-dedup)" "$WU_HO_FILE")
+    if echo "$HD_BLOCK" | grep -qi "one block per project" && echo "$HD_BLOCK" | grep -qi "same project"; then
+        pass "wrap-up: (handoff-dedup) — central handoff keeps max one block per project"
+    else
+        fail "wrap-up: missing (handoff-dedup) rule in Step 7.6a — prepend must drop older blocks of the SAME project (kills next-step stacking)"
+    fi
+
+    # (next-steps-pointer): zentraler Block verweist statt zu kopieren
+    NSP_BLOCK=$(grep -A5 "(next-steps-pointer)" "$WU_HO_FILE")
+    if echo "$NSP_BLOCK" | grep -q "open-tasks.json" && echo "$NSP_BLOCK" | grep -q "cross-project"; then
+        pass "wrap-up: (next-steps-pointer) — central Naechste Schritte is pointer + [cross-project] items only"
+    else
+        fail "wrap-up: missing (next-steps-pointer) rule in Step 7.6a — central handoff must point to local open-tasks.json and list only [cross-project] items inline"
+    fi
+fi
+
+# (open-tasks-priority): bootstrap liest Next Steps aus der lokalen SSoT, zentral nur [cross-project]
+SB_HO_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
+if [ -f "$SB_HO_FILE" ]; then
+    OTP_BLOCK=$(grep -A4 "(open-tasks-priority)" "$SB_HO_FILE")
+    if echo "$OTP_BLOCK" | grep -q "context/open-tasks.json" && echo "$OTP_BLOCK" | grep -qi "cross-project"; then
+        pass "session-bootstrap: (open-tasks-priority) — local open-tasks.json is authoritative for next steps"
+    else
+        fail "session-bootstrap: missing (open-tasks-priority) — recommendations must come from local context/open-tasks.json first; central handoff contributes only [cross-project] items"
+    fi
+fi
+
 # tdd, code-reviewer JSON template tests removed — merged into quality-gate in v3
 
 echo ""
