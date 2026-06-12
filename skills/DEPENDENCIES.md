@@ -75,7 +75,8 @@ SESSION END (SessionEnd hook → wrap-up)
   │  ├── reads: iteration-log.md, errors.json, test-results.json,
   │  │     code-reviews.json, learnings.json, working/current-session.json
   │  ├── writes: session-summary.md, learnings.json + learnings.md,
-  │  │     identity/user.md (conditional), working/current-session.json (reset)
+  │  │     identity/user.md (conditional), working/current-session.json (reset),
+  │  │     context/open-tasks.json (Step 5.5, SSoT for next steps — v3.5.0)
   │  ├── Step 4   → invokes pattern-extractor (if 3+ new iterations)
   │  ├── Step 7.5 → invokes obsidian-sync (conditional: sync_enabled + threshold)
   │  ├── Step 7.6 → writes cross-project: ~/AI/.agent-memory/session-summary.md
@@ -87,13 +88,13 @@ SESSION END (SessionEnd hook → wrap-up)
 
 | Skill | Reads From | Writes To | Invokes |
 |-------|-----------|-----------|---------|
-| session-bootstrap | local: session-summary.md, soul.md, user.md, soul-candidates.md, project-context.md, patterns.md, learnings.json, quality-score.json, errors.json (tail), working/current-session.json, config.json · cross-project: ~/AI/.agent-memory/session-summary.md, cross-project-status.md, SESSION-WORKFLOW.md · wiki (optional): entity + entrypoints | (read-only) EXCEPT the user-confirmed soul.md write in Step 6.5 → soul.md, user-changelog.json, soul-candidates.md (only on explicit `j`). 4.A staleness-wrap is DISPLAY-ONLY (>90d → `[STALE? …]`), never a write. | — |
+| session-bootstrap | local: session-summary.md, soul.md, user.md, soul-candidates.md, project-context.md, patterns.md, learnings.json, quality-score.json, errors.json (tail), working/current-session.json, **context/open-tasks.json (SSoT for next steps, v3.5.0)**, config.json · cross-project: ~/AI/.agent-memory/session-summary.md, cross-project-status.md, SESSION-WORKFLOW.md · wiki (optional): entity + entrypoints | (read-only) EXCEPT the user-confirmed soul.md write in Step 6.5 → soul.md, user-changelog.json, soul-candidates.md (only on explicit `j`). 4.A staleness-wrap is DISPLAY-ONLY (>90d → `[STALE? …]`), never a write. | — |
 | iteration-logger | errors.json, iteration-log.md, working/current-session.json | iteration-log.md, errors.json, working/current-session.json, *-archive-{YYYY-MM} | — (suggests pattern-extractor) |
 | pattern-extractor | errors.json, iteration-log.md, patterns.json | patterns.json, patterns.md | — |
 | context-keeper | docs/PROJECT.md+ARCHITECTURE.md+CAPABILITIES.md (SoT), project-context.md, decisions.json, config.json | project-context.md (cache), decisions.json, ~/wiki/wiki/entities/<id>.md (optional) | — |
 | quality-gate | project-context.md, patterns.md, test-results.json, code-reviews.json, quality-score.json | code-reviews.json, test-results.json, quality-score.json | — (pattern-extractor/context-keeper are in `depends-on` metadata but NOT invoked by the body) |
 | skill-generator | patterns.json, errors.json | generated-skills/<name>/SKILL.md, patterns.json, ~/.claude/skills/ (optional) | — |
-| wrap-up | iteration-log.md, errors.json, test-results.json, code-reviews.json, learnings.json, working/current-session.json, user-candidates.json | session-summary.md, learnings.json, learnings.md, user.md, user-candidates.json (queue), user-changelog.json (audit), soul-candidates.md (propose), working/current-session.json; cross-project handoff + status-board + Sharepoint | pattern-extractor (3+ iters), obsidian-sync (Step 7.5), memory-maintenance (on request) |
+| wrap-up | iteration-log.md, errors.json, test-results.json, code-reviews.json, learnings.json, working/current-session.json, user-candidates.json, context/open-tasks.json | session-summary.md, learnings.json, learnings.md, user.md, user-candidates.json (queue), user-changelog.json (audit), soul-candidates.md (propose), working/current-session.json, **context/open-tasks.json (Step 5.5, SSoT for next steps)**; cross-project handoff (max 1 block per project, next steps as pointer + `[cross-project]` only — v3.5.0) + status-board + Sharepoint | pattern-extractor (3+ iters), obsidian-sync (Step 7.5), memory-maintenance (on request) |
 | memory-maintenance | all .agent-memory/ files, improvements/state.json (precondition); 4.A Step 4b: global store + scripts/global-schema.sh (apply_decay) | archives/*, repaired JSON, compacted session-summary.md + learnings.md; 4.A: decayed confidence + lifecycle:archived in ~/.claude-memory/global/* (never hard-delete) | pattern-extractor (patterns.md refresh) |
 | sync-context | local patterns/learnings, ~/.claude-memory/global/*; 4.A: scripts/global-schema.sh (is_denied, compute_scope, passes_promotion_gate) + scripts/mem-schema.sh (MEM_GLOBAL_DENY_TAGS) | local + ~/.claude-memory/global/{patterns,learnings,projects}.json with 4.A provenance schema (G-<type>-<n>, scope, valid_from, lifecycle); privacy-filter before gate; promotion gate; pull serves only lifecycle:active | — |
 | research-pipeline | (external: Perplexity, NotebookLM) | research/<topic>-*.md | — (external notebooklm CLI) |

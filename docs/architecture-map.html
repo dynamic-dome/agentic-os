@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic OS v3.4.0 — Interaktionskarte</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #181f29; --border: #2a3441;
+    --text: #d8e1ec; --muted: #8a99ab; --accent: #4fc3f7;
+    --green: #66bb6a; --orange: #ffa726; --red: #ef5350; --purple: #ab7df8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 4rem;
+    background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    line-height: 1.55;
+  }
+  header {
+    padding: 2.2rem 2rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #141b24, var(--bg));
+  }
+  header h1 { margin: 0 0 .3rem; font-size: 1.6rem; font-weight: 600; }
+  header p { margin: 0; color: var(--muted); max-width: 70ch; }
+  nav {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; flex-wrap: wrap; gap: .25rem;
+    padding: .55rem 2rem; background: #131922ee;
+    border-bottom: 1px solid var(--border); backdrop-filter: blur(4px);
+  }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: .85rem;
+    padding: .25rem .65rem; border-radius: 5px;
+  }
+  nav a:hover { color: var(--accent); background: #1d2733; }
+  main { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
+  section { margin-top: 3rem; }
+  h2 {
+    font-size: 1.25rem; font-weight: 600; margin: 0 0 .4rem;
+    padding-bottom: .35rem; border-bottom: 1px solid var(--border);
+  }
+  h2 .num { color: var(--accent); margin-right: .5rem; }
+  .lead { color: var(--muted); margin: .4rem 0 1.2rem; max-width: 85ch; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1.4rem; overflow-x: auto;
+  }
+  .mermaid { display: flex; justify-content: center; min-height: 120px; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 1.1rem;
+    margin-top: .8rem; font-size: .82rem; color: var(--muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: .4rem; }
+  .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  table {
+    border-collapse: collapse; width: 100%; font-size: .87rem; margin-top: .6rem;
+  }
+  th, td {
+    text-align: left; padding: .5rem .7rem;
+    border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  th { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  td code, p code, li code {
+    background: #232d3a; padding: .08rem .35rem; border-radius: 4px;
+    font-size: .82em; color: #a8d4ff;
+  }
+  .tag {
+    display: inline-block; font-size: .72rem; padding: .1rem .5rem;
+    border-radius: 99px; margin-right: .3rem; white-space: nowrap;
+  }
+  .tag.skill   { background: #1c3a52; color: #7ecbff; }
+  .tag.inline  { background: #4a3416; color: #ffc97a; }
+  .tag.hook    { background: #20402a; color: #8fe09a; }
+  .tag.agent   { background: #3a2a52; color: #c9a8ff; }
+  .tag.ro      { background: #233; color: #9ad; }
+  .tag.gate    { background: #4a1f1f; color: #ff9d9d; }
+  .callout {
+    border-left: 3px solid var(--accent); background: #16202c;
+    padding: .8rem 1.1rem; border-radius: 0 8px 8px 0;
+    margin: 1rem 0; font-size: .9rem;
+  }
+  .callout strong { color: var(--accent); }
+  footer { margin-top: 4rem; padding: 1.5rem 2rem; color: var(--muted); font-size: .8rem; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Agentic OS v3.4.0 — Interaktionskarte</h1>
+  <p>Wie die 12 Commands, 13 Skills, 4 Agents und 5 Hooks dieses Plugins zusammenspielen
+  und welche Datenspeicher sie verbinden. Quelle: <code>skills/DEPENDENCIES.md</code> (verifiziert
+  gegen die Live-SKILL.md-Dateien am 2026-06-12) + <code>commands/*.md</code> + <code>hooks/hooks.json</code>.</p>
+</header>
+
+<nav>
+  <a href="#lifecycle">1 · Session-Lifecycle</a>
+  <a href="#commands">2 · Commands → Skills</a>
+  <a href="#skillgraph">3 · Skill-Aufrufkette</a>
+  <a href="#stores">4 · Datenspeicher</a>
+  <a href="#external">5 · Externe Systeme</a>
+  <a href="#agents">6 · Agents</a>
+  <a href="#matrix">7 · Gesamtmatrix</a>
+</nav>
+
+<main>
+
+<!-- ================= 1 LIFECYCLE ================= -->
+<section id="lifecycle">
+  <h2><span class="num">1</span>Session-Lifecycle — was passiert automatisch?</h2>
+  <p class="lead">Nur zwei Momente sind voll automatisiert: der Session-Start (Hook führt
+  <code>session-start.sh</code> aus und stößt <em>session-bootstrap</em> an) und das Session-Ende
+  (Hook sichert offene Tasks und delegiert an <em>wrap-up</em>). Alles dazwischen ist
+  user-getrieben — kein Skill triggert sich selbst bei Code-Änderungen.</p>
+  <div class="panel">
+    <pre class="mermaid">
+flowchart TB
+  classDef hook fill:#20402a,stroke:#66bb6a,color:#d6f5dc
+  classDef skill fill:#1c3a52,stroke:#4fc3f7,color:#d8ecff
+  classDef phase fill:#181f29,stroke:#2a3441,color:#8a99ab
+  classDef warn fill:#4a3416,stroke:#ffa726,color:#ffe2b8
+
+  HS["SessionStart Hook<br/><small>command · session-start.sh<br/>Auto-Init via mem-schema.sh (SSoT)</small>"]:::hook
+  SB["session-bootstrap<br/><small>READ-ONLY · Briefing aus session-summary,<br/>identity, patterns, learnings, quality<br/>Ausnahme: soul.md-Gate nur auf explizites 'j'</small>"]:::skill
+  WORK["ARBEITSPHASE<br/><small>user-getrieben — keine Auto-Trigger</small>"]:::phase
+  HU["UserPromptSubmit Hook<br/><small>prompt · advisory-only Hinweise:<br/>'Iteration loggen?' / 'Entscheidung festhalten?'</small>"]:::hook
+  HP["PreCompact Hook<br/><small>prompt · Überlebens-Summary<br/>vor Kontext-Kompression</small>"]:::hook
+  HSA["SubagentStop Hook<br/><small>prompt · Commit-Vorschlag nach<br/>quality-gate / improvement-agent</small>"]:::hook
+  HE["SessionEnd Hook<br/><small>prompt · Task-Persistence-Guard<br/>+ open-tasks-Drift-Check</small>"]:::hook
+  WU["wrap-up<br/><small>Summary, Learnings, Handoff,<br/>Commit-Vorschlag</small>"]:::skill
+
+  HS --> SB --> WORK
+  HU -.begleitet.-> WORK
+  HP -.bei Kompression.-> WORK
+  HSA -.nach Subagents.-> WORK
+  WORK --> HE -->|"delegiert (falls heute noch nicht gelaufen)"| WU
+    </pre>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:#20402a;border:1px solid #66bb6a"></span>Hook (automatisch)</span>
+    <span><span class="dot" style="background:#1c3a52;border:1px solid #4fc3f7"></span>Skill</span>
+    <span><span class="dot" style="background:#181f29;border:1px solid #2a3441"></span>Phase</span>
+  </div>
+</section>
+
+<!-- ================= 2 COMMANDS ================= -->
+<section id="commands">
+  <h2><span class="num">2</span>Commands → Skills — wer ist nur Wrapper, wer denkt selbst?</h2>
+  <p class="lead">7 Commands sind dünne Wrapper, die 1:1 einen Skill aufrufen. 5 Commands tragen
+  ihre Logik inline (kein Skill dahinter). Und 6 Skills haben <em>gar keinen</em> Command —
+  sie laufen nur über Hooks, Trigger-Phrasen oder werden von anderen Skills aufgerufen.</p>
+  <div class="panel">
+    <pre class="mermaid">
+flowchart LR
+  classDef cmd fill:#252017,stroke:#ffa726,color:#ffe2b8
+  classDef skill fill:#1c3a52,stroke:#4fc3f7,color:#d8ecff
+  classDef inline fill:#2d1d1d,stroke:#ef5350,color:#ffc4c4
+  classDef orphan fill:#241d33,stroke:#ab7df8,color:#e2d4ff
+
+  subgraph CMDS["12 Commands"]
+    direction TB
+    c_log["/log"]:::cmd
+    c_pat["/patterns"]:::cmd
+    c_qg["/quality-gate"]:::cmd
+    c_res["/research"]:::cmd
+    c_sync["/sync"]:::cmd
+    c_wrap["/wrap-up"]:::cmd
+    c_loop["/run-loop"]:::cmd
+    c_init["/init"]:::inline
+    c_status["/status"]:::inline
+    c_roll["/rollback"]:::inline
+    c_auto["/auto-commit"]:::inline
+    c_audit["/memory-audit"]:::inline
+  end
+
+  subgraph SKILLS["Skills mit Command"]
+    direction TB
+    s_il["iteration-logger"]:::skill
+    s_pe["pattern-extractor"]:::skill
+    s_qg["quality-gate"]:::skill
+    s_rp["research-pipeline"]:::skill
+    s_sc["sync-context"]:::skill
+    s_wu["wrap-up"]:::skill
+    s_si["self-improve"]:::skill
+  end
+
+  subgraph NOCMD["Skills OHNE Command<br/><small>nur Hook / Trigger-Phrase / Skill-Aufruf</small>"]
+    direction TB
+    s_sb["session-bootstrap<br/><small>(SessionStart-Hook)</small>"]:::orphan
+    s_ck["context-keeper"]:::orphan
+    s_sg["skill-generator"]:::orphan
+    s_mm["memory-maintenance"]:::orphan
+    s_os["obsidian-sync"]:::orphan
+    s_wq["wiki-query"]:::orphan
+  end
+
+  c_log --> s_il
+  c_pat --> s_pe
+  c_qg --> s_qg
+  c_res --> s_rp
+  c_sync --> s_sc
+  c_wrap --> s_wu
+  c_loop --> s_si
+    </pre>
+  </div>
+  <table>
+    <tr><th>Command</th><th>Typ</th><th>Was er tut</th><th>Besonderheit</th></tr>
+    <tr><td><code>/log</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ iteration-logger</td><td>optionales Summary-Argument</td></tr>
+    <tr><td><code>/patterns</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ pattern-extractor</td><td></td></tr>
+    <tr><td><code>/quality-gate</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ quality-gate</td><td>go/no-go-Verdict</td></tr>
+    <tr><td><code>/research</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ research-pipeline</td><td>extern: Perplexity + NotebookLM</td></tr>
+    <tr><td><code>/sync</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ sync-context</td><td>manuell-only by design</td></tr>
+    <tr><td><code>/wrap-up</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ wrap-up</td><td></td></tr>
+    <tr><td><code>/run-loop</code></td><td><span class="tag skill">Skill-Wrapper</span></td><td>→ self-improve (max 4 Iterationen)</td><td>Circuit-Breaker, Rollback-Tags</td></tr>
+    <tr><td><code>/init</code></td><td><span class="tag inline">Inline</span></td><td>Memory-Struktur via <code>mem-schema.sh</code> (SSoT)</td><td><span class="tag agent">context-detective</span> optional für Stack-Detection</td></tr>
+    <tr><td><code>/status</code></td><td><span class="tag inline">Inline</span> <span class="tag ro">read-only</span></td><td>Health + Statistiken anzeigen</td><td></td></tr>
+    <tr><td><code>/rollback</code></td><td><span class="tag inline">Inline</span> <span class="tag gate">Bestätigung</span></td><td>git revert des letzten self-improve-Commits</td><td>aktualisiert <code>improvements/state.json</code></td></tr>
+    <tr><td><code>/auto-commit</code></td><td><span class="tag inline">Inline</span> <span class="tag gate">Test-Gate</span></td><td>staged alles außer <code>.agent-memory/</code>, committet</td><td>Push nur auf explizite Anweisung</td></tr>
+    <tr><td><code>/memory-audit</code></td><td><span class="tag inline">Inline</span> <span class="tag ro">read-only</span></td><td>Drift-/Provenance-/Staleness-Report (lokal + global 4.A)</td><td>heilt nichts — benennt den zuständigen Skill</td></tr>
+  </table>
+</section>
+
+<!-- ================= 3 SKILL GRAPH ================= -->
+<section id="skillgraph">
+  <h2><span class="num">3</span>Skill-Aufrufkette — wer ruft wen?</h2>
+  <p class="lead">Streng zyklenfrei (DAG). Nur drei Skills rufen andere Skills auf — alle drei
+  zeigen auf <em>pattern-extractor</em>, das Verdichtungs-Zentrum des Systems. <em>wrap-up</em> ist
+  der einzige Orchestrator mit drei Delegationen. Alles andere sind Blätter.</p>
+  <div class="panel">
+    <pre class="mermaid">
+flowchart TB
+  classDef orch fill:#1c3a52,stroke:#4fc3f7,color:#d8ecff,stroke-width:2px
+  classDef leaf fill:#181f29,stroke:#3a4856,color:#c4d2e0
+  classDef hub fill:#2a2440,stroke:#ab7df8,color:#e2d4ff,stroke-width:2px
+
+  WU["wrap-up<br/><small>Session-Abschluss-Orchestrator</small>"]:::orch
+  SI["self-improve<br/><small>Verbesserungs-Loop</small>"]:::orch
+  MM["memory-maintenance<br/><small>Store-Hygiene</small>"]:::orch
+  IL["iteration-logger"]:::leaf
+  PE["pattern-extractor<br/><small>Verdichtungs-Hub</small>"]:::hub
+  OS["obsidian-sync"]:::leaf
+  SB["session-bootstrap"]:::leaf
+  CK["context-keeper"]:::leaf
+  QG["quality-gate"]:::leaf
+  SG["skill-generator"]:::leaf
+  SC["sync-context"]:::leaf
+  RP["research-pipeline"]:::leaf
+  WQ["wiki-query"]:::leaf
+
+  WU -->|"Step 4 (ab 3 neuen Iterationen)"| PE
+  WU -->|"Step 7.5 (sync_enabled + Schwelle)"| OS
+  WU -->|"Step 9 (nur auf Anfrage/Schwelle)"| MM
+  SI -->|"Phase 2.1"| PE
+  MM -->|"Step 8 Konsistenz-Refresh"| PE
+  IL -.->|"schlägt vor (jede 5. Iteration),<br/>ruft NICHT auf"| PE
+
+  SB ~~~ CK ~~~ QG
+  SG ~~~ SC ~~~ RP ~~~ WQ
+    </pre>
+  </div>
+  <div class="callout">
+    <strong>Legacy-Falle:</strong> <code>quality-gate</code> und <code>self-improve</code> listen in ihrer
+    <code>depends-on</code>-Metadata weitere Skills (pattern-extractor, context-keeper, iteration-logger) —
+    die Skill-<em>Bodies</em> rufen sie aber nicht auf. Die Metadata ist Altbestand; maßgeblich ist der Body.
+  </div>
+</section>
+
+<!-- ================= 4 STORES ================= -->
+<section id="stores">
+  <h2><span class="num">4</span>Datenspeicher — eine Schreibhoheit pro Datei</h2>
+  <p class="lead">Kern-Designregel: pro Store-Datei gibt es genau <em>einen</em> schreibberechtigten
+  Skill (DAG-Schreibordnung). Lesen dürfen viele — schreiben nur der Eigentümer.
+  Einzige dokumentierte Querschreibung: <em>obsidian-sync</em> setzt <code>promotion_status</code> in patterns.json.</p>
+  <div class="panel">
+    <pre class="mermaid">
+flowchart LR
+  classDef skill fill:#1c3a52,stroke:#4fc3f7,color:#d8ecff
+  classDef store fill:#1f2a1f,stroke:#66bb6a,color:#d6f5dc
+
+  IL["iteration-logger"]:::skill
+  PE["pattern-extractor"]:::skill
+  CK["context-keeper"]:::skill
+  QG["quality-gate"]:::skill
+  WU["wrap-up"]:::skill
+  SG["skill-generator"]:::skill
+  SI["self-improve"]:::skill
+  OS["obsidian-sync"]:::skill
+
+  ST_IT[("iterations/<br/>iteration-log.md · errors.json")]:::store
+  ST_PT[("patterns/<br/>patterns.json · patterns.md")]:::store
+  ST_CX[("context/<br/>project-context.md · decisions.json · open-tasks.json")]:::store
+  ST_QU[("quality/<br/>code-reviews · test-results · quality-score")]:::store
+  ST_SU[("session-summary.md<br/>learnings/ · identity/")]:::store
+  ST_WK[("working/<br/>current-session.json")]:::store
+  ST_GS[("generated-skills/")]:::store
+  ST_IM[("improvements/<br/>state.json · iterations-*.md")]:::store
+
+  IL --> ST_IT
+  IL --> ST_WK
+  PE --> ST_PT
+  CK --> ST_CX
+  QG --> ST_QU
+  WU --> ST_SU
+  WU -->|"liest + resettet"| ST_WK
+  SG --> ST_GS
+  SI --> ST_IM
+  OS -.->|"nur promotion_status"| ST_PT
+    </pre>
+  </div>
+</section>
+
+<!-- ================= 5 EXTERNAL ================= -->
+<section id="external">
+  <h2><span class="num">5</span>Externe Systeme — was verlässt das Projekt?</h2>
+  <p class="lead">Vier Wege führen aus <code>.agent-memory/</code> hinaus. Jeder hat eigene Gates:
+  der globale Layer das Promotion-Gate + Privacy-Denylist, das Wiki den sync_enabled-Schalter,
+  der zentrale Handoff die SESSION-WORKFLOW-Verfassung, der Sharepoint ein Optional-Flag.</p>
+  <div class="panel">
+    <pre class="mermaid">
+flowchart LR
+  classDef skill fill:#1c3a52,stroke:#4fc3f7,color:#d8ecff
+  classDef ext fill:#3a2416,stroke:#ffa726,color:#ffe2b8
+  classDef gatec fill:#4a1f1f,stroke:#ef5350,color:#ffc4c4
+
+  MEM[(".agent-memory/<br/><small>lokales Projekt-Gedächtnis</small>")]:::skill
+
+  SC["sync-context<br/><small>manuell-only</small>"]:::skill
+  GATE{{"Promotion-Gate<br/>conf ≥ 0.6 ∧ occ ≥ 3 ∧ ≥ 2 Projekte<br/>+ Privacy-Denylist VOR allem"}}:::gatec
+  GLOB["~/.claude-memory/global/<br/><small>patterns · learnings · projects<br/>Provenance: G-id, scope, lifecycle</small>"]:::ext
+
+  OS["obsidian-sync"]:::skill
+  WIKI["~/wiki/<br/><small>Session-Notes, Entities,<br/>Synthesen, Index</small>"]:::ext
+
+  WU["wrap-up Step 7.6"]:::skill
+  HAND["~/AI/.agent-memory/session-summary.md<br/><small>zentraler Handoff (prepend)</small><br/>~/AI/cross-project-status.md<br/><small>Status-Board (in-place)</small>"]:::ext
+  SP["G:\\…\\dynamic_sharepoint\\<br/><small>Cross-Device-Delta (optional, 7.6c)</small>"]:::ext
+
+  RP["research-pipeline"]:::skill
+  EXT2["Perplexity · NotebookLM CLI"]:::ext
+
+  MM["memory-maintenance Step 4b"]:::skill
+
+  MEM <--> SC
+  SC --> GATE --> GLOB
+  GLOB -->|"Pull: nur lifecycle:active, conf ≥ 0.5"| SC
+  MEM --> OS --> WIKI
+  MEM --> WU --> HAND
+  WU -.-> SP
+  RP --> EXT2
+  EXT2 -->|"research/*.md"| MEM
+  MM -->|"Decay −0.1/90d, Floor 0.3,<br/>nie hard-delete"| GLOB
+    </pre>
+  </div>
+</section>
+
+<!-- ================= 6 AGENTS ================= -->
+<section id="agents">
+  <h2><span class="num">6</span>Agents — die vier Subagenten</h2>
+  <div class="panel">
+    <pre class="mermaid">
+flowchart LR
+  classDef agent fill:#2a2440,stroke:#ab7df8,color:#e2d4ff
+  classDef caller fill:#1c3a52,stroke:#4fc3f7,color:#d8ecff
+  classDef cmd fill:#252017,stroke:#ffa726,color:#ffe2b8
+
+  INIT["/init"]:::cmd
+  SI["self-improve (Skill)"]:::caller
+  QGS["quality-gate (Skill)"]:::caller
+
+  CD["context-detective<br/><small>Stack-Auto-Detection (docs-first)<br/>→ project-context.md</small>"]:::agent
+  IA["improvement-agent<br/><small>eine Verbesserungs-Iteration<br/>(führt self-improve-Skill aus)</small>"]:::agent
+  QGA["quality-gate (Agent)<br/><small>Review + Tests parallel<br/>→ quality/*.json</small>"]:::agent
+  RA["research-agent<br/><small>Web + NotebookLM Research<br/>→ JSON-Ergebnis (schreibt nichts)</small>"]:::agent
+
+  INIT -.optional.-> CD
+  SI -->|"pro Iteration"| IA
+  SI -.Research-Phase.-> RA
+  QGS --> QGA
+    </pre>
+  </div>
+  <div class="callout">
+    <strong>Namensfalle:</strong> <code>quality-gate</code> existiert doppelt — als <em>Skill</em>
+    (Orchestrator, entscheidet go/no-go) und als <em>Agent</em> (Ausführungshelfer, läuft Review +
+    Tests). Der Skill ruft den Agent; der SubagentStop-Hook lauscht auf den Agent-Namen.
+  </div>
+</section>
+
+<!-- ================= 7 MATRIX ================= -->
+<section id="matrix">
+  <h2><span class="num">7</span>Gesamtmatrix — alle 13 Skills auf einen Blick</h2>
+  <table>
+    <tr><th>Skill</th><th>Layer</th><th>Trigger</th><th>Liest</th><th>Schreibt</th><th>Ruft auf</th></tr>
+    <tr><td><b>session-bootstrap</b></td><td>core</td><td><span class="tag hook">SessionStart-Hook</span></td><td>session-summary, identity/, patterns.md, learnings (Salience), quality, errors (tail), Handoff (~/AI), Wiki (opt.)</td><td><span class="tag ro">read-only</span> außer soul.md-Gate (explizites „j“)</td><td>—</td></tr>
+    <tr><td><b>iteration-logger</b></td><td>core</td><td><code>/log</code> + Phrasen</td><td>errors, iteration-log, working/</td><td>iteration-log, errors, working/, Archive</td><td>schlägt pattern-extractor vor</td></tr>
+    <tr><td><b>pattern-extractor</b></td><td>core</td><td><code>/patterns</code> + von 3 Skills</td><td>errors, iteration-log, patterns.json</td><td>patterns.json, patterns.md</td><td>—</td></tr>
+    <tr><td><b>context-keeper</b></td><td>core</td><td>Phrasen (Entscheidungen)</td><td>docs/ (SoT!), project-context, decisions</td><td>project-context (Cache), decisions.json, Wiki-Entity (opt.)</td><td>—</td></tr>
+    <tr><td><b>wrap-up</b></td><td>core</td><td><code>/wrap-up</code> + SessionEnd-Hook</td><td>iteration-log, errors, quality/*, learnings, working/</td><td>session-summary, learnings, identity/user.md, Handoff, Status-Board, Sharepoint (opt.)</td><td>pattern-extractor, obsidian-sync, memory-maintenance</td></tr>
+    <tr><td><b>skill-generator</b></td><td>core</td><td>Phrasen + pattern-Flag</td><td>patterns.json, errors</td><td>generated-skills/, patterns.json (Back-Ref)</td><td>—</td></tr>
+    <tr><td><b>sync-context</b></td><td>core</td><td><code>/sync</code> <span class="tag gate">manuell-only</span></td><td>lokale + globale Stores, global-schema.sh</td><td>beide Seiten (Provenance-Schema, Gate, Denylist)</td><td>—</td></tr>
+    <tr><td><b>memory-maintenance</b></td><td>core</td><td>Phrasen / wrap-up Step 9</td><td>alle Stores, improvements/state.json</td><td>Archive, reparierte JSONs, global Decay (4b)</td><td>pattern-extractor</td></tr>
+    <tr><td><b>quality-gate</b></td><td>quality</td><td><code>/quality-gate</code> + Phrasen</td><td>project-context, patterns.md, quality/*</td><td>code-reviews, test-results, quality-score</td><td>quality-gate-Agent</td></tr>
+    <tr><td><b>research-pipeline</b></td><td>knowledge</td><td><code>/research</code> + Phrasen</td><td>extern (Perplexity, NotebookLM)</td><td>research/*.md</td><td>—</td></tr>
+    <tr><td><b>wiki-query</b></td><td>knowledge</td><td>Phrasen (mid-session)</td><td>~/wiki/ <span class="tag ro">read-only</span></td><td>queries/ nur mit Consent</td><td>—</td></tr>
+    <tr><td><b>obsidian-sync</b></td><td>knowledge</td><td>Phrasen / wrap-up 7.5</td><td>config, summary, learnings, patterns, decisions</td><td>~/wiki/ (Notes, Entity, Synthese), patterns.json (nur promotion_status)</td><td>—</td></tr>
+    <tr><td><b>self-improve</b></td><td>self-improve</td><td><code>/run-loop</code> + Phrasen</td><td>state.json, skills/*, patterns, errors</td><td>skills/*/SKILL.md, improvements/, research-cache</td><td>pattern-extractor, improvement-agent, research-agent</td></tr>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  Generiert 2026-06-12 aus den Live-Dateien (Repo-Stand v3.4.0). Bei Widerspruch gilt:
+  SKILL.md &gt; DEPENDENCIES.md &gt; diese Karte. Befunde der Verifikation: Sharepoint-Push (wrap-up 7.6c)
+  und global-decay (memory-maintenance 4b) waren in DEPENDENCIES.md unterdokumentiert — hier ergänzt.
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "dark",
+    themeVariables: {
+      darkMode: true,
+      background: "#181f29",
+      primaryColor: "#1c3a52",
+      primaryTextColor: "#d8e1ec",
+      primaryBorderColor: "#4fc3f7",
+      lineColor: "#5a6b7d",
+      fontSize: "14px"
+    },
+    flowchart: { curve: "basis", htmlLabels: true }
+  });
+</script>
+</body>
+</html>

@@ -4,6 +4,22 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-12] Handoff-Ownership — lokale vs. globale Uebergaben (v3.5.0)
+
+Next Steps leben jetzt genau einmal — projekt-lokal in `context/open-tasks.json` (neuer
+wrap-up **Step 5.5**, SSoT mit `{id,title,status,cross_project}`; die Hooks erwarteten das
+Schema schon, nur schrieb es bisher kein Skill systematisch). Der zentrale Handoff
+(`~/AI/.agent-memory/session-summary.md`) haelt max. **1 Block pro Projekt** (7.6a
+Ownership-Dedup, Regel 2.5) und **verweist** auf die lokale Quelle statt Next Steps zu
+kopieren — inline nur noch `[cross-project]`-Punkte. session-bootstrap liest die lokale
+SSoT zuerst (Step 6 Prioritaet gedreht, Dedup lokal-gewinnt). SESSION-WORKFLOW.md §3/§7
+entsprechend angepasst (explizit User-genehmigt 2026-06-12, Aenderungsvermerk im Dokument).
+Bestands-Handoff migriert (6 → 3 Bloecke, Gate-B-genehmigt, Backup `.bak-2026-06-12`).
+4 neue Marker-Tests (`open-tasks-ssot`, `handoff-dedup`, `next-steps-pointer`,
+`open-tasks-priority`), alle bidirektional strip→FAIL-verifiziert (L11).
+Behebt: Next-Step-Duplikate (2–3x) durch gestapelte Session-Bloecke desselben Projekts.
+Plan: `docs/plans/2026-06-12-handoff-ownership-master-plan.md`.
+
 ## [2026-06-03] Fix: qualitative Confidence in 4.A-Migration (v3.4.1)
 
 `migrate-global-schema-4A.sh` stuerzte auf realen globalen Stores mit `ValueError: could not convert string to float: 'low'` ab: Legacy-Patterns tragen qualitative Confidence (`low`/`medium`/`high`) neben numerischen Werten, und die Promotion-Gate-Berechnung rief blind `float(out["confidence"])`. Beobachtet am Live-Store `~/.claude-memory/global/` (23 Patterns, 5 mit String-Confidence).
