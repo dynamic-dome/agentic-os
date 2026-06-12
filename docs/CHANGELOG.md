@@ -7,7 +7,7 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 ## [2026-06-12] Handoff-Ownership — lokale vs. globale Uebergaben (v3.5.0)
 
 Next Steps leben jetzt genau einmal — projekt-lokal in `context/open-tasks.json` (neuer
-wrap-up **Step 5.5**, SSoT mit `{id,title,status,cross_project}`; die Hooks erwarteten das
+wrap-up **Step 5.5**, SSoT mit `{id,title,status,created,updated,source,cross_project}`; die Hooks erwarteten das
 Schema schon, nur schrieb es bisher kein Skill systematisch). Der zentrale Handoff
 (`~/AI/.agent-memory/session-summary.md`) haelt max. **1 Block pro Projekt** (7.6a
 Ownership-Dedup, Regel 2.5) und **verweist** auf die lokale Quelle statt Next Steps zu
