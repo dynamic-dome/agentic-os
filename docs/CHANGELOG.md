@@ -4,6 +4,21 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-13] Refresh Verify Status Wrapper
+
+Neues Python-Artefakt `tools/refresh_verify_status.py` mit `main`: ruft den
+Verified-Scanner und den README-Watermark-Generator nacheinander auf. Der
+Standardaufruf `python tools/refresh_verify_status.py` scannt `docs/`, nimmt das
+aelteste `verified: YYYY-MM-DD` als Watermark-Datum und aktualisiert `README.md`.
+
+`--dry-run` erzeugt eine Diff-Preview ohne Schreibzugriff. Die Exit-Codes sind
+dokumentiert: `0` bei Erfolg, `1` bei fatalen Eingabefehlern und `2` bei
+recoverable Skip-Faellen wie fehlendem `docs/`, fehlenden Markdown-Dokumenten
+oder keinen gueltigen `verified:`-Zeilen. CI-Integration bleibt Folge-Sprint.
+
+Tests: neuer Integrationstest in `tests/test_refresh_verify_status.py` mit
+Temp-Repo-Mock fuer README-Update, Dry-Run und recoverable Skip-Faelle.
+
 ## [2026-06-13] README-Wasserscheide-Anzeige
 
 Neues Python-Artefakt `tools/generate_watermark.py` mit
