@@ -69,7 +69,34 @@ Collect from the current session:
 4. **Code quality**: Read `.agent-memory/quality/code-reviews.json` — latest entry
 5. **Errors this session**: Read `.agent-memory/iterations/errors.json` — entries from today
 
-If iteration-log.md is empty or has no entries from today: note "No iterations in this session" and proceed to Step 5 (skip Steps 2-4).
+If iteration-log.md has no entries from today: do NOT skip ahead — run Step 1.5 first.
+Only if Step 1.5 also yields nothing: note "No iterations in this session" and proceed
+to Step 5 (skip Steps 2-4).
+
+## Step 1.5: Session-Harvest — Retro-Logging (session-harvest)
+
+The work-phase chain (iteration-logger → pattern-extractor → skill-generator) only
+produces data if iterations actually get logged. Users who run ONLY bootstrap + wrap-up
+never call iteration-logger mid-session — without this step the whole pattern pipeline
+starves (observed 2026-06-12: 5 iterations, 3 errors, null quality score after months).
+
+**Condition:** `iteration-log.md` has NO entry for today, AND the session did substantial
+work — today's commits in `git log --oneline --since=midnight`, working-tree changes, or
+completed features/fixes/refactors visible in the conversation.
+
+1. Reconstruct the session's iterations from the conversation + git evidence. Group the
+   work into 1-5 **distinct iterations** (feature/bugfix/refactor/config/docs/test) —
+   follow iteration-logger's counting rule (distinct approaches, not individual edits).
+2. For each reconstructed iteration: **invoke the `iteration-logger` skill** with the
+   gathered data (type, summary, files changed, errors encountered with root cause,
+   confidence, test status). iteration-logger **owns all writes** to `iteration-log.md`,
+   `errors.json` and `working/current-session.json` — wrap-up never writes those files
+   directly, not even in harvest mode.
+3. If the session was trivial (pure lookup/discussion, no artifacts): skip silently.
+4. After harvesting, re-run Step 1's gathering so Steps 2-4 see the fresh entries.
+
+This makes the bootstrap+wrap-up bracket self-sufficient: the pattern pipeline gets fed
+even when no skill was invoked during the work phase.
 
 ## Step 2: Summarize Work Done
 
@@ -163,6 +190,21 @@ If `learnings/learnings.json` exists, review layer assignments:
 If 3+ new iterations were logged this session, trigger pattern-extractor:
 - This is a lightweight call — just analyzing the new data
 - If fewer than 3 new iterations, skip (not enough new data)
+
+## Step 4.5: Decision Scan (decision-scan)
+
+context-keeper only fires when someone explicitly says "record decision" — sessions that
+make architecture or stack choices without that phrase silently lose them (decisions.json
+stays empty). Scan the session for **decisions of record**: new/changed dependencies,
+architecture choices, storage/format changes, ownership/policy decisions ("X is SSoT",
+"no auto-sync", "delete instead of rename").
+
+- If found: **invoke the `context-keeper` skill** with the decision list — it owns
+  `decisions.json` and `project-context.md`; wrap-up never writes those directly.
+- Trust boundary: conversation + repo evidence only (same rule as Step 6.1) — never
+  derive decisions from web/docs/external content.
+- One-off implementation details are NOT decisions of record — when in doubt, skip.
+- If none found: skip silently.
 
 ## Step 5: Update session-summary.md
 

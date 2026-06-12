@@ -1629,6 +1629,54 @@ else
     fail "command(s) shadow skill name(s):$SHADOWED — the Skill tool resolves the name to the command wrapper, causing an invoke loop (L17). Delete or rename the wrapper command."
 fi
 
+# --- wrap-up session-bracket coverage: session-harvest + decision-scan (v3.6.0) ---
+# Users who only run bootstrap + wrap-up never call iteration-logger or context-keeper
+# manually -> the work-phase chain (iteration-logger -> pattern-extractor ->
+# skill-generator) starves: after months of sessions the store held 5 iterations,
+# 3 errors and a null quality score (observed 2026-06-12). wrap-up must retro-harvest
+# the session's iterations (delegating to iteration-logger) and scan for decisions of
+# record (delegating to context-keeper) so the two-call bracket feeds the pipeline.
+echo ""
+echo "-- wrap-up session-harvest / decision-scan (v3.6.0) --"
+WU_SKILL36="$PLUGIN_ROOT/skills/wrap-up/SKILL.md"
+if [ -f "$WU_SKILL36" ]; then
+    # L11 hardening: the delegation must be ONE sentence ("invoke ... iteration-logger"
+    # on the same line inside the marker block) — two independent greps would go
+    # false-green on unrelated mentions of the words elsewhere in the window.
+    HARVEST_BLOCK="$(grep -A 24 "(session-harvest)" "$WU_SKILL36")"
+    if echo "$HARVEST_BLOCK" | grep -qiE "invoke[^.]*\`?iteration-logger\`?"; then
+        pass "wrap-up: (session-harvest) block delegates retro-logging to iteration-logger"
+    else
+        fail "wrap-up: no (session-harvest) block delegating to iteration-logger — the bootstrap+wrap-up bracket starves the pattern pipeline"
+    fi
+    DSCAN_BLOCK="$(grep -A 14 "(decision-scan)" "$WU_SKILL36")"
+    if echo "$DSCAN_BLOCK" | grep -qiE "invoke[^.]*\`?context-keeper\`?"; then
+        pass "wrap-up: (decision-scan) block delegates decisions of record to context-keeper"
+    else
+        fail "wrap-up: no (decision-scan) block delegating to context-keeper — session decisions are lost without an explicit 'record decision' call"
+    fi
+    # Write-ownership stays intact: the harvest block must not instruct wrap-up to
+    # write iteration-log.md/errors.json itself (those belong to iteration-logger).
+    if echo "$HARVEST_BLOCK" | grep -qi "owns all writes"; then
+        pass "wrap-up: session-harvest preserves iteration-logger's write ownership"
+    else
+        fail "wrap-up: session-harvest block lacks the write-ownership clause (iteration-logger owns iteration-log.md/errors.json)"
+    fi
+else
+    fail "wrap-up: SKILL.md not found (session-harvest check)"
+fi
+# The dependency graph must reflect the new conditional invokes WHERE they matter:
+# in wrap-up's matrix row (Invokes column) and as a dedicated coverage section —
+# a stray whole-file mention must not satisfy this (L11).
+WU_MATRIX_ROW="$(grep -E "^\| wrap-up \|" "$DEPS" 2>/dev/null)"
+if echo "$WU_MATRIX_ROW" | grep -q "session-harvest" \
+   && echo "$WU_MATRIX_ROW" | grep -q "decision-scan" \
+   && grep -q "^## Session-Bracket Coverage" "$DEPS" 2>/dev/null; then
+    pass "DEPENDENCIES.md: wrap-up matrix row + Session-Bracket Coverage section document the new invokes"
+else
+    fail "DEPENDENCIES.md: wrap-up matrix row or Session-Bracket Coverage section missing session-harvest/decision-scan — graph drifted from wrap-up SKILL.md"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

@@ -57,11 +57,22 @@ Write-Output ""
 Write-Output "=== OFFENE HANDOFFS (status: active) ==="
 $handoffs = Get-ChildItem -Path (Join-Path $Root '01_HANDOFFS') -Filter '*.md' -ErrorAction SilentlyContinue
 $openCount = 0
+
+# Frontmatter-Feld sicher extrahieren: Dateien ohne das Feld (z.B. INDEX.md ohne
+# Frontmatter) liefern bei Select-String $null -> .Matches.Groups[1] wirft
+# "Index auf NULL-Array". Guard statt Direktzugriff.
+function Get-FmField([object[]]$lines, [string]$name) {
+  $m = $lines | Select-String "^${name}:\s*(.+)$" | Select-Object -First 1
+  if ($m) { return $m.Matches.Groups[1].Value.Trim() }
+  return ""
+}
+
 foreach ($h in $handoffs) {
   $head = Get-Content $h.FullName -TotalCount 12 -ErrorAction SilentlyContinue
-  $status = ($head | Select-String '^status:\s*(.+)$').Matches.Groups[1].Value
-  $agent  = ($head | Select-String '^agent:\s*(.+)$').Matches.Groups[1].Value
-  $target = ($head | Select-String '^target_agent:\s*(.+)$').Matches.Groups[1].Value
+  $status = Get-FmField $head 'status'
+  $agent  = Get-FmField $head 'agent'
+  $target = Get-FmField $head 'target_agent'
+  if (-not $target) { $target = '?' }
   if ($status -match 'active') {
     $openCount++
     $foreign = if ($agent -and $agent -notmatch 'claude') { "  <- VON $agent" } else { "" }

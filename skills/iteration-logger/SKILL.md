@@ -24,6 +24,9 @@ Log every meaningful coding iteration to `.agent-memory/iterations/`.
 - After fixing an error (especially multi-attempt fixes)
 - When the Stop hook detects unlogged work
 - User says "log this" or similar trigger phrases
+- When invoked by wrap-up's Step 1.5 session-harvest (retro-logging at session end):
+  same schema and counting rule apply — the caller supplies the reconstructed data,
+  this skill remains the only writer of iteration-log.md / errors.json
 
 ## Step 1: Analyze the Iteration
 

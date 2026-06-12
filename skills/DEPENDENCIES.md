@@ -77,7 +77,11 @@ SESSION END (SessionEnd hook → wrap-up)
   │  ├── writes: session-summary.md, learnings.json + learnings.md,
   │  │     identity/user.md (conditional), working/current-session.json (reset),
   │  │     context/open-tasks.json (Step 5.5, SSoT for next steps — v3.5.0)
+  │  ├── Step 1.5 → invokes iteration-logger (session-harvest: retro-logs the
+  │  │     session's iterations when none were logged today — v3.6.0)
   │  ├── Step 4   → invokes pattern-extractor (if 3+ new iterations)
+  │  ├── Step 4.5 → invokes context-keeper (decision-scan: decisions of record
+  │  │     detected in the session — v3.6.0)
   │  ├── Step 7.5 → invokes obsidian-sync (conditional: sync_enabled + threshold)
   │  ├── Step 7.6 → writes cross-project: ~/AI/.agent-memory/session-summary.md
   │  │     (prepend handoff), ~/AI/cross-project-status.md, Sharepoint (optional)
@@ -94,7 +98,7 @@ SESSION END (SessionEnd hook → wrap-up)
 | context-keeper | docs/PROJECT.md+ARCHITECTURE.md+CAPABILITIES.md (SoT), project-context.md, decisions.json, config.json | project-context.md (cache), decisions.json, ~/wiki/wiki/entities/<id>.md (optional) | — |
 | quality-gate | project-context.md, patterns.md, test-results.json, code-reviews.json, quality-score.json | code-reviews.json, test-results.json, quality-score.json | — (pattern-extractor/context-keeper are in `depends-on` metadata but NOT invoked by the body) |
 | skill-generator | patterns.json, errors.json | generated-skills/<name>/SKILL.md, patterns.json, ~/.claude/skills/ (optional) | — |
-| wrap-up | iteration-log.md, errors.json, test-results.json, code-reviews.json, learnings.json, working/current-session.json, user-candidates.json, context/open-tasks.json | session-summary.md, learnings.json, learnings.md, user.md, user-candidates.json (queue), user-changelog.json (audit), soul-candidates.md (propose), working/current-session.json, **context/open-tasks.json (Step 5.5, SSoT for next steps)**; cross-project handoff (max 1 block per project, next steps as pointer + `[cross-project]` only — v3.5.0) + status-board + Sharepoint | pattern-extractor (3+ iters), obsidian-sync (Step 7.5), memory-maintenance (on request) |
+| wrap-up | iteration-log.md, errors.json, test-results.json, code-reviews.json, learnings.json, working/current-session.json, user-candidates.json, context/open-tasks.json | session-summary.md, learnings.json, learnings.md, user.md, user-candidates.json (queue), user-changelog.json (audit), soul-candidates.md (propose), working/current-session.json, **context/open-tasks.json (Step 5.5, SSoT for next steps)**; cross-project handoff (max 1 block per project, next steps as pointer + `[cross-project]` only — v3.5.0) + status-board + Sharepoint | iteration-logger (Step 1.5 session-harvest, v3.6.0), pattern-extractor (3+ iters), context-keeper (Step 4.5 decision-scan, v3.6.0), obsidian-sync (Step 7.5), memory-maintenance (on request) |
 | memory-maintenance | all .agent-memory/ files, improvements/state.json (precondition); 4.A Step 4b: global store + scripts/global-schema.sh (apply_decay) | archives/*, repaired JSON, compacted session-summary.md + learnings.md; 4.A: decayed confidence + lifecycle:archived in ~/.claude-memory/global/* (never hard-delete) | pattern-extractor (patterns.md refresh) |
 | sync-context | local patterns/learnings, ~/.claude-memory/global/*; 4.A: scripts/global-schema.sh (is_denied, compute_scope, passes_promotion_gate) + scripts/mem-schema.sh (MEM_GLOBAL_DENY_TAGS) | local + ~/.claude-memory/global/{patterns,learnings,projects}.json with 4.A provenance schema (G-<type>-<n>, scope, valid_from, lifecycle); privacy-filter before gate; promotion gate; pull serves only lifecycle:active | — |
 | research-pipeline | (external: Perplexity, NotebookLM) | research/<topic>-*.md | — (external notebooklm CLI) |
@@ -129,10 +133,35 @@ Removed agents (2026-04-30): `improvement-scout`, `fix-reviewer` → use `improv
 1. **No circular dependencies** — DAG only.
 2. **No auto-triggers on code changes** — user/CLAUDE.md driven (the only hook-driven skills are session-bootstrap on start and wrap-up on end).
 3. **session-bootstrap is read-only** — never writes during startup, with ONE exception: the user-confirmed soul.md candidate gate (Step 6.5) writes soul.md + user-changelog.json + soul-candidates.md, but only on an explicit `j` from the user (never autonomously).
-4. **Skills that invoke other skills:** `wrap-up` (pattern-extractor, obsidian-sync, memory-maintenance), `self-improve` (pattern-extractor), `memory-maintenance` (pattern-extractor). All other skills are leaf nodes. (`quality-gate` lists pattern-extractor/context-keeper in its `depends-on` metadata, but its body does not invoke them — legacy, like self-improve's metadata.)
+4. **Skills that invoke other skills:** `wrap-up` (iteration-logger via session-harvest, pattern-extractor, context-keeper via decision-scan, obsidian-sync, memory-maintenance), `self-improve` (pattern-extractor), `memory-maintenance` (pattern-extractor). All other skills are leaf nodes. (`quality-gate` lists pattern-extractor/context-keeper in its `depends-on` metadata, but its body does not invoke them — legacy, like self-improve's metadata.)
 5. **sync-context is manual-only** — no auto-sync.
 6. **self-improve has all pipeline phases inline** — only pattern-extractor is delegated; `iteration-logger`/`quality-gate` in its `depends-on` metadata are legacy and not invoked by the body.
 7. **P9 safety: git revert over git stash pop** — stash may already be dropped.
 8. **Max 20% mutation per skill per iteration** — prevents scope creep.
 9. **Circuit breaker stops on diminishing returns** — adaptive scheduling built into self-improve.
 10. **docs/ is the source of truth for project-context.md** — context-keeper (and context-detective, /init) read docs first; project-context.md is a cache (Regel 13 / L9).
+
+## Session-Bracket Coverage (v3.6.0)
+
+The supported minimal workflow is the **two-call bracket**: `session-bootstrap` at start,
+`wrap-up` at end, nothing in between. This table states what that bracket covers and what
+stays deliberately on-demand:
+
+| Covered by the bracket (automatic) | How |
+|---|---|
+| Context restore, health checks, salience, wiki context, Sharepoint pull | bootstrap |
+| Auto-init, PreCompact survival, SessionEnd task guard, intent hints | hooks |
+| Iteration logging | wrap-up Step 1.5 session-harvest → iteration-logger |
+| Pattern extraction | wrap-up Step 4 (3+ iterations, fed by harvest) |
+| Decisions of record | wrap-up Step 4.5 decision-scan → context-keeper |
+| Learnings, user/soul growth, open-tasks SSoT | wrap-up Steps 3-6.5 |
+| Wiki sync, central handoff, status board, maintenance | wrap-up Steps 7-9 |
+
+| Deliberately on-demand (NOT in the bracket) | Why |
+|---|---|
+| quality-gate (full review + scores) | costly; meaningful only around real code changes |
+| sync-context | Design Principle 5: manual-only, no auto cross-project sync |
+| self-improve | policy-gated (see Self-Improve Policy); never runs implicitly |
+| research-pipeline, wiki-query | reactive knowledge tools, need a concrete question |
+| skill-generator | creating skills wants an explicit user decision; wrap-up only surfaces candidates |
+| /memory-audit, /rollback, /sync, /status | inspection/recovery commands |

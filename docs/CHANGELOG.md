@@ -4,6 +4,37 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-12] Session-Bracket-Coverage: wrap-up Session-Harvest + Decision-Scan (v3.6.0)
+
+Der minimal unterstuetzte Workflow ist die Zwei-Aufruf-Klammer (bootstrap am Anfang, wrap-up
+am Ende, dazwischen nichts). Befund: die Arbeitsphasen-Kette iteration-logger →
+pattern-extractor → skill-generator hing komplett an manuellen `/log`-Aufrufen — wer nur die
+Klammer nutzt, fuetterte die Pattern-Pipeline NIE (Live-Beweis: 5 Iterationen, 3 Errors,
+Quality-Score null nach Monaten). Zwei neue wrap-up-Schritte schliessen das:
+
+- **Step 1.5 Session-Harvest `(session-harvest)`:** hat iteration-log.md keine heutigen
+  Eintraege, rekonstruiert wrap-up die Iterationen der Session (Konversation + git log) und
+  delegiert pro Iteration an iteration-logger (1-5 distinct iterations, Counting-Rule).
+  Schreibrechte unveraendert: iteration-logger bleibt einziger Writer von iteration-log.md/
+  errors.json. Danach Re-Gather, damit Step 4 (pattern-extractor ab 3+) echte Daten sieht.
+- **Step 4.5 Decision-Scan `(decision-scan)`:** Architektur-/Stack-/Policy-Entscheidungen
+  der Session werden erkannt und an context-keeper delegiert (decisions.json blieb sonst
+  leer, weil niemand "record decision" sagt). Trust boundary: conversation+repo only.
+- **DEPENDENCIES.md:** Execution-Order + Matrix + Prinzip 4 nachgezogen; neue Sektion
+  "Session-Bracket Coverage" dokumentiert, was die Klammer abdeckt und was bewusst
+  on-demand bleibt (quality-gate voll, sync-context, self-improve, research-pipeline,
+  wiki-query, skill-generator-Erzeugung).
+- **Guard-Tests (TDD, erst rot 4×):** validate-plugin.sh bindet beide Marker-Bloecke an die
+  Delegation (iteration-logger/context-keeper), die Write-Ownership-Klausel und die
+  Graph-Doku (181/185 rot → 185/185 gruen).
+- **Bugfix sharepoint-pull-check.ps1:** Handoff-Dateien ohne `target_agent`-Frontmatter
+  (z.B. INDEX.md) warfen "Index auf NULL-Array" (live im Bootstrap 2026-06-12). Fix:
+  Get-FmField-Guard statt Direktzugriff auf .Matches.Groups; gegen echten Sharepoint
+  verifiziert; in den 3.5.1-Cache gespiegelt (byte-diff ok), regulaeres Deploy mit 3.6.0.
+
+Tests gruen: 185 validate-plugin (+4 Bracket-Guards auf Basis 181) +
+165 validate-skills + 19 global-schema.
+
 ## [2026-06-12] Fix: Command/Skill-Namensschatten entfernt (v3.5.1)
 
 Ein Command mit demselben Namen wie ein Skill beschattet den Skill im Skill-Tool: der Aufruf
