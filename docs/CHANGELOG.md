@@ -4,6 +4,18 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-13] PreToolUse Shell-Circuit-Breaker
+
+Neuer command-basierter `PreToolUse`-Hook fuer `Bash`: `scripts/pretooluse-shell-circuit-breaker.sh`
+liest das Claude-Code-Hook-Payload von stdin, extrahiert den Shell-Befehl und blockiert
+bekannte Hochrisiko-Aktionen deterministisch mit Exit-Code `2`. Abgedeckt sind unter
+anderem rekursives Forced-Delete, `git reset --hard`, `git clean -fd*`, Remote-Script-Pipes,
+PowerShell-Download-Cradles, Disk-/Shutdown-Kommandos sowie rekursive Rechte-/Owner-Aenderungen.
+
+`hooks/hooks.json`, README, Scripts-Doku und `docs/CAPABILITIES.md` dokumentieren die neue
+sechste Hook-Flaeche. Neuer Funktionstest `tests/test-pretooluse-shell-circuit-breaker.sh`
+prueft Allow-/Block-Faelle inklusive Exit-Code `2` und ist in `tests/run-all.sh` eingebunden.
+
 ## [2026-06-13] Refresh Verify Status Wrapper
 
 Neues Python-Artefakt `tools/refresh_verify_status.py` mit `main`: ruft den

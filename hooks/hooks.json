@@ -1,5 +1,5 @@
 {
-  "description": "Agentic OS Lifecycle Hooks v6: Auto-Init (command), Intent Routing (prompt), Lightweight Logging (prompt), Context Preservation (prompt), Wrap-Up Delegation (prompt), Agent Commit Suggest (prompt)",
+  "description": "Agentic OS Lifecycle Hooks v7: Auto-Init (command), Shell Circuit Breaker (command), Intent Routing (prompt), Lightweight Logging (prompt), Context Preservation (prompt), Wrap-Up Delegation (prompt), Agent Commit Suggest (prompt)",
   "hooks": {
     "SessionStart": [
       {
@@ -9,6 +9,18 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/session-start.sh\"",
             "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/pretooluse-shell-circuit-breaker.sh\"",
+            "timeout": 5
           }
         ]
       }
