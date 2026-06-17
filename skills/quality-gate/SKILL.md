@@ -242,7 +242,29 @@ Test result: <health_score>/100 (<rating>)
    Trend: <improving|stable|declining>
 ```
 
-## Step T.8: Escalate on Critical
+## Step T.8: Optional Tool-Usage Quality Signal (C5)
+
+If the local tool-usage-tracker exists, read its C5 quality signal before the
+final verdict:
+
+```bash
+cd C:\Users\domes\AI\Hooks-bau\tool-usage-tracker
+python -X utf8 analysis/quality_signal.py --limit 3
+```
+
+The JSON contract is schema_v 1. Read `overall.success_rate`,
+`overall.failures`, and the listed `sessions[].success_rate` /
+`sessions[].failures` as an additional Quality-Signal:
+
+- If the script is missing, the tracker has no events, JSON parsing fails, or
+  `success_rate` is null, treat it as fail-soft: report "no quality-signal
+  baseline" and keep the normal code/test verdict.
+- If the newest session has failures or a low `success_rate`, mention the top
+  failing tools and downgrade PASS to WARN unless the test result is already
+  FAIL.
+- Do not write to the tracker from this step; it is a read-only consumer.
+
+## Step T.9: Escalate on Critical
 
 When health_score < 50: recommend blocking further feature work, list failing tests in priority order.
 

@@ -56,6 +56,16 @@ fi
 
 echo ""
 
+# Run quality-signal contract test (C5)
+echo ">>> Running quality-signal contract test..."
+if bash "$SCRIPT_DIR/test-quality-signal-contract.sh"; then
+    echo ">>> Quality-signal contract: ALL PASSED"
+else
+    echo ">>> Quality-signal contract: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
 echo "========================================"
 if [ "$TOTAL_ERRORS" -eq 0 ]; then
     echo "  ALL TEST SUITES PASSED"
