@@ -49,6 +49,21 @@ metadata:
 
 End-of-session sequence. Summarizes work, extracts learnings, prepares for next session. Optionally runs memory maintenance.
 
+## Long-Term Memory Routine (long-term-memory-routine)
+
+After every substantial task or session completion, consolidate durable knowledge
+into the central .agent-memory/ knowledge base instead of leaving it only in the
+conversation. Use this route map:
+
+- Work iterations -> `iterations/iteration-log.md` via `iteration-logger`
+- Reusable non-trivial learnings -> `learnings/learnings.json` and `learnings.md`
+- Durable decisions -> `context/decisions.json` via `context-keeper`
+- Open next steps -> `context/open-tasks.json`
+- Current handoff snapshot -> `session-summary.md`
+
+Reject trivial facts. Identity/user-preference updates remain conversation-only
+trust-boundary candidates until explicitly confirmed by the user.
+
 ## When to Use
 
 - At the end of every coding session

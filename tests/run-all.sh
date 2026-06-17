@@ -6,6 +6,17 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOTAL_ERRORS=0
+PYTHON_BIN="${PYTHON_BIN:-}"
+
+if [ -z "$PYTHON_BIN" ]; then
+    if command -v python3 >/dev/null 2>&1; then
+        PYTHON_BIN="python3"
+    elif command -v python >/dev/null 2>&1; then
+        PYTHON_BIN="python"
+    else
+        PYTHON_BIN=""
+    fi
+fi
 
 echo "========================================"
 echo "  Agentic-OS Plugin Test Suite"
@@ -47,7 +58,10 @@ echo ""
 
 # Run Python unit tests
 echo ">>> Running Python unit tests..."
-if python -m unittest discover -s "$SCRIPT_DIR" -p "test_*.py"; then
+if [ -z "$PYTHON_BIN" ]; then
+    echo ">>> Python unit tests: FAILURES DETECTED (python not found)"
+    ((TOTAL_ERRORS++))
+elif "$PYTHON_BIN" -m unittest discover -s "$SCRIPT_DIR" -p "test_*.py"; then
     echo ">>> Python unit tests: ALL PASSED"
 else
     echo ">>> Python unit tests: FAILURES DETECTED"
@@ -62,6 +76,17 @@ if bash "$SCRIPT_DIR/test-quality-signal-contract.sh"; then
     echo ">>> Quality-signal contract: ALL PASSED"
 else
     echo ">>> Quality-signal contract: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
+# Run wrap-up long-term memory contract test
+echo ">>> Running wrap-up long-term memory contract test..."
+if bash "$SCRIPT_DIR/test-wrap-up-long-term-memory-contract.sh"; then
+    echo ">>> Wrap-up long-term memory contract: ALL PASSED"
+else
+    echo ">>> Wrap-up long-term memory contract: FAILURES DETECTED"
     ((TOTAL_ERRORS++))
 fi
 

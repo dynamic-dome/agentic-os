@@ -71,9 +71,21 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and consolidated skil
 ├── iterations/        iteration-log.md, errors.json
 ├── patterns/          patterns.md, patterns.json
 ├── quality/           test-results.json, code-reviews.json, quality-score.json
-├── learnings/         learnings.md
+├── learnings/         learnings.md, learnings.json
 └── generated-skills/
 ```
+
+## Long-Term Memory Routine
+
+After each substantial task or session, run `wrap-up` to consolidate the work into
+the central `.agent-memory/` knowledge base. The routine preserves durable facts
+instead of leaving them only in chat: `iteration-logger` records distinct work
+iterations in `.agent-memory/iterations/iteration-log.md`, `wrap-up` extracts
+genuine reusable learnings into `.agent-memory/learnings/learnings.json`,
+`context-keeper` records durable decisions in
+`.agent-memory/context/decisions.json`, open next steps stay in
+`.agent-memory/context/open-tasks.json`, and the handoff snapshot is refreshed in
+`.agent-memory/session-summary.md`.
 
 ## Session Lifecycle
 
