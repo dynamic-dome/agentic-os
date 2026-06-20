@@ -56,6 +56,17 @@ fi
 
 echo ""
 
+# Run PreToolUse shell circuit breaker tests
+echo ">>> Running PreToolUse shell circuit breaker tests..."
+if bash "$SCRIPT_DIR/test-pretooluse-shell-circuit-breaker.sh"; then
+    echo ">>> PreToolUse shell circuit breaker tests: ALL PASSED"
+else
+    echo ">>> PreToolUse shell circuit breaker tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run Python unit tests
 echo ">>> Running Python unit tests..."
 if [ -z "$PYTHON_BIN" ]; then

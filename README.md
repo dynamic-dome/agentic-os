@@ -6,7 +6,7 @@ Self-improving agent memory system that works across any project.
 
 - **Project Memory** (`.agent-memory/`): Per-project knowledge — iterations, patterns, decisions, quality scores
 - **Session Lifecycle**: Auto-bootstrap at start, user-driven during work, auto-wrap-up at end
-- **Lean Hook Surface**: 5 lifecycle hooks (SessionStart, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop), no per-edit triggers
+- **Lean Hook Surface**: 6 hooks (SessionStart, PreToolUse, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop), no per-edit triggers
 - **Wiki / Knowledge Layer**: `wiki-query` + `obsidian-sync` skills bridge into Obsidian / NotebookLM stores
 - **Optional Cross-Project Sync**: Manual pattern sharing via `sync-context` skill
 
@@ -51,11 +51,12 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and consolidated skil
 
 (`improvement-scout` and `fix-reviewer` were deprecated and removed in 2026-04 — use `improvement-agent` and the inline validation phase of `self-improve` instead.)
 
-## Hooks (5)
+## Hooks (6)
 
 | Event | Timeout | Type | Action |
 |-------|---------|------|--------|
 | `SessionStart` | 15s | command | Auto-init `.agent-memory/`, inject session-summary briefing |
+| `PreToolUse` | 5s | command | Deterministic shell circuit breaker for dangerous `Bash` commands; blocks with exit code 2 |
 | `UserPromptSubmit` | 10s | prompt | Advisory-only context hint |
 | `PreCompact` | 15s | prompt | Emit survival summary before context compaction |
 | `SessionEnd` | 15s | prompt | Task guard, delegate to wrap-up |
@@ -92,6 +93,7 @@ genuine reusable learnings into `.agent-memory/learnings/learnings.json`,
 ```
 Start:  SessionStart hook reads context silently (15s, command)
 Work:   User-driven — log iterations, record decisions, review code
+        PreToolUse (5s) blocks destructive Bash commands with exit code 2
         UserPromptSubmit (10s) injects context-hints, advisory-only
         SubagentStop (10s) suggests commit after quality runs
         PreCompact (15s) emits survival summary if context fills
@@ -102,7 +104,7 @@ No per-edit overhead. No auto-triggers on code changes. Skills are invoked by th
 
 ## Design Principles
 
-1. **Lean hook surface** — 5 lifecycle hooks, total budget ≤ 65s per session
+1. **Lean hook surface** — 6 hooks, total budget ≤ 70s per session plus only-on-shell PreToolUse checks
 2. **User-driven** — no auto-triggers on every edit
 3. **Read-only bootstrap** — `session-bootstrap` never writes
 4. **Append-only decisions** — `decisions.json` is never deleted, only superseded
