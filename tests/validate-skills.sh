@@ -728,6 +728,39 @@ if [ -f "$SB_FILE" ]; then
     fi
 fi
 
+# --- skill-generator: reads pattern-extractor's CANONICAL fields, not legacy ones ---
+# pattern-extractor (sole writer of patterns.json) emits `evidence` + `recommendation`
+# and explicitly normalizes away the legacy names `error_ids`/`recommended_action`/`avoid`.
+# skill-generator must consume the canonical fields, else it reads fields that never exist.
+SG_FILE="$SKILLS_DIR/skill-generator/SKILL.md"
+echo ""
+echo "-- skill-generator: consumes canonical pattern fields (evidence/recommendation), not legacy --"
+if [ -f "$SG_FILE" ]; then
+    if ! grep -qE "\`recommended_action\`|\`error_ids\`|the \`avoid\` field" "$SG_FILE" \
+       && grep -qE "\`recommendation\`" "$SG_FILE" \
+       && grep -qE "\`evidence\`" "$SG_FILE"; then
+        pass "skill-generator: reads canonical pattern fields (recommendation/evidence), no legacy field reads"
+    else
+        fail "skill-generator: reads legacy pattern fields (recommended_action/error_ids/avoid) that pattern-extractor never emits — must use canonical recommendation/evidence"
+    fi
+fi
+
+# --- obsidian-sync: Rolling Synthesis gates on `importance`, not nonexistent `salience` ---
+# wrap-up (sole writer of learnings.json) stores `importance` (1-5); there is no stored
+# `salience` field (session-bootstrap only DERIVES a salience score from importance).
+# obsidian-sync's synthesis gate must read `importance >= 4` to match the writer schema.
+OS_FILE="$SKILLS_DIR/obsidian-sync/SKILL.md"
+echo ""
+echo "-- obsidian-sync: Rolling Synthesis gate uses importance (writer schema), not salience --"
+if [ -f "$OS_FILE" ]; then
+    if ! grep -qE "salience >= 4" "$OS_FILE" \
+       && grep -qE "importance >= 4" "$OS_FILE"; then
+        pass "obsidian-sync: synthesis gate uses importance >= 4 (matches learnings.json schema)"
+    else
+        fail "obsidian-sync: synthesis gate reads nonexistent stored field 'salience >= 4' — wrap-up writes 'importance'; must gate on importance >= 4"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

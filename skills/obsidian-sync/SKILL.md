@@ -116,11 +116,11 @@ Link to relevant wiki pages using `[[wiki/...]]` format.
 
 ## Step 5: Update Rolling Synthesis (conditional)
 
-**Only if** new learnings exist with salience >= 4:
+**Only if** new learnings exist with importance >= 4:
 
 1. Read `$WIKI_ROOT/wiki/synthesis/agent-learnings-aktuell.md`
    - If it does not exist: create it with sections `## Pattern-basiert`, `## Tooling`, `## Architektur`
-2. For each learning with salience >= 4:
+2. For each learning with importance >= 4:
    - Determine which section it belongs to
    - Check for duplicates (Jaccard similarity >= 0.6 on key terms)
    - If not duplicate: append as a concise bullet point with date and project reference

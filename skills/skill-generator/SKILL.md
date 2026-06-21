@@ -34,7 +34,7 @@ Determine the basis for the new skill:
 **Option A: From Pattern Catalog**
 - Read `.agent-memory/patterns/patterns.json`
 - Find entries with `skill_candidate: true`
-- Load associated `error_ids` from `.agent-memory/iterations/errors.json` for details
+- Load the pattern's `evidence` (source error/iteration ids) from `.agent-memory/iterations/errors.json` for details
 
 **Option B: From Current Workflow**
 - Analyze the conversation history of the current session
@@ -56,9 +56,9 @@ Extract from the source:
    - Include concrete trigger words and situations
    - Max 1024 characters
 
-3. **Steps**: Derive from the pattern's `recommended_action` and iteration details
+3. **Steps**: Derive from the pattern's `recommendation` and iteration details
 
-4. **Anti-Patterns**: From the `avoid` field — what should the agent NOT do
+4. **Anti-Patterns**: From the `recommendation` (which captures what to do/avoid) — what should the agent NOT do
 
 ## Step 3: Generate SKILL.md
 

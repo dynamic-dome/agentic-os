@@ -1,13 +1,16 @@
 {
   "iteration": 80,
-  "currentIteration": 80,
+  "currentIteration": 81,
   "status": "idle",
-  "lastRun": "2026-04-08T00:00:00Z",
-  "total_fixes": 108,
+  "lastRun": "2026-06-21T00:00:00Z",
+  "total_fixes": 110,
   "metaHistory": [
     {
       "date": "2026-03-28",
-      "changes": ["meta-improve: fixed 3 stale self-improve-loop references to agentic-os", "loop-orchestrator: added acceptEdits-mode safety note for subagent Bash access"],
+      "changes": [
+        "meta-improve: fixed 3 stale self-improve-loop references to agentic-os",
+        "loop-orchestrator: added acceptEdits-mode safety note for subagent Bash access"
+      ],
       "quality_score": 1.0,
       "tests_before": 181,
       "tests_after": 181
@@ -18,7 +21,11 @@
       "iteration": 1,
       "fixes": 3,
       "date": "2026-03-24",
-      "weaknesses": ["sync-context-examples", "reviewer-plugin-rules", "dependencies-completeness"],
+      "weaknesses": [
+        "sync-context-examples",
+        "reviewer-plugin-rules",
+        "dependencies-completeness"
+      ],
       "tests_before": 117,
       "tests_after": 130
     },
@@ -26,7 +33,10 @@
       "iteration": 2,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["hook-timeout-too-low", "skill-generator-missing-intent-triggers"],
+      "weaknesses": [
+        "hook-timeout-too-low",
+        "skill-generator-missing-intent-triggers"
+      ],
       "tests_before": 88,
       "tests_after": 90
     },
@@ -34,7 +44,9 @@
       "iteration": 3,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["skill-generator-missing-duplicate-check"],
+      "weaknesses": [
+        "skill-generator-missing-duplicate-check"
+      ],
       "tests_before": 134,
       "tests_after": 135
     },
@@ -42,7 +54,10 @@
       "iteration": 4,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["context-detective-output-underspecified", "improvement-scout-scope-mismatch"],
+      "weaknesses": [
+        "context-detective-output-underspecified",
+        "improvement-scout-scope-mismatch"
+      ],
       "tests_before": 135,
       "tests_after": 137
     },
@@ -50,7 +65,10 @@
       "iteration": 5,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["fix-reviewer-missing-name-field", "agents-wrong-tools-key"],
+      "weaknesses": [
+        "fix-reviewer-missing-name-field",
+        "agents-wrong-tools-key"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 137,
@@ -62,7 +80,9 @@
       "iteration": 6,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["auto-commit-stale-coauthor"],
+      "weaknesses": [
+        "auto-commit-stale-coauthor"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 145,
@@ -74,7 +94,9 @@
       "iteration": 7,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-stale-coauthor"],
+      "weaknesses": [
+        "self-improve-stale-coauthor"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 147,
@@ -86,7 +108,9 @@
       "iteration": 8,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-no-auto-push"],
+      "weaknesses": [
+        "self-improve-no-auto-push"
+      ],
       "false_alarm_count": 0,
       "quality_score": 0.5,
       "tests_before": 148,
@@ -98,7 +122,9 @@
       "iteration": 9,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["auto-commit-push-policy-inconsistency"],
+      "weaknesses": [
+        "auto-commit-push-policy-inconsistency"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 149,
@@ -110,7 +136,9 @@
       "iteration": 10,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["agents-missing-write-tool"],
+      "weaknesses": [
+        "agents-missing-write-tool"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 150,
@@ -122,7 +150,9 @@
       "iteration": 11,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["subagent-stop-bash-in-prompt-hook"],
+      "weaknesses": [
+        "subagent-stop-bash-in-prompt-hook"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 152,
@@ -134,7 +164,9 @@
       "iteration": 12,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-state-history-incomplete-fields"],
+      "weaknesses": [
+        "self-improve-state-history-incomplete-fields"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 153,
@@ -146,7 +178,9 @@
       "iteration": 13,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-missing-rollback-command"],
+      "weaknesses": [
+        "self-improve-missing-rollback-command"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 154,
@@ -158,7 +192,9 @@
       "iteration": 14,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-tdd-missing-pre-fix-stash"],
+      "weaknesses": [
+        "self-improve-tdd-missing-pre-fix-stash"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 155,
@@ -170,7 +206,9 @@
       "iteration": 15,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-history-dedup-missing"],
+      "weaknesses": [
+        "self-improve-history-dedup-missing"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 156,
@@ -182,7 +220,9 @@
       "iteration": 16,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["commands-wrong-allowed-tools-key"],
+      "weaknesses": [
+        "commands-wrong-allowed-tools-key"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 157,
@@ -194,7 +234,9 @@
       "iteration": 17,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["quality-gate-hook-timeout-wrong-lower-bound"],
+      "weaknesses": [
+        "quality-gate-hook-timeout-wrong-lower-bound"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 160,
@@ -206,7 +248,9 @@
       "iteration": 18,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-missing-severity-filter-and-diminishing-returns"],
+      "weaknesses": [
+        "self-improve-missing-severity-filter-and-diminishing-returns"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 161,
@@ -218,7 +262,9 @@
       "iteration": 19,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-skill-missing-name-field"],
+      "weaknesses": [
+        "self-improve-skill-missing-name-field"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 162,
@@ -230,7 +276,9 @@
       "iteration": 20,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["improvement-scout-severity-label-mismatch"],
+      "weaknesses": [
+        "improvement-scout-severity-label-mismatch"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 173,
@@ -242,7 +290,9 @@
       "iteration": 21,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-step2-duplicate-numbering"],
+      "weaknesses": [
+        "self-improve-step2-duplicate-numbering"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 174,
@@ -254,7 +304,9 @@
       "iteration": 22,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-batch-formula-missing-floor"],
+      "weaknesses": [
+        "self-improve-batch-formula-missing-floor"
+      ],
       "false_alarm_count": 1,
       "quality_score": 0.5,
       "tests_before": 175,
@@ -266,7 +318,9 @@
       "iteration": 23,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["self-improve-step7-batch-placeholder-inconsistency"],
+      "weaknesses": [
+        "self-improve-step7-batch-placeholder-inconsistency"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 176,
@@ -278,7 +332,9 @@
       "iteration": 24,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["skill-generator-template-missing-name-field"],
+      "weaknesses": [
+        "skill-generator-template-missing-name-field"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 177,
@@ -290,7 +346,9 @@
       "iteration": 25,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["init-notebooklm-navigate-nonexistent"],
+      "weaknesses": [
+        "init-notebooklm-navigate-nonexistent"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 178,
@@ -302,7 +360,9 @@
       "iteration": 26,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["notebooklm-chat-phantom-command-reference"],
+      "weaknesses": [
+        "notebooklm-chat-phantom-command-reference"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 179,
@@ -314,7 +374,9 @@
       "iteration": 27,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["skill-generator-template-missing-user-invocable"],
+      "weaknesses": [
+        "skill-generator-template-missing-user-invocable"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 181,
@@ -326,7 +388,9 @@
       "iteration": 28,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["wrap-up-false-stop-hook-trigger-claim"],
+      "weaknesses": [
+        "wrap-up-false-stop-hook-trigger-claim"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 182,
@@ -338,7 +402,9 @@
       "iteration": 30,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["session-start-auto-init-missing-knowledge-registry"],
+      "weaknesses": [
+        "session-start-auto-init-missing-knowledge-registry"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 183,
@@ -350,7 +416,9 @@
       "iteration": 31,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["status-command-missing-subdir-paths"],
+      "weaknesses": [
+        "status-command-missing-subdir-paths"
+      ],
       "false_alarm_count": 1,
       "quality_score": 1.0,
       "tests_before": 184,
@@ -362,7 +430,9 @@
       "iteration": 32,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["plugin-json-skill-count-stale"],
+      "weaknesses": [
+        "plugin-json-skill-count-stale"
+      ],
       "false_alarm_count": 2,
       "quality_score": 1.0,
       "tests_before": 185,
@@ -374,7 +444,10 @@
       "iteration": 34,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["status-command-missing-code-reviews-count", "code-reviewer-phantom-plugin-setting"],
+      "weaknesses": [
+        "status-command-missing-code-reviews-count",
+        "code-reviewer-phantom-plugin-setting"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 187,
@@ -386,7 +459,10 @@
       "iteration": 33,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["dependencies-md-stale-batch-placeholder", "dependencies-md-context-detective-claim"],
+      "weaknesses": [
+        "dependencies-md-stale-batch-placeholder",
+        "dependencies-md-context-detective-claim"
+      ],
       "false_alarm_count": 1,
       "quality_score": 1.0,
       "tests_before": 186,
@@ -398,7 +474,9 @@
       "iteration": 35,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["test-validator-german-body"],
+      "weaknesses": [
+        "test-validator-german-body"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 189,
@@ -410,7 +488,9 @@
       "iteration": 36,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["code-reviewer-german-body"],
+      "weaknesses": [
+        "code-reviewer-german-body"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 190,
@@ -422,7 +502,9 @@
       "iteration": 37,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["wrap-up-german-session-summary-template"],
+      "weaknesses": [
+        "wrap-up-german-session-summary-template"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 192,
@@ -434,7 +516,9 @@
       "iteration": 38,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["init-command-german-markdown-defaults"],
+      "weaknesses": [
+        "init-command-german-markdown-defaults"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 192,
@@ -446,7 +530,10 @@
       "iteration": 39,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["tdd-german-trigger-phrases", "code-reviewer-german-json-template"],
+      "weaknesses": [
+        "tdd-german-trigger-phrases",
+        "code-reviewer-german-json-template"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 193,
@@ -458,7 +545,10 @@
       "iteration": 40,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["pattern-extractor-german-trigger-phrases", "iteration-logger-german-trigger-phrases"],
+      "weaknesses": [
+        "pattern-extractor-german-trigger-phrases",
+        "iteration-logger-german-trigger-phrases"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 195,
@@ -470,7 +560,11 @@
       "iteration": 41,
       "fixes": 3,
       "date": "2026-03-24",
-      "weaknesses": ["context-keeper-german-trigger-phrases", "session-bootstrap-german-trigger-phrases", "sync-context-german-trigger-phrases"],
+      "weaknesses": [
+        "context-keeper-german-trigger-phrases",
+        "session-bootstrap-german-trigger-phrases",
+        "sync-context-german-trigger-phrases"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 197,
@@ -482,7 +576,9 @@
       "iteration": 42,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["wrap-up-german-trigger-phrases"],
+      "weaknesses": [
+        "wrap-up-german-trigger-phrases"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 200,
@@ -494,7 +590,10 @@
       "iteration": 43,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["code-reviewer-german-trigger-phrases", "session-bootstrap-german-body-strings"],
+      "weaknesses": [
+        "code-reviewer-german-trigger-phrases",
+        "session-bootstrap-german-body-strings"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 201,
@@ -506,7 +605,9 @@
       "iteration": 44,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["test-validator-german-trigger-phrases"],
+      "weaknesses": [
+        "test-validator-german-trigger-phrases"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 203,
@@ -518,7 +619,9 @@
       "iteration": 45,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["context-detective-german-example-response"],
+      "weaknesses": [
+        "context-detective-german-example-response"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 204,
@@ -530,7 +633,10 @@
       "iteration": 46,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["hooks-session-end-german-headers", "hooks-subagent-stop-german-dialog"],
+      "weaknesses": [
+        "hooks-session-end-german-headers",
+        "hooks-subagent-stop-german-dialog"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 205,
@@ -542,7 +648,9 @@
       "iteration": 47,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["init-command-notebook-registry-german"],
+      "weaknesses": [
+        "init-command-notebook-registry-german"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 208,
@@ -554,7 +662,9 @@
       "iteration": 48,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["init-command-soul-german-language-default"],
+      "weaknesses": [
+        "init-command-soul-german-language-default"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 209,
@@ -566,7 +676,10 @@
       "iteration": 49,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["iteration-logger-phantom-plugin-settings", "test-validator-phantom-plugin-settings"],
+      "weaknesses": [
+        "iteration-logger-phantom-plugin-settings",
+        "test-validator-phantom-plugin-settings"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 210,
@@ -578,7 +691,9 @@
       "iteration": 50,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["sync-context-german-body-direction-phrases"],
+      "weaknesses": [
+        "sync-context-german-body-direction-phrases"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 212,
@@ -590,7 +705,9 @@
       "iteration": 51,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["session-start-auto-init-german-strings"],
+      "weaknesses": [
+        "session-start-auto-init-german-strings"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 213,
@@ -602,7 +719,9 @@
       "iteration": 52,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["marketplace-json-skill-count-stale"],
+      "weaknesses": [
+        "marketplace-json-skill-count-stale"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 214,
@@ -614,7 +733,9 @@
       "iteration": 53,
       "fixes": 1,
       "date": "2026-03-24",
-      "weaknesses": ["code-reviewer-missing-quality-score-update-step"],
+      "weaknesses": [
+        "code-reviewer-missing-quality-score-update-step"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 216,
@@ -626,7 +747,10 @@
       "iteration": 55,
       "fixes": 2,
       "date": "2026-03-27",
-      "weaknesses": ["research-phase-ephemeral-findings", "wrap-up-missing-notebooklm-sync"],
+      "weaknesses": [
+        "research-phase-ephemeral-findings",
+        "wrap-up-missing-notebooklm-sync"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 171,
@@ -638,7 +762,10 @@
       "iteration": 54,
       "fixes": 2,
       "date": "2026-03-24",
-      "weaknesses": ["pre-compact-german-strings", "session-end-german-strings"],
+      "weaknesses": [
+        "pre-compact-german-strings",
+        "session-end-german-strings"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 217,
@@ -650,7 +777,9 @@
       "iteration": 56,
       "fixes": 2,
       "date": "2026-03-30",
-      "weaknesses": ["agents-wrong-tools-key-v2"],
+      "weaknesses": [
+        "agents-wrong-tools-key-v2"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 199,
@@ -662,7 +791,9 @@
       "iteration": 57,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["schedule-manager-stale-plugin-reference"],
+      "weaknesses": [
+        "schedule-manager-stale-plugin-reference"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 199,
@@ -674,7 +805,9 @@
       "iteration": 58,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["research-pipeline-german-trigger-field"],
+      "weaknesses": [
+        "research-pipeline-german-trigger-field"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 199,
@@ -686,7 +819,9 @@
       "iteration": 59,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["meta-improve-stale-plugin-body-reference"],
+      "weaknesses": [
+        "meta-improve-stale-plugin-body-reference"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 200,
@@ -698,7 +833,9 @@
       "iteration": 60,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["self-improve-stash-vs-checkpoint"],
+      "weaknesses": [
+        "self-improve-stash-vs-checkpoint"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 200,
@@ -710,7 +847,9 @@
       "iteration": 61,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["analysis-phase-missing-part-of"],
+      "weaknesses": [
+        "analysis-phase-missing-part-of"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 201,
@@ -722,7 +861,9 @@
       "iteration": 62,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["self-improve-missing-metadata-block"],
+      "weaknesses": [
+        "self-improve-missing-metadata-block"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 202,
@@ -734,7 +875,9 @@
       "iteration": 63,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["analysis-phase-german-trigger-phrase"],
+      "weaknesses": [
+        "analysis-phase-german-trigger-phrase"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 203,
@@ -746,7 +889,9 @@
       "iteration": 64,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["research-pipeline-missing-metadata"],
+      "weaknesses": [
+        "research-pipeline-missing-metadata"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 107,
@@ -758,7 +903,9 @@
       "iteration": 65,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["research-pipeline-german-description"],
+      "weaknesses": [
+        "research-pipeline-german-description"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 108,
@@ -770,7 +917,9 @@
       "iteration": 66,
       "fixes": 1,
       "date": "2026-03-30",
-      "weaknesses": ["research-pipeline-redundant-triggers-field"],
+      "weaknesses": [
+        "research-pipeline-redundant-triggers-field"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 109,
@@ -782,7 +931,9 @@
       "iteration": 67,
       "fixes": 3,
       "date": "2026-03-30",
-      "weaknesses": ["commands-missing-name-field"],
+      "weaknesses": [
+        "commands-missing-name-field"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 109,
@@ -794,7 +945,13 @@
       "iteration": 68,
       "fixes": 5,
       "date": "2026-03-30",
-      "weaknesses": ["subagent-stop-deprecated-matcher", "run-loop-stale-reference", "sync-context-version-stale", "self-improve-missing-quality-gate-dep", "research-pipeline-german-body"],
+      "weaknesses": [
+        "subagent-stop-deprecated-matcher",
+        "run-loop-stale-reference",
+        "sync-context-version-stale",
+        "self-improve-missing-quality-gate-dep",
+        "research-pipeline-german-body"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 236,
@@ -806,7 +963,13 @@
       "iteration": 69,
       "fixes": 5,
       "date": "2026-03-30",
-      "weaknesses": ["session-end-duplicate-logic", "session-end-sh-dead-code", "pre-compact-sh-dead-code", "missing-session-start-tests", "hooks-json-stale-description"],
+      "weaknesses": [
+        "session-end-duplicate-logic",
+        "session-end-sh-dead-code",
+        "pre-compact-sh-dead-code",
+        "missing-session-start-tests",
+        "hooks-json-stale-description"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 241,
@@ -818,7 +981,9 @@
       "iteration": 70,
       "fixes": 1,
       "date": "2026-03-31",
-      "weaknesses": ["wrap-up-version-stale"],
+      "weaknesses": [
+        "wrap-up-version-stale"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 248,
@@ -830,7 +995,9 @@
       "iteration": 71,
       "fixes": 5,
       "date": "2026-03-31",
-      "weaknesses": ["user-facing-skills-missing-invocable"],
+      "weaknesses": [
+        "user-facing-skills-missing-invocable"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 249,
@@ -842,7 +1009,9 @@
       "iteration": 72,
       "fixes": 1,
       "date": "2026-03-31",
-      "weaknesses": ["research-agent-stale-research-phase-ref"],
+      "weaknesses": [
+        "research-agent-stale-research-phase-ref"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 259,
@@ -854,7 +1023,9 @@
       "iteration": 73,
       "fixes": 1,
       "date": "2026-04-01",
-      "weaknesses": ["research-pipeline-timeout-inconsistency"],
+      "weaknesses": [
+        "research-pipeline-timeout-inconsistency"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 260,
@@ -866,7 +1037,9 @@
       "iteration": 74,
       "fixes": 1,
       "date": "2026-04-01",
-      "weaknesses": ["wrap-up-state-json-path-unspecified"],
+      "weaknesses": [
+        "wrap-up-state-json-path-unspecified"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 261,
@@ -878,7 +1051,9 @@
       "iteration": 75,
       "fixes": 1,
       "date": "2026-04-01",
-      "weaknesses": ["session-bootstrap-errors-count-inconsistency"],
+      "weaknesses": [
+        "session-bootstrap-errors-count-inconsistency"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 262,
@@ -890,7 +1065,9 @@
       "iteration": 76,
       "fixes": 1,
       "date": "2026-04-01",
-      "weaknesses": ["quality-gate-warn-ignores-regressions"],
+      "weaknesses": [
+        "quality-gate-warn-ignores-regressions"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 263,
@@ -902,7 +1079,9 @@
       "iteration": 77,
       "fixes": 1,
       "date": "2026-04-06",
-      "weaknesses": ["skill-generator-template-missing-metadata-block"],
+      "weaknesses": [
+        "skill-generator-template-missing-metadata-block"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 264,
@@ -914,7 +1093,9 @@
       "iteration": 78,
       "fixes": 1,
       "date": "2026-04-06",
-      "weaknesses": ["improvement-agent-stale-phase-skill-refs"],
+      "weaknesses": [
+        "improvement-agent-stale-phase-skill-refs"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 265,
@@ -926,7 +1107,9 @@
       "iteration": 79,
       "fixes": 1,
       "date": "2026-04-06",
-      "weaknesses": ["improvement-agent-stash-safety-rule"],
+      "weaknesses": [
+        "improvement-agent-stash-safety-rule"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 266,
@@ -938,13 +1121,37 @@
       "iteration": 80,
       "fixes": 1,
       "date": "2026-04-06",
-      "weaknesses": ["quality-gate-agent-warn-no-regression-check"],
+      "weaknesses": [
+        "quality-gate-agent-warn-no-regression-check"
+      ],
       "false_alarm_count": 0,
       "quality_score": 1.0,
       "tests_before": 267,
       "tests_after": 268,
       "tests_plugin": 154,
       "tests_skill": 114
+    },
+    {
+      "iteration": 81,
+      "fixes": 2,
+      "date": "2026-06-21",
+      "weaknesses": [
+        "skill-generator-reads-legacy-pattern-fields",
+        "obsidian-sync-salience-field-never-written"
+      ],
+      "false_alarm_count": 0,
+      "quality_score": 1.0,
+      "functional_fixes": 2,
+      "cosmetic_fixes": 0,
+      "tests_before": 364,
+      "tests_after": 366,
+      "tests_plugin": 180,
+      "tests_skill": 167,
+      "grep_signatures": {
+        "recommended_action": 0,
+        "the avoid field": 0,
+        "salience >= 4": 0
+      }
     }
   ]
 }
