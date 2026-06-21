@@ -4,6 +4,22 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-21] Release v3.7.0 — Skill-Datenfluss-Fixes + Versions-Bump
+
+Versions-Bump `3.6.0` → `3.7.0`. Buendelt die seit 3.6.0 angesammelte Feature-Arbeit
+(PreToolUse Shell-Circuit-Breaker-Hook, die `verified_scanner`/`generate_watermark`/
+`refresh_verify_status`-Tool-Pipeline, quality-gate-Tool-Signal, wrap-up Long-Term-Memory-
+Routine) zu einem Release und ergaenzt zwei funktionale Skill-Fixes aus Self-Improve-
+Iteration #81:
+
+- **skill-generator** liest jetzt die kanonischen Pattern-Felder `evidence`/`recommendation`
+  statt der Legacy-Namen `error_ids`/`recommended_action`/`avoid`, die pattern-extractor
+  (alleiniger Writer) wegnormalisiert — repariert die Pattern→Skill-Generierungs-Pipeline.
+- **obsidian-sync** Rolling-Synthesis gated jetzt auf `importance >= 4` (learnings.json-
+  Schema, wie wrap-ups eigener Trigger) statt auf das nie geschriebene Feld `salience`.
+
+Beide mit RED→GREEN-Tests in `validate-skills.sh` abgesichert.
+
 ## [2026-06-13] PreToolUse Shell-Circuit-Breaker
 
 Neuer command-basierter `PreToolUse`-Hook fuer `Bash`: `scripts/pretooluse-shell-circuit-breaker.sh`
