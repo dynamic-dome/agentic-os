@@ -4,7 +4,7 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
-## [2026-06-24] Eval-driven self-improve (lever 6) + retrospective skill (14.)
+## [2026-06-24] Release v3.8.0 — Eval-driven self-improve (lever 6) + retrospective skill (14.)
 
 Zwei Mechanismen aus der v1.0-"self-improving-agent"-Urgeneration ins aktuelle Plugin
 ueberfuehrt (die anderen fuenf Urvaeter-Skills waren bereits — oft moderner — aufgegangen):
@@ -24,7 +24,7 @@ ueberfuehrt (die anderen fuenf Urvaeter-Skills waren bereits — oft moderner �
 Beide TDD-abgesichert (RED→GREEN, Marker `(lever 6)` / `(periodic-retrospective)`,
 bidirektional verifiziert, L11). Skill-Count 13→14 ueber alle Manifeste/Doku gezogen
 (plugin.json, marketplace.json, README, CLAUDE.md, ARCHITECTURE, CAPABILITIES,
-skill-template, DEPENDENCIES). Kein Versions-Bump/Release in diesem Commit.
+skill-template, DEPENDENCIES). Versions-Bump `3.7.0` → `3.8.0`.
 
 ## [2026-06-21] Release v3.7.0 — Skill-Datenfluss-Fixes + Versions-Bump
 
