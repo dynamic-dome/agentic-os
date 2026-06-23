@@ -106,7 +106,7 @@ SESSION END (SessionEnd hook → wrap-up)
 | obsidian-sync | config.json, session-summary.md, iteration-log.md, learnings.json/.md, patterns.json/.md, decisions.json, ~/wiki/{index.md,log.md,entities,synthesis} | ~/wiki/wiki/queries/*.md, ~/wiki/{index.md,log.md}, entity + synthesis (append), **patterns.json (promotion_status only)** | — |
 | wiki-query | config.json, ~/wiki/ pages (read-only) | ~/wiki/wiki/queries/ (only on explicit consent) | — |
 | self-improve | improvements/state.json, skills/*/SKILL.md, patterns.json, iteration-log.md, errors.json | skills/*/SKILL.md, research/research-cache.json, improvements/iterations-*.md, state.json, improvements/evals/*.eval.json (lever 6) | pattern-extractor (Phase 2.1) |
-| retrospective | iterations/iteration-log.md, errors.json, patterns.json, quality/*.json, decisions.json, learnings.json (all read-only) | retrospectives/retro-{date}.md, retrospectives/metrics.json (own output only) | — |
+| retrospective | iterations/iteration-log.md, iterations/errors.json, patterns/patterns.json, quality/*.json, context/decisions.json, learnings/learnings.json (all read-only) | retrospectives/retro-{date}.md, retrospectives/metrics.json (own output only) | — |
 
 ## Agents
 

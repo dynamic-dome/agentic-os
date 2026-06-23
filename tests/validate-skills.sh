@@ -510,8 +510,10 @@ if [ -f "$SI_HARDEN_FILE" ]; then
     # bidirectionally verifiable (strip -> red).
     if grep -qiE "\(lever 6\)" "$SI_HARDEN_FILE" \
        && grep -qiE "EVAL-REGRESSION" "$SI_HARDEN_FILE" \
-       && grep -qiE "improvements/evals" "$SI_HARDEN_FILE"; then
-        pass "self-improve: lever 6 present — eval-driven acceptance gate (per-skill binary eval set)"
+       && grep -qiE "improvements/evals" "$SI_HARDEN_FILE" \
+       && grep -qiE "baseline_eval" "$SI_HARDEN_FILE" \
+       && grep -qiE "green suite NEVER overrides|independent of the test result" "$SI_HARDEN_FILE"; then
+        pass "self-improve: lever 6 present — eval-driven acceptance gate (baseline + green-suite-independent rollback)"
     else
         fail "self-improve: lever 6 missing — Phase 4 must score the mutated skill against a per-skill binary eval set (improvements/evals/<skill>.eval.json), record a baseline before mutating, and rollback on EVAL-REGRESSION (eval score dropped), not only on test failure"
     fi
@@ -526,8 +528,10 @@ echo ""
 echo "-- wrap-up: periodic retrospective hook (no dead-skill path, L19) --"
 if [ -f "$WU_RETRO_FILE" ]; then
     if grep -qiE "\(periodic-retrospective\)" "$WU_RETRO_FILE" \
-       && grep -qiE "retrospective" "$WU_RETRO_FILE"; then
-        pass "wrap-up: periodic-retrospective hook present — retrospective skill has a real call path"
+       && grep -qiE "retrospective" "$WU_RETRO_FILE" \
+       && grep -qiE "7 days|5\+ new iterations" "$WU_RETRO_FILE" \
+       && grep -qiE "never writes its files|does not duplicate" "$WU_RETRO_FILE"; then
+        pass "wrap-up: periodic-retrospective hook present — real call path + interval/threshold trigger + no-write delegation"
     else
         fail "wrap-up: periodic-retrospective hook missing — the retrospective skill must be invoked from the bracket on an interval/threshold, or it is dead code with a green suite (L19)"
     fi
