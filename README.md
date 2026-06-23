@@ -20,7 +20,7 @@ Self-improving agent memory system that works across any project.
 | `/agentic-os:rollback` | Roll back the last self-improve commit |
 | `/agentic-os:auto-commit` | Stage + commit current changes (used by self-improve) |
 
-## Skills (13)
+## Skills (14)
 
 | # | Skill | Layer | Purpose |
 |---|-------|-------|---------|
@@ -37,6 +37,7 @@ Self-improving agent memory system that works across any project.
 | 11 | `research-pipeline` | knowledge | Token-optimized research via Perplexity → NotebookLM → Claude |
 | 12 | `wiki-query` | knowledge | Mid-session lookup in the Obsidian wiki with authority-aware retrieval |
 | 13 | `obsidian-sync` | knowledge | Writes session results into the Obsidian wiki (sessions, entities, patterns) |
+| 14 | `retrospective` | quality | Multi-session trend metrics, blind-spot analysis, health grade (read-only over the store) |
 
 See `skills/DEPENDENCIES.md` for the full dependency graph and consolidated skill structure.
 

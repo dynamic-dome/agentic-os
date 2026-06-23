@@ -541,6 +541,24 @@ When invoking, hand off cleanly — `memory-maintenance` owns its own report and
 
 ---
 
+# Step 10: Periodic Retrospective (Delegated) (periodic-retrospective)
+
+Long-term trend analysis is a separate skill: `retrospective`. Like memory-maintenance it
+is periodic and delegated — wrap-up only decides WHETHER to invoke it, so the
+bootstrap+wrap-up bracket actually exercises it instead of leaving it as dead code with a
+green test suite (L19).
+
+Invoke the `retrospective` skill after Step 9 when EITHER condition holds:
+- **Stale:** `retrospectives/metrics.json` is missing, or its `last_updated` is more than
+  7 days old, OR
+- **Enough new work:** 5+ new iterations in `iterations/iteration-log.md` since that
+  `last_updated`.
+
+Otherwise skip silently. `retrospective` owns its own `retrospectives/` output and error
+handling — wrap-up does not duplicate its logic and never writes its files.
+
+---
+
 # Handoff Mode (Pre-Compression)
 
 When triggered by context getting long or explicit handoff request, append to session-summary.md:

@@ -4,6 +4,28 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-24] Eval-driven self-improve (lever 6) + retrospective skill (14.)
+
+Zwei Mechanismen aus der v1.0-"self-improving-agent"-Urgeneration ins aktuelle Plugin
+ueberfuehrt (die anderen fuenf Urvaeter-Skills waren bereits — oft moderner — aufgegangen):
+
+- **self-improve lever 6 (Eval-Driven Acceptance Gate):** Phase 0.4 legt pro Ziel-Skill ein
+  binaeres Eval-Set an (`improvements/evals/<skill>.eval.json`); Phase 4.2b scort die Mutation
+  vor/nach gegen dieses Set und rollbackt bei `EVAL-REGRESSION` (gesunkener Eval-Score) —
+  unabhaengig davon, ob die Test-Suite gruen ist. Haertet die bisher weiche, subjektive
+  Phase-4.2-Quality-Pruefung (lever 5 schuetzt die Suite, lever 6 den Skill-Kontrakt).
+  Verworfene Mutationen landen als Research Asset in `improvements/evals/failed/`.
+- **retrospective (14. Skill, quality-Layer):** Multi-Session-Trend-Metriken (Effizienz,
+  Qualitaet, Lernen, Wachstum), Blind-Spot-Analyse und Health-Grade, read-only ueber den
+  Store, schreibt nur `retrospectives/`. In die bootstrap+wrap-up-Klammer eingehaengt
+  (wrap-up Step 10, periodisch: Metriken >7d alt ODER 5+ neue Iterationen) — sonst toter
+  Code mit gruener Suite (L19).
+
+Beide TDD-abgesichert (RED→GREEN, Marker `(lever 6)` / `(periodic-retrospective)`,
+bidirektional verifiziert, L11). Skill-Count 13→14 ueber alle Manifeste/Doku gezogen
+(plugin.json, marketplace.json, README, CLAUDE.md, ARCHITECTURE, CAPABILITIES,
+skill-template, DEPENDENCIES). Kein Versions-Bump/Release in diesem Commit.
+
 ## [2026-06-21] Release v3.7.0 — Skill-Datenfluss-Fixes + Versions-Bump
 
 Versions-Bump `3.6.0` → `3.7.0`. Buendelt die seit 3.6.0 angesammelte Feature-Arbeit

@@ -31,7 +31,7 @@ session-bootstrap (read-only)  →  WORK PHASE  →  wrap-up (Handoff + Learning
 - **Aufgabe:** Phase 0 sourct die SSoT; Phase 1 = Auto-Init bei fehlendem Store; Phase 2 = Backfill (heilt partielle Stores) + Kontext-Injection.
 - **Abhaengigkeiten:** `mem-schema.sh`. Schreibt `project-context.md` selbst (Inline-Stack-Detection — bewusst ausserhalb der SSoT).
 
-### Skills (13, geschichtet)
+### Skills (14, geschichtet)
 - **Datei(en):** `skills/*/SKILL.md`
 - **Aufgabe:** Session-Lifecycle + Memory-Management. Genau ein Schreiber pro Store-Datei.
 - **Abhaengigkeiten:** Strikt azyklisch (`skills/DEPENDENCIES.md`).

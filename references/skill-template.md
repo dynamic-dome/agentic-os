@@ -69,7 +69,7 @@ description: >
 
 ## Layer Guide
 
-The 13 active skills, grouped by layer. (Trigger phrases in frontmatter MUST be English — tests enforce this.)
+The 14 active skills, grouped by layer. (Trigger phrases in frontmatter MUST be English — tests enforce this.)
 
 | Layer | Purpose | Skills |
 |-------|---------|--------|

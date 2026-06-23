@@ -1,5 +1,5 @@
 {
   "name": "agentic-os",
   "version": "3.7.0",
-  "description": "Self-improving agent memory system with 13 skills (core + quality + knowledge + self-improve) and 6 hooks, including a PreToolUse shell circuit breaker. Self-improve runs are policy-gated (single-cluster, no-self-mod, rollback-tagged). MCP-Tool-Bridge Policy enforces clear roles (tool/introspection/knowledge) and hard no-gos against MCP-as-truth or cross-project mutation."
+  "description": "Self-improving agent memory system with 14 skills (core + quality + knowledge + self-improve) and 6 hooks, including a PreToolUse shell circuit breaker. Self-improve runs are policy-gated (single-cluster, no-self-mod, rollback-tagged). MCP-Tool-Bridge Policy enforces clear roles (tool/introspection/knowledge) and hard no-gos against MCP-as-truth or cross-project mutation."
 }

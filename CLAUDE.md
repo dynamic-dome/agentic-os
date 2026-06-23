@@ -26,16 +26,16 @@ No build step. No package manager. The plugin is pure Markdown + JSON + Bash.
 ```
 .claude-plugin/plugin.json → Plugin manifest (name, version, description)
 hooks/hooks.json           → 6 hooks (SessionStart, PreToolUse, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop)
-skills/*/SKILL.md          → 13 skills with YAML frontmatter (trigger phrases, descriptions)
+skills/*/SKILL.md          → 14 skills with YAML frontmatter (trigger phrases, descriptions)
 agents/*.md                → 4 active agents (context-detective, improvement-agent, quality-gate, research-agent)
 commands/*.md              → 10 slash commands (init, status, run-loop, rollback, auto-commit, sync, log, patterns, research, memory-audit) — KEIN Command darf einen Skill-Namen tragen (Skill-Tool-Schatten/Loop, L17; Test erzwingt das)
 improvements/state.json    → Self-improve loop state tracker
 scripts/                   → Hook helper scripts (session-start.sh, pretooluse-shell-circuit-breaker.sh)
 ```
 
-**Skills (13, layered):**
+**Skills (14, layered):**
 - **Core** (session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, skill-generator, sync-context, memory-maintenance): Session lifecycle and memory management
-- **Quality** (quality-gate): Code review + test validation + TDD enforcement in one skill
+- **Quality** (quality-gate, retrospective): quality-gate = code review + test validation + TDD enforcement in one skill; retrospective = multi-session trend metrics, blind-spot analysis and a health grade (read-only over the store)
 - **Self-improve** (self-improve): Multi-iteration loop with research, analysis, improvement, validation, meta-improve, scheduling — policy-gated (siehe `skills/self-improve/SKILL.md` Self-Improve Policy)
 - **Knowledge** (research-pipeline, wiki-query, obsidian-sync): External research via Perplexity/NotebookLM, mid-session wiki-lookup, write-path to Obsidian wiki
 

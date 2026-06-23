@@ -19,10 +19,10 @@ Status-Werte: `aktiv`, `experimentell`, `geplant`, `deprecated`, `entfernt`
 - **Standalone:** nur `.agent-memory/`, ohne Wiki/NotebookLM.
 - **Wiki-verbunden:** `config.json` mit `sync_enabled` → obsidian-sync + wiki-query + Wiki-ADR-Writeback aktiv.
 
-## Skills (13)
+## Skills (14)
 
 Core: session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, skill-generator, sync-context, memory-maintenance.
-Quality: quality-gate. Self-improve: self-improve. Knowledge: research-pipeline, wiki-query, obsidian-sync.
+Quality: quality-gate, retrospective. Self-improve: self-improve. Knowledge: research-pipeline, wiki-query, obsidian-sync.
 
 ## Agents (4)
 

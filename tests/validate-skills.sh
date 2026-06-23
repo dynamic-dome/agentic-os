@@ -502,6 +502,37 @@ if [ -f "$SI_HARDEN_FILE" ]; then
     fi
 fi
 
+echo ""
+echo "-- self-improve: lever 6 (eval-driven acceptance gate) --"
+if [ -f "$SI_HARDEN_FILE" ]; then
+    # Phase 4 must score the mutated skill against a per-skill BINARY eval set and reject
+    # when the eval score drops — not only when the test suite fails. Marker + signal keyword,
+    # bidirectionally verifiable (strip -> red).
+    if grep -qiE "\(lever 6\)" "$SI_HARDEN_FILE" \
+       && grep -qiE "EVAL-REGRESSION" "$SI_HARDEN_FILE" \
+       && grep -qiE "improvements/evals" "$SI_HARDEN_FILE"; then
+        pass "self-improve: lever 6 present — eval-driven acceptance gate (per-skill binary eval set)"
+    else
+        fail "self-improve: lever 6 missing — Phase 4 must score the mutated skill against a per-skill binary eval set (improvements/evals/<skill>.eval.json), record a baseline before mutating, and rollback on EVAL-REGRESSION (eval score dropped), not only on test failure"
+    fi
+fi
+
+# --- retrospective: real invocation path from the bracket (anti-dead-code, L19) ---
+# A skill with no call path in the bootstrap/wrap-up bracket is dead code with a green
+# suite (L19: months of null counters). wrap-up must invoke retrospective on an interval/
+# threshold, marked (periodic-retrospective).
+WU_RETRO_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+echo ""
+echo "-- wrap-up: periodic retrospective hook (no dead-skill path, L19) --"
+if [ -f "$WU_RETRO_FILE" ]; then
+    if grep -qiE "\(periodic-retrospective\)" "$WU_RETRO_FILE" \
+       && grep -qiE "retrospective" "$WU_RETRO_FILE"; then
+        pass "wrap-up: periodic-retrospective hook present — retrospective skill has a real call path"
+    else
+        fail "wrap-up: periodic-retrospective hook missing — the retrospective skill must be invoked from the bracket on an interval/threshold, or it is dead code with a green suite (L19)"
+    fi
+fi
+
 # --- Memory Growth Engine (Master-Plan 2026-06-03, Sprint user.md + soul.md) ---
 # Pins the growth mechanics into the owning skill bodies. Marker-based + concept phrase,
 # bidirectionally verified (strip -> FAIL, restore -> PASS).

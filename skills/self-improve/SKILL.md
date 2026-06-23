@@ -187,6 +187,38 @@ git rev-parse HEAD
 ```
 Store this as `checkpoint_sha`.
 
+## Step 0.4: Load or Initialize Eval Sets (lever 6 setup)
+
+Before mutating any skill, each target skill gets a **binary eval set** — the hard
+acceptance contract that Phase 4 scores against. This turns "tests still green + looks no
+worse" (subjective, Phase 4.2) into "the skill measurably did not regress against
+pre-declared criteria" (objective). It is the missing half of the historical loop: lever 5
+guards the *suite*, lever 6 guards the *skill's own contract*.
+
+For every skill selected for improvement this run, read
+`improvements/evals/{skill-name}.eval.json`. If it does not exist, create it from the
+skill's declared contract (its frontmatter promises + the outputs/guards its body claims).
+Schema — **binary criteria only**, each answerable strictly yes/no:
+
+```json
+{
+  "skill": "{skill-name}",
+  "version": 1,
+  "criteria": [
+    {"id": "C1", "category": "correctness",  "question": "Does every declared output (file / JSON key / verdict) have a step that writes it?", "weight": 2},
+    {"id": "C2", "category": "safety",       "question": "Are all abort/rollback paths reachable and the safety guards intact?", "weight": 2},
+    {"id": "C3", "category": "completeness", "question": "Is the frontmatter complete (name, description, metadata) and are trigger phrases English?", "weight": 1},
+    {"id": "C4", "category": "format",       "question": "Consistent section/step structure with the other skills?", "weight": 1}
+  ],
+  "pass_threshold": 0.8
+}
+```
+
+Add **skill-specific** binary criteria where the skill has an invariant worth pinning
+(e.g. quality-gate: "Does the WARN verdict still check regressions?"; sync-context: "Does
+the privacy pre-filter still run before the gate?"). Keep every criterion binary — no
+scales, no 1-5 ratings. `max_score` = sum of weights.
+
 ---
 
 # Phase 1: Research
@@ -427,6 +459,34 @@ A shrinking absolute count means the harness stopped discovering tests; never in
 3. Confirm formatting consistency
 4. If changes reduce clarity or remove safety guards, treat as "WORSE" and trigger rollback
 
+## Step 4.2b: Eval-Driven Acceptance Gate (lever 6)
+
+Phase 4.2 alone is too soft — "no sections removed, looks no worse" lets a mutation that
+silently weakens a skill pass as long as the suite stays green. The eval set from Step 0.4
+makes acceptance objective and is the HARD gate, layered on top of the test suite:
+
+1. **Baseline (before the mutation):** score the ORIGINAL skill against
+   `improvements/evals/{skill}.eval.json` — answer every binary criterion 0/1, then
+   `baseline_eval = Σ(criterion.passed × weight)`. Record it as `eval_before` in the
+   iteration's state entry. (Do this at Phase 0.4 time, on the pre-mutation file.)
+2. **Mutated score (after the GREEN edit):** score the mutated skill the same way →
+   `mutation_eval`. Record as `eval_after`.
+3. **Gate:**
+   - `mutation_eval > baseline_eval` AND tests pass → **ACCEPT** (the mutation provably
+     improved the contract).
+   - `mutation_eval == baseline_eval` AND tests pass → ACCEPT only if the fix addressed a
+     real **functional** weakness (lever 2 classification); a purely cosmetic edit that
+     holds the eval flat counts as no-progress, not an improvement.
+   - `mutation_eval < baseline_eval` → **EVAL-REGRESSION**: the mutation broke a
+     pre-declared criterion the test suite did not catch. Rollback to `checkpoint_sha` and
+     report `EVAL-REGRESSION: {skill} eval {baseline_eval}->{mutation_eval}, criteria lost:
+     {ids}`. This is independent of the test result — a green suite NEVER overrides a
+     dropped eval score.
+4. **Failed mutation as research asset:** on EVAL-REGRESSION or rollback, append the
+   discarded skill body + the lost-criteria analysis to
+   `improvements/evals/failed/{skill}-{iteration}.md` — this documents what does NOT work,
+   so a later run (or a stronger model) does not re-try the same dead end.
+
 ## Step 4.3: Handle Results
 
 **All tests pass AND quality is BETTER/SAME:** Record results, report "VALIDATION PASSED"
@@ -559,7 +619,9 @@ Each iteration records an entry in `state.json` history:
   "tests_before": 171,
   "tests_after": 173,
   "tests_plugin": 73,
-  "tests_skill": 100
+  "tests_skill": 100,
+  "eval_before": 5,
+  "eval_after": 6
 }
 ```
 
