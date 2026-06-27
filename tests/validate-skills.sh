@@ -189,6 +189,49 @@ if [ -f "$SB_HO_FILE" ]; then
     fi
 fi
 
+# --- Wiki-Sync hardening (2026-06-27): three markers, each strip->FAIL-verifiable (L11) ---
+# Hardens the auto wiki session-summary chain (wrap-up Step 7.5 -> obsidian-sync) so a
+# substantial session never silently skips the wiki note. Levers: visibility + looser gate.
+echo ""
+echo "-- wiki-sync hardening (visible outcome + substantiality gate) --"
+WU_WS_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+OS_WS_FILE="$SKILLS_DIR/obsidian-sync/SKILL.md"
+
+# (wiki-sync-visible): wrap-up Step 7.5 must report the sync outcome instead of skipping silently
+if [ -f "$WU_WS_FILE" ]; then
+    WSV_BLOCK=$(grep -A6 "(wiki-sync-visible)" "$WU_WS_FILE")
+    if echo "$WSV_BLOCK" | grep -qi "never skips silently" && echo "$WSV_BLOCK" | grep -qi "status line"; then
+        pass "wrap-up: (wiki-sync-visible) — Step 7.5 always reports wiki-sync outcome, never silent skip"
+    else
+        fail "wrap-up: missing (wiki-sync-visible) — Step 7.5 must emit a visible status line in every case (synced / skipped+reason / failed), not skip silently"
+    fi
+
+    # (wiki-sync-gate): wrap-up Step 7.5 substantiality gate is loosened to >=1 iteration / any commit today
+    WSG_BLOCK=$(grep -A8 "Trigger Conditions (wiki-sync-gate)" "$WU_WS_FILE")
+    if echo "$WSG_BLOCK" | grep -qi "substantial" && echo "$WSG_BLOCK" | grep -q "since=midnight"; then
+        pass "wrap-up: (wiki-sync-gate) — substantiality gate triggers on >=1 iteration or any commit today"
+    else
+        fail "wrap-up: missing/weakened (wiki-sync-gate) — Step 7.5 must treat a single iteration or any today's commit as substantial (looser than old threshold=2)"
+    fi
+fi
+
+# (wiki-sync-gate) + (wiki-sync-visible) must also be anchored in obsidian-sync (the write-path skill)
+if [ -f "$OS_WS_FILE" ]; then
+    OSG_BLOCK=$(grep -A4 "(wiki-sync-gate)" "$OS_WS_FILE")
+    if echo "$OSG_BLOCK" | grep -qi "substantial" && echo "$OSG_BLOCK" | grep -q "since=midnight"; then
+        pass "obsidian-sync: (wiki-sync-gate) — write-path gate aligned with wrap-up (>=1 iteration / any commit)"
+    else
+        fail "obsidian-sync: missing/weakened (wiki-sync-gate) — Step 2 gate must align with wrap-up's looser substantiality rule"
+    fi
+
+    OSV_BLOCK=$(grep -A4 "(wiki-sync-visible)" "$OS_WS_FILE")
+    if echo "$OSV_BLOCK" | grep -qi "never returns silently\|never returns silent\|never nothing"; then
+        pass "obsidian-sync: (wiki-sync-visible) — reports outcome on both success and skip"
+    else
+        fail "obsidian-sync: missing (wiki-sync-visible) — Output section must state both success and skip cases are reported, never silent"
+    fi
+fi
+
 # tdd, code-reviewer JSON template tests removed — merged into quality-gate in v3
 
 echo ""

@@ -66,7 +66,12 @@ Read from .agent-memory/:
 4. `patterns/patterns.json` OR `patterns/patterns.md` — patterns with updated confidence (check .json first, fall back to .md)
 5. `context/decisions.json` — new decisions from this session (skip if not found)
 
-Count iterations from today. If < session_note_threshold (default: 2) AND no meaningful learnings → output "Session below sync threshold. Skipping wiki sync." and stop.
+**Substantiality gate (wiki-sync-gate):** the session must be substantial — ANY of:
+>= 1 iteration logged today, OR today's commits exist (`git log --oneline --since=midnight`),
+OR a meaningful learning (importance >= 4). This is aligned with wrap-up Step 7.5's looser
+gate (a single real iteration or any commit already warrants a note); the old
+`< session_note_threshold (2)` cutoff dropped real single-iteration sessions. If none hold
+→ output "Wiki-Sync: übersprungen — Session nicht substanziell." and stop.
 
 ## Step 3: Create Session Note
 
@@ -159,9 +164,11 @@ Append to `$WIKI_ROOT/log.md`:
 - Total pages touched: {n}
 ```
 
-## Output
+## Output (wiki-sync-visible)
 
-Report to user:
+Always report the outcome — both success and skip cases must be visible to the user; this
+skill never returns silently (a silent skip is what made the auto-sync feel broken). On
+success:
 ```
 Wiki sync complete:
   Session-Note: wiki/queries/YYYY-MM-DD-session-...
@@ -170,6 +177,8 @@ Wiki sync complete:
   Patterns: {count} candidates, {count} ready
   Pages touched: {total}
 ```
+On a skip (disabled / no config / not substantial), output the one-line reason from
+Step 1 or Step 2 instead — never nothing.
 
 ## Error Handling
 

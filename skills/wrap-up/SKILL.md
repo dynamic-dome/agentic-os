@@ -359,23 +359,36 @@ If a NotebookLM notebook exists for this project (check `.agent-memory/knowledge
 
 Sync session results to the Obsidian Wiki. This step **delegates** to the `obsidian-sync` skill — it does NOT duplicate its logic.
 
-### Trigger Conditions (ALL must be true)
-1. `.agent-memory/config.json` exists AND `sync_enabled: true`
-2. At least ONE of:
-   - >= `session_note_threshold` iterations logged today (default: 2)
-   - meaningful_learning extracted in Step 3 (importance >= 4)
-   - new architecture-decision or status-change in decisions.json
+### Trigger Conditions (wiki-sync-gate)
+1. `.agent-memory/config.json` exists AND `sync_enabled: true` — **hard gate**. If this
+   fails, wiki sync is genuinely not configured for this project; report it (see below)
+   and stop.
+2. The session was **substantial** — ANY of:
+   - >= 1 iteration logged or reconstructed today (Step 1 / Step 1.5 harvest), OR
+   - today's commits exist (`git log --oneline --since=midnight` non-empty), OR
+   - a meaningful_learning was extracted in Step 3 (importance >= 4), OR
+   - a new architecture-decision or status-change landed in decisions.json
+
+   This is intentionally looser than the old `>= session_note_threshold (2)` rule: a
+   single real iteration or any commit today already warrants a wiki note. Pure
+   lookup/discussion sessions with no artifacts are NOT substantial → skip.
 
 ### Execution
-If conditions met: invoke the `obsidian-sync` skill.
+If both conditions hold: invoke the `obsidian-sync` skill.
 
 The obsidian-sync skill handles all wiki writes (session-note, entity update, rolling synthesis, pattern promotion status, index/log). Do NOT replicate any of its steps here.
 
-### If conditions NOT met
-Skip silently. Output nothing about wiki sync.
+### Always report the outcome (wiki-sync-visible)
+Wiki sync **never skips silently** — the user must always see whether a note was written
+and, if not, exactly why (the old silent skip is what made the feature feel broken).
+Emit exactly ONE status line in every case:
+- Synced: `Wiki-Sync: Note geschrieben → wiki/queries/{file} ({n} pages touched)`
+- Not configured (condition 1 failed): `Wiki-Sync: übersprungen — sync_enabled false oder keine config.json`
+- Not substantial (condition 2 failed): `Wiki-Sync: übersprungen — Session nicht substanziell (0 Iterationen, keine Commits heute)`
+- Failed: see Error Handling below.
 
 ### Error Handling
-If obsidian-sync fails: **warn and continue**. Never let wiki sync failure block wrap-up. Output: "Wiki sync failed: {reason}. Session data is safe in .agent-memory/."
+If obsidian-sync fails: **warn and continue**. Never let wiki sync failure block wrap-up. Output: "Wiki-Sync fehlgeschlagen: {reason}. Session data is safe in .agent-memory/."
 
 ## Step 7.6: Central Cross-Project Handoff (SESSION-WORKFLOW)
 

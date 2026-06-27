@@ -1301,6 +1301,23 @@ if [ -n "$SE_PROMPT" ]; then
     fi
 fi
 
+# 67b. SessionEnd hook verifies the wiki session-note actually landed (sessionend-wiki-verify)
+#      Wiki-sync hardening (2026-06-27): wrap-up Step 7.5 is a *prompt* path that can be
+#      missed on autonomous/aborted sessions. The SessionEnd hook is the backstop — for a
+#      substantial, sync-enabled project it must confirm a today wiki session-note exists
+#      and invoke obsidian-sync if it doesn't. Still a delegation (no duplicate write logic).
+echo ""
+echo "-- SessionEnd hook: wiki-sync verify backstop --"
+if [ -n "$SE_PROMPT" ]; then
+    if echo "$SE_PROMPT" | grep -q "sessionend-wiki-verify" \
+       && echo "$SE_PROMPT" | grep -q "wiki/queries" \
+       && echo "$SE_PROMPT" | grep -q "obsidian-sync"; then
+        pass "SessionEnd: (sessionend-wiki-verify) — confirms today's wiki note exists, invokes obsidian-sync as backstop"
+    else
+        fail "SessionEnd: missing (sessionend-wiki-verify) — hook must check for a today wiki/queries session-note and invoke obsidian-sync when sync_enabled and the session is substantial"
+    fi
+fi
+
 # 68. Dead script cleanup — session-end.sh and pre-compact.sh should not exist
 echo ""
 echo "-- Dead hook script cleanup --"

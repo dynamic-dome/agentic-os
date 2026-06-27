@@ -4,6 +4,33 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-06-27] Release v3.9.0 — Wiki-Session-Summary-Auto-Sync gehaertet
+
+Die Auto-Wiki-Session-Zusammenfassung (SessionEnd-Hook → wrap-up Step 7.5 → obsidian-sync)
+existierte vollstaendig, feuerte aber unzuverlaessig: bei normal beendeten Sessions verfehlte
+das Gate einzelne reale Iterationen, und ein nicht erfuelltes Gate fuehrte zu einem **stillen
+Skip ohne jede Ausgabe** — wodurch sich das Feature "kaputt" anfuehlte (agentic-os-plugin
+selbst hatte seit 2026-06-12 keine Wiki-Note mehr, obwohl mehrere Releases dazwischenlagen).
+Drei Haertungs-Hebel, alle innerhalb der bestehenden Kette, je strip→FAIL-verifiziert (L11):
+
+- **(wiki-sync-visible):** wrap-up Step 7.5 und obsidian-sync skippen nie mehr still — in
+  jedem Fall eine sichtbare Status-Zeile (`Note geschrieben → …` / `übersprungen — {Grund}` /
+  `fehlgeschlagen — …`). Der stille Skip war die Hauptursache des "passiert nichts"-Eindrucks.
+- **(wiki-sync-gate):** Substanzialitaets-Gate gelockert von `>= session_note_threshold (2)`
+  auf "ANY: >= 1 Iteration heute ODER heutige Commits ODER importance≥4-Learning ODER neue
+  Decision". Eine einzelne echte Iteration / ein Commit rechtfertigt bereits eine Note;
+  in wrap-up UND obsidian-sync identisch verankert.
+- **(sessionend-wiki-verify):** Der SessionEnd-Hook ist jetzt Backstop — bei sync-enabled +
+  substanzieller Session prueft er, ob eine heutige `wiki/queries/{date}-session-{project}*`-Note
+  existiert, und ruft sonst obsidian-sync nach. Bleibt reine Delegation (keine dupl. Schreiblogik).
+
+**Bekannte Grenze (bewusst):** Eine plugin-interne Haertung greift NICHT bei hart
+abgebrochenen Sessions (Crash) oder headless-Laeufen mit `disableAllHooks` (autonome
+Bridge-Runs) — dort feuert kein Hook. Das deckte ein optionaler deterministischer
+command-Hook mit git-Fallback-Stub ab (nicht umgesetzt, bewusst verworfen).
+
+Tests: +5 Marker-Tests (4 in validate-skills.sh, 1 in validate-plugin.sh), alle Suiten gruen.
+
 ## [2026-06-24] Release v3.8.0 — Eval-driven self-improve (lever 6) + retrospective skill (14.)
 
 Zwei Mechanismen aus der v1.0-"self-improving-agent"-Urgeneration ins aktuelle Plugin
