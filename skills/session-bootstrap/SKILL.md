@@ -100,9 +100,24 @@ Read files in this priority order. Skip any that don't exist:
 
 Apply identity settings from `soul.md` silently (communication style, guard rails).
 
-### Salience Retrieval (learnings.json)
+### Learnings Retrieval (RAG-Hybrid)
 
-When loading `learnings/learnings.json`, sort entries by salience score and include the top 10 in the briefing:
+**Primary path — Atlas MCP (when available):**
+
+1. Build a query from `context/open-tasks.json`: concat the titles of the top 3 open/blocked
+   tasks, e.g. `"Relevante Learnings für: T-3-opt Writeback; RAG-Hybrid-Bootstrap; ..."`.
+   If no open tasks exist, use the project name + stack keywords as fallback query.
+2. Call `mcp__agent-memory-atlas__memory_search_tool` with:
+   - `query`: the task-title query
+   - `top_k`: 5
+   - `source_system`: `"agent-memory"`
+3. Filter out entries where `superseded_by` is not null.
+4. Include the ≤5 results as KEY LEARNINGS. Prefix the section header with `(RAG)`.
+5. On any MCP error or empty result → fall through to heuristic fallback.
+
+**Fallback path — heuristic rank (when MCP unavailable or empty):**
+
+Read `learnings/learnings.json` directly. Sort by salience score; include top 10:
 
 ```
 score = importance * 0.4 + recency * 0.3 + tag_overlap * 0.3
@@ -113,14 +128,12 @@ tag_overlap = matching_tags / total_tags  (match against project-context.md stac
 
 - Skip entries where `superseded_by` is not null
 - Prefer `layer: "long-term"` over `"short-term"` at equal scores
-- Do NOT update `last_relevant` here — bootstrap is strictly read-only. The wrap-up skill updates `last_relevant` when it processes learnings at session end.
+- Prefix the section header with `(heuristic fallback)`.
+- Do NOT update `last_relevant` here — bootstrap is strictly read-only.
 
-**Staleness wrapping (staleness-wrap) — display only, never a write.** When an entry pulled
-into the briefing has `now − last_relevant > 90 days`, wrap it visually so the reader sees it
-is aging, e.g. `[STALE? last relevant {date}, conf {c}] {text}`. This is a pure read-time
-annotation: do NOT recompute, decay, or write `confidence`/`last_relevant` here. Confidence
-decay is exclusively memory-maintenance's job (Step 4b global-decay) — bootstrap only marks,
-never mutates, preserving the read-only rule.
+**Staleness wrapping — display only, never a write.** When an entry has
+`now − last_relevant > 90 days`, annotate visually: `[STALE? last relevant {date}] {text}`.
+Do NOT write back confidence or last_relevant — that is memory-maintenance's job.
 
 ## Step 2.5: Wiki Context Loading (optional)
 
@@ -165,6 +178,21 @@ WIKI CONTEXT
 ```
 
 If wiki is not configured or unreachable: omit this block entirely. Do NOT output "Wiki not found" — just skip.
+
+### Cross-Vault-Enrichment (RAG, optional)
+
+After loading the wiki pages above, query the Atlas MCP for cross-vault ideas relevant to today's tasks:
+
+1. Use the same task-title query built for Learnings Retrieval (Step 2).
+2. Call `mcp__agent-memory-atlas__memory_search_tool` with:
+   - `query`: task-title query
+   - `top_k`: 2
+   - `scope`: `"project:agent-lab"`
+3. On success: append to the WIKI CONTEXT block:
+   `  Ideas: {title1}; {title2} (agent-lab)`
+4. On error or empty result: skip silently.
+
+If Atlas MCP is unavailable: skip the entire Cross-Vault-Enrichment silently.
 
 ## Step 3: Health Checks
 
@@ -236,9 +264,9 @@ PROJECT STATUS
   {1-2 lines from project-context.md}
   Stack: {compact tech stack}
 
-KEY LEARNINGS (top 10 by salience)
-  {sorted learnings from learnings.json — show [ID] importance text}
-  {omit if learnings.json doesn't exist or is empty}
+KEY LEARNINGS (top 5 via RAG · fallback: top 10 heuristic)
+  {(RAG) or (heuristic fallback) results — show [ID] importance text}
+  {omit if no learnings available}
 
 ACTIVE WARNINGS
   {high-confidence patterns (confidence >= 0.7, occurrences >= 3)}
