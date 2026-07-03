@@ -59,6 +59,34 @@ run_case "ignores non-shell tool payloads" 0 \
 run_case "allows malformed payload deterministically" 0 \
     '{not-json'
 
+# T-17: benign PowerShell output formatters must not trip the disk-format rule
+run_case "allows Format-Table after pipe" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell -NoProfile -Command \"Get-Process | Format-Table -AutoSize\""}}'
+
+run_case "allows Format-List" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell -NoProfile -Command \"Get-Process | Format-List\""}}'
+
+run_case "allows Format-Hex" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell -NoProfile -Command \"Get-Content x.bin | Format-Hex\""}}'
+
+run_case "allows Format-Table at command start" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"Format-Table -InputObject $x"}}'
+
+# T-17: genuinely destructive format/disk commands must stay blocked
+run_case "blocks disk format command" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"format C: /Q"}}'
+
+# Format-Volume in the same pipe context as Format-Table must STAY blocked
+# (proves the whitelist discriminates output-formatters from the destructive cmdlet)
+run_case "blocks piped Format-Volume" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell -NoProfile -Command \"Get-Disk | Format-Volume -DriveLetter D\""}}'
+
+run_case "blocks diskpart" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"diskpart /s script.txt"}}'
+
+run_case "blocks mkfs" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"mkfs.ext4 /dev/sda1"}}'
+
 echo ""
 echo "========================================"
 if [ "$ERRORS" -eq 0 ]; then
