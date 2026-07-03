@@ -79,7 +79,10 @@ RULES = [
     ),
     (
         "disk formatting or partitioning",
-        re.compile(r"(?i)(^|[;&|]\s*)(mkfs(\.[A-Za-z0-9_+-]+)?|diskpart|format)\b"),
+        # format(?!-...): der DOS-Datentraeger-Befehl `format C:` bleibt geblockt,
+        # aber die benignen PowerShell-Ausgabe-Cmdlets Format-Table/List/Wide/
+        # Custom/Hex nicht (T-17 False Positive). Format-Volume bleibt geblockt.
+        re.compile(r"(?i)(^|[;&|]\s*)(mkfs(\.[A-Za-z0-9_+-]+)?|diskpart|format(?!-(?:table|list|wide|custom|hex)\b))\b"),
     ),
     (
         "raw disk write",
