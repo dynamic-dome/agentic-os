@@ -105,7 +105,7 @@
     "id": "UC7",
     "key": "identity-growth-priority",
     "observation": "User will, dass soul.md/user.md im Normal-Flow zuverlaessig mit beobachteten Eigenschaften (Agent UND User) gefuellt werden — 'das kommt aktuell zu kurz'. Identity-Steps nie skippen, Statuszeile zeigen.",
-    "status": "confirmed",
+    "status": "promoted",
     "signal_type": "preference",
     "confidence": 0.9,
     "occurrences": 1,

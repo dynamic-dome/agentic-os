@@ -42,19 +42,21 @@
   {
     "id": "T-005",
     "title": "Session-Restart, damit v4.0.0 in der laufenden Instanz aktiv wird (Deploy KOMPLETT 2026-07-06: Push cc6c805, marketplace update, plugin update 3.9.1->4.0.0, Cache-Ground-Truth ok: plugin.json 4.0.0 / 9 Skills / 5 Commands)",
-    "status": "open",
+    "status": "done",
     "created": "2026-07-06",
     "updated": "2026-07-06",
-    "source": "wrap-up",
+    "resolution": "Restart vollzogen 2026-07-06 abends: session-bootstrap lief nachweislich aus Cache .../agentic-os/4.0.1/ (Skill-Base-Dir ground-truth; inkl. Verifier-Fixrunde 238c78e + Bump 319b1b2 — Instanz ist sogar auf 4.0.1, nicht nur 4.0.0)",
+    "source": "session",
     "cross_project": false
   },
   {
     "id": "T-006",
     "title": "User-Skills save-session + session-summary deprecaten? (seit v3.6/v4.0 von wrap-up/obsidian-sync absorbiert; zwei parallele Wiki-Schreibpfade = Drift-Quelle) — Owner-Entscheid",
-    "status": "open",
+    "status": "done",
     "created": "2026-07-06",
     "updated": "2026-07-06",
-    "source": "wrap-up",
+    "resolution": "Owner-Entscheid 2026-07-06: NUR save-session archiviert (~/.claude/skills/_deprecated/save-session/ — war kaputt: rief entfernten skill-generator, duplizierte wrap-up v4 Step 1.5); session-summary bleibt bewusst als Mid-Session-Schnellpfad ins Wiki. Dangling-Referenzen in session-summary + checkpoint bereinigt.",
+    "source": "session",
     "cross_project": false
   },
   {

@@ -28,5 +28,20 @@
       "docs/CHANGELOG.md v4.0.0",
       "skills/DEPENDENCIES.md v4.0.0"
     ]
+  },
+  {
+    "id": "D-003",
+    "date": "2026-07-06",
+    "title": "T-006: save-session archiviert, session-summary bleibt (Session-End-Orchestrierung = wrap-up allein)",
+    "decision": "User-Skill save-session nach ~/.claude/skills/_deprecated/ verschoben (reversibel, kein Description-Ballast mehr); session-summary bleibt bewusst als expliziter Mid-Session-Schnellpfad ins Wiki. Session-Ende-Orchestrierung gehoert damit exklusiv wrap-up (Zwei-Aufruf-Klammer, D-001). Dangling-Referenzen auf save-session in session-summary/SKILL.md + checkpoint/SKILL.md bereinigt.",
+    "rationale": "save-session war seit v4.0.0 objektiv kaputt (Schritt 3 rief den entfernten skill-generator) und redundant (Schritte 1-2 = wrap-up Step 1.5 session-harvest); Description = permanenter System-Prompt-Ballast (L21). session-summary hat einen echten eigenen Use-Case (mid-session, auch ohne .agent-memory/) — Owner akzeptiert die zwei parallelen Wiki-Schreibpfade bewusst.",
+    "alternatives_considered": "Beide archivieren (empfohlen, verworfen vom Owner: Mid-Session-Pfad behalten); beide behalten + save-session reparieren (verworfen: Redundanz zur Klammer bliebe)",
+    "status": "active",
+    "source": "Session 2026-07-06 abends, Owner-Entscheid via AskUserQuestion (T-006)",
+    "evidence": [
+      "~/.claude/skills/_deprecated/save-session/SKILL.md",
+      "open-tasks.json T-006 resolution",
+      "D-001 Session-Bracket"
+    ]
   }
 ]
