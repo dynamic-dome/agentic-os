@@ -41,7 +41,8 @@
       "L26",
       "L37",
       "E8",
-      "E9"
+      "E9",
+      "iteration-log 2026-07-06 abends (T-005 nur mit Base-Dir-Beweis geschlossen; UC7-Changelog-Read verhinderte Duplikat; Docs-Drift erst nach CHANGELOG-Check gefixt)"
     ],
     "confidence": 0.92,
     "severity": "major",
@@ -63,15 +64,16 @@
       "dual-bridge"
     ],
     "first_seen": "2026-05-30",
-    "last_seen": "2026-06-03",
-    "occurrences": 7,
+    "last_seen": "2026-07-06",
+    "occurrences": 8,
     "skill_candidate": false,
     "lifecycle": "active",
     "previous_id": "P007",
     "recurrence_dates": [
       "2026-06-03",
       "2026-06-03b",
-      "2026-06-03c"
+      "2026-06-03c",
+      "2026-07-06"
     ],
     "value": "exitcode 0 okflag beweist keinen inhaltlichen erfolg gegen groundtruth verifizieren ein toolsubprozess kann sauber mit exit 0 statusdone enden obwohl die arbeit inhaltlich fehlschlug oder nur behauptet wurde a agentsmoke liveexternal gab exit 0 aber ergebnisjson sagte okfalse workertimeout b dualbridge stage1result meldete statusdone commithash der beweis kam erst durch git show originbranchdatei e 20260603 pretoolusehooklivetest canary berlebte aber nicht weil der hook blockte sondern weil das modell den destruktiven call nie absetzte permissiondenials canarylebt hookblockte f 20260603 githrtung zwei reale gitbypasslcken nur vom livespotcheck gegen das echte binary gefunden nicht von grnen unittests g 20260603 dualbridge hygiene flakytest 7728 vor dem fix deterministisch reproduziert 7729 ndjsonparser brauchte keinen codefix code war schon richtig ist ein gltiges verifikationsergebnis",
     "fact_type": "pattern",

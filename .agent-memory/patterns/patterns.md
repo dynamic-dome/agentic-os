@@ -1,6 +1,6 @@
 # Pattern Catalog
 
-*Last updated: 2026-06-12 (memory-maintenance: P001/P002/P003 archiviert — last_seen >60d, siehe patterns-archive-2026-06.json)*
+*Last updated: 2026-07-06 (pattern-extractor lightweight: G-pattern-005 Occurrence-Update 7→8 aus Harvest-Iterationen)*
 *Total patterns: 2 (1 best-practice, 1 best-practice/global)*
 
 ## High Confidence Warnings
@@ -8,7 +8,7 @@
 ### G-pattern-005: Exit-Code 0 / ok-Flag beweist keinen inhaltlichen Erfolg
 - **Type:** best-practice (global, lifecycle: active, gepullt 2026-06-12)
 - **Confidence:** 0.92
-- **Occurrences:** 7
+- **Occurrences:** 8 (zuletzt 2026-07-06: T-005-Base-Dir-Beweis, UC7-Changelog-first, Docs-Drift-Check)
 - **Tags:** verification, exit-code, ground-truth, honesty, verifikation-vor-aktion
 - **Description:** Ein Tool/Subprozess kann sauber mit Exit 0 / status:done enden, obwohl die Arbeit inhaltlich fehlschlug oder nur behauptet wurde (Beispiele: agent_smoke ok:false bei Exit 0; Bridge-Result status:done ohne Merge; Hook-Canary ueberlebte ohne dass der Hook blockte; git-Bypass-Luecken nur im Live-Spotcheck).
 - **Recommendation:** Nie dem Exit-Code/status/PASS-Print allein glauben — gegen den echten Zustand pruefen (Row-Counts, Artefakt-Dateien, mtimes, Git-Branch-Inhalt, permission_denials). Verwandt mit CLAUDE.md §4 (Verifikation vor Aktion).

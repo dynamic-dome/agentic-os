@@ -59,7 +59,7 @@
       "session-start",
       "wrap-up"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-05-26"
   },
@@ -78,9 +78,9 @@
       "verification",
       "ground-truth"
     ],
-    "layer": "short-term",
+    "layer": "long-term",
     "superseded_by": null,
-    "last_relevant": "2026-06-03"
+    "last_relevant": "2026-07-06"
   },
   {
     "id": "L6",
@@ -95,7 +95,7 @@
       "read-write-symmetry",
       "verification"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-06-01"
   },
@@ -111,7 +111,7 @@
       "conventions",
       "priority-conflict"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-06-01"
   },
@@ -129,7 +129,7 @@
       "testing",
       "refactor"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-06-01"
   },
@@ -147,7 +147,7 @@
       "regel-13",
       "verification"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-06-01"
   },
@@ -165,7 +165,7 @@
       "ground-truth",
       "bash-permission"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-06-03"
   },
@@ -184,9 +184,9 @@
       "false-green",
       "codex-review"
     ],
-    "layer": "short-term",
+    "layer": "long-term",
     "superseded_by": null,
-    "last_relevant": "2026-06-03"
+    "last_relevant": "2026-07-06"
   },
   {
     "id": "L12",
@@ -202,7 +202,7 @@
       "memory-audit",
       "external-report"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-06-03"
   },
@@ -221,9 +221,9 @@
       "global-memory",
       "tdd"
     ],
-    "layer": "short-term",
+    "layer": "long-term",
     "superseded_by": null,
-    "last_relevant": "2026-06-03"
+    "last_relevant": "2026-07-06"
   },
   {
     "id": "L14",
@@ -240,7 +240,7 @@
       "global-memory",
       "verification"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-06-03"
   },
@@ -258,7 +258,7 @@
       "verification",
       "workflow"
     ],
-    "layer": "short-term",
+    "layer": "archive-candidate",
     "superseded_by": null,
     "last_relevant": "2026-06-03"
   },
@@ -276,9 +276,9 @@
       "data-integrity",
       "handoff"
     ],
-    "layer": "short-term",
+    "layer": "long-term",
     "superseded_by": null,
-    "last_relevant": "2026-06-04"
+    "last_relevant": "2026-07-06"
   },
   {
     "id": "L17",
@@ -372,6 +372,39 @@
       "identity",
       "design",
       "agentic-os"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-06"
+  },
+  {
+    "id": "L23",
+    "date": "2026-07-06",
+    "text": "User-Level-Skills (~/.claude/skills/), die Plugin-Skills NAMENTLICH aufrufen oder referenzieren, brechen still bei Plugin-Konsolidierungen: save-session rief in Schritt 3 den in v4.0.0 entfernten agentic-os:skill-generator auf — kein Test, kein Hook, keine Warnung faengt das, weil User-Skills ausserhalb der Plugin-Testsuite leben. Gefunden erst beim T-006-Review, dazu Dangling-Refs in session-summary + checkpoint. Konsequenz: Jede Skill-/Command-Loeschung im Plugin braucht einen Cross-Referenz-Grep ueber ~/.claude/skills/ (und CLAUDE.md), nicht nur ueber tests/ (Erweiterung der CLAUDE.md-Regel 'Deletions must propagate to validate-plugin.sh' auf die User-Ebene).",
+    "importance": 3,
+    "tags": [
+      "agentic-os",
+      "user-skills",
+      "deprecation",
+      "dead-code",
+      "cross-reference",
+      "plugin"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-06"
+  },
+  {
+    "id": "L24",
+    "date": "2026-07-06",
+    "text": "Das Base-Directory einer Skill-Invocation (steht in jeder Command-Message: .../plugins/cache/.../agentic-os/<version>/skills/...) ist der billigste Ground-Truth dafuer, WELCHE Cache-Version die LAUFENDE Session nutzt — null Datei-Reads noetig. Damit war T-005 ('Restart vollzogen?') beweisbar, ohne plugin.json zu oeffnen. Ergaenzt L5: plugin.json-im-Ordner beweist den Cache-INHALT, das Skill-Base-Dir beweist die AKTIVE Version der Session.",
+    "importance": 2,
+    "tags": [
+      "agentic-os",
+      "plugin",
+      "cache",
+      "ground-truth",
+      "deployment"
     ],
     "layer": "short-term",
     "superseded_by": null,

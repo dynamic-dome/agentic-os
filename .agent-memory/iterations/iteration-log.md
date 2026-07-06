@@ -82,3 +82,28 @@
 - **Summary:** Gemessene Basis: ~25-30k Tokens pro Session-Zyklus + 2,2k permanenter Description-Ballast + 157 Tokens/Prompt UserPromptSubmit. Kürzungen ohne Semantikverlust; Threshold-Widerspruch iteration-logger(500/200) vs. memory-maintenance(100/50) durch ein Skript als einzige Quelle aufgelöst.
 - **Confidence:** 5/5
 - **Tests:** passed (alle Suiten)
+
+## 2026-07-06 — chore: T-005 geschlossen (Restart-Ground-Truth) + UC7-Queue-Marker (Session-Harvest)
+- **Type:** config
+- **Tags:** open-tasks, identity, bookkeeping, ground-truth, deploy
+- **Files changed:** .agent-memory/context/open-tasks.json, .agent-memory/working/user-candidates.json
+- **Summary:** T-005 (v4.0.0-Restart) mit Ground-Truth geschlossen: der Bootstrap selbst lief nachweislich aus Cache .../agentic-os/4.0.1/ (Skill-Base-Dir als Beweis). UC7-Buchhaltungs-Drift gefixt: user.md-Eintrag + Changelog existierten, nur der Queue-Status fehlte → status: promoted (kein Changelog-Duplikat).
+- **Confidence:** 5/5
+- **Tests:** not applicable
+
+## 2026-07-06 — config: T-006 Owner-Entscheid — save-session archiviert, session-summary bleibt (D-003)
+- **Type:** config
+- **Tags:** user-skills, deprecation, wrap-up, dead-code, decision
+- **Files changed:** ~/.claude/skills/_deprecated/save-session/ (verschoben), ~/.claude/skills/session-summary/SKILL.md, ~/.claude/skills/checkpoint/SKILL.md, .agent-memory/context/decisions.json (D-003)
+- **Summary:** save-session war seit v4.0.0 kaputt (Schritt 3 rief den entfernten skill-generator) und redundant zu wrap-up Step 1.5. Owner wählte via AskUserQuestion Option 2 (gegen die Empfehlung "beide"): session-summary bleibt bewusst als Mid-Session-Wiki-Pfad. Dangling-Refs in 2 Nachbar-Skills bereinigt.
+- **Confidence:** 5/5
+- **Tests:** not applicable
+- **Learnings:** User-Level-Orchestrator-Skills, die Plugin-Skills namentlich aufrufen, brechen still bei Plugin-Konsolidierungen — Deprecation-Sweeps müssen ~/.claude/skills/ auf Cross-Referenzen greppen.
+
+## 2026-07-06 — docs: Context-Cache-Refresh auf v4.0.1 + PROJECT.md-Drift-Fix (Session-Harvest)
+- **Type:** docs
+- **Tags:** context-keeper, docs-drift, cache, regel-13
+- **Files changed:** .agent-memory/context/project-context.md (neu geschrieben, war auf v3.6.0-Stand), docs/PROJECT.md (v4.0.0→v4.0.1)
+- **Summary:** project-context.md hing drei Major-Umbauten hinterher (v3.7–v4.0.1) — via context-keeper aus docs/ + Git-Ground-Truth neu destilliert. Dabei Docs-Drift gefunden: CHANGELOG hatte 4.0.1, PROJECT.md nicht → nachgezogen. Commits c23009b + 5cbc9fc, gepusht (User).
+- **Confidence:** 5/5
+- **Tests:** not applicable

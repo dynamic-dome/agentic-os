@@ -42,14 +42,15 @@
     "observation": "User schätzt Rückfragen bei echten Entscheidungen statt stiller Annahmen, und hinterfragt selbst aktiv (z.B. 'wieso die globale supersession vertagen?') — erwartet, dass der Agent eigene Einschätzungen revidiert wenn das Nachhaken berechtigt ist.",
     "status": "inferred",
     "signal_type": "preference",
-    "confidence": 0.7,
-    "occurrences": 2,
+    "confidence": 0.75,
+    "occurrences": 3,
     "evidence": [
       "session 2026-06-03: AskUserQuestion bei Pattern-Kanon + soul-Stufe beantwortet",
-      "session 2026-06-03: Supersession-Vertagung erfolgreich hinterfragt -> Agent revidierte"
+      "session 2026-06-03: Supersession-Vertagung erfolgreich hinterfragt -> Agent revidierte",
+      "session 2026-07-06 abends: T-006-AskUserQuestion beantwortet und bewusst GEGEN die Empfehlung entschieden (nur save-session statt beide) — echte Entscheidungen gehoeren dem Owner"
     ],
     "first_seen": "2026-06-03",
-    "last_seen": "2026-06-03",
+    "last_seen": "2026-07-06",
     "trust_source": "conversation",
     "status_after_promotion": "promoted"
   },
@@ -75,12 +76,13 @@
     "observation": "User delegiert die Abarbeitung der Bootstrap-Recommended-Next-Steps als Block ('arbeite einfach die recommended next steps weiter ab') und bestaetigt, dass der autonome Modus gut funktioniert — Zwischenfragen nur bei echten Entscheidungen (Codex-Review-Wahl), nicht bei reversiblen Arbeitsschritten.",
     "status": "promoted",
     "signal_type": "preference",
-    "confidence": 0.8,
-    "occurrences": 3,
+    "confidence": 0.85,
+    "occurrences": 4,
     "evidence": [
       "session 2026-06-12 (abends): T-001/T-002/Context-Refresh als Block delegiert, Verlauf bestaetigt",
       "session 2026-06-12 (spaeter): 'kannst Du gerne die recommended next steps zu Ende ausarbeiten' — erneute Block-Delegation",
-      "session 2026-07-06: Pakete A-D als Block genehmigt, Umbau lief autonom mit 4+3 Subagents"
+      "session 2026-07-06: Pakete A-D als Block genehmigt, Umbau lief autonom mit 4+3 Subagents",
+      "session 2026-07-06 abends: 'j, und arbeite die recommended next steps ab' — 4. Block-Delegation, Zwischenfrage nur beim T-006-Owner-Entscheid"
     ],
     "first_seen": "2026-06-12",
     "last_seen": "2026-07-06",
