@@ -87,6 +87,57 @@ run_case "blocks diskpart" 2 \
 run_case "blocks mkfs" 2 \
     '{"tool_name":"Bash","tool_input":{"command":"mkfs.ext4 /dev/sda1"}}'
 
+# T-18: destructive commands embedded in powershell -Command "..." must be
+# caught despite not sitting at line start / after a separator
+run_case "blocks format drive inside powershell -Command" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell -NoProfile -Command \"format C:\""}}'
+
+run_case "blocks Format-Volume inside powershell -Command" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell -Command \"Format-Volume -DriveLetter D\""}}'
+
+run_case "blocks diskpart inside powershell.exe -Command" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell.exe -Command \"diskpart /s script.txt\""}}'
+
+run_case "blocks format with switch inside cmd /c" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"cmd /c \"format D: /FS:NTFS /Q\""}}'
+
+run_case "blocks mkfs inside sh -c" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"sh -c \"mkfs.ext4 /dev/sdb1\""}}'
+
+# T-18 review round 2 (Codex P1): format with volume-GUID / volume-label
+# targets (documented FORMAT syntax) must stay blocked like the old rule did
+run_case "blocks format with volume GUID target" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"format \\\\?\\\\Volume{11111111-1111-1111-1111-111111111111}\\\\ /Q /Y"}}'
+
+run_case "blocks format with volume GUID inside powershell -Command" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell -Command \"format \\\\?\\\\Volume{22222222-2222-2222-2222-222222222222}\\\\ /FS:NTFS\""}}'
+
+run_case "blocks format with volume label and switch" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"format DATA /Q"}}'
+
+run_case "blocks full-path mkfs (no lookbehind bypass)" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"/usr/sbin/mkfs.ext4 /dev/sdc1"}}'
+
+# T-18: un-anchoring must NOT create new false positives on benign uses of
+# the word "format" (flags, plain words, path segments)
+run_case "allows git log --format flag" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"git log --format=\"%H %s\" -5"}}'
+
+run_case "allows --output-format flag" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"python x.py --output-format json"}}'
+
+run_case "allows bare word format in commit message" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"fix: date format geaendert\""}}'
+
+run_case "allows format as path segment" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"cat src/format/utils.py"}}'
+
+run_case "allows echo format-table" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"echo format-table"}}'
+
+run_case "allows Format-Table inside powershell -Command" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"powershell -Command \"Get-Process | Format-Table -AutoSize\""}}'
+
 echo ""
 echo "========================================"
 if [ "$ERRORS" -eq 0 ]; then

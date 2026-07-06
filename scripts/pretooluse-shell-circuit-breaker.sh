@@ -79,10 +79,23 @@ RULES = [
     ),
     (
         "disk formatting or partitioning",
-        # format(?!-...): der DOS-Datentraeger-Befehl `format C:` bleibt geblockt,
-        # aber die benignen PowerShell-Ausgabe-Cmdlets Format-Table/List/Wide/
-        # Custom/Hex nicht (T-17 False Positive). Format-Volume bleibt geblockt.
-        re.compile(r"(?i)(^|[;&|]\s*)(mkfs(\.[A-Za-z0-9_+-]+)?|diskpart|format(?!-(?:table|list|wide|custom|hex)\b))\b"),
+        # T-18: un-verankert (analog Delete-Regel), damit destruktive Befehle
+        # auch INNERHALB von powershell -Command "..." erfasst werden. Drei
+        # FP-Bremsen ersetzen den alten Zeilenanfangs-Anker:
+        # (a) Lookbehind (?<![\w.=-]) — kein Treffer in Flag-/Wort-Umgebung
+        #     (--format, =format, date-format, x.format);
+        # (b) nacktes `format` blockt nur mit Datentraeger-Syntax dahinter
+        #     (Switch `/q`/`/fs:`, Laufwerk `c:`, Volume-GUID/UNC `\\...`
+        #     oder Volume-Label `format DATA /q`), nicht als blosses Wort
+        #     (Commit-Messages, Pfadsegmente wie src/format/);
+        #     Lookbehind darf `/`+`\` NICHT ausschliessen, sonst Bypass via
+        #     Vollpfad (`C:\...\format.com`, `/usr/sbin/mkfs.ext4`);
+        # (c) von den Format-*-Cmdlets blockt nur das destruktive
+        #     Format-Volume — Table/List/Wide/Custom/Hex bleiben strukturell
+        #     frei (T-17-Garantie).
+        # Bekannt offen (T-19): gequotete String-Literale werden nicht
+        # gestrippt; `grep "diskpart|x"` bleibt ein bekannter False Positive.
+        re.compile(r"(?i)(?<![\w.=-])(?:mkfs(?:\.[A-Za-z0-9_+-]+)?\b|diskpart\b|format-volume\b|format(?:\.com|\.exe)?(?=\s+(?:/[a-z?]|[a-z]:|\\\\|\S+\s+/[a-z?])))"),
     ),
     (
         "raw disk write",
