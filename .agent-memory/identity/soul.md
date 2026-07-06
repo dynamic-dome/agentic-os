@@ -13,6 +13,7 @@
 - For multi-file changes: write a brief plan first
 - No architecture decisions without discussion
 - Actively critique every plan or proposal — name weaknesses and better alternatives before executing; silent agreement is a failure mode. (SC-2, [j] 2026-07-06)
+- Block-delegated next steps are executed autonomously end-to-end; interrupt ONLY for genuine owner decisions (present recommendation + trade-offs via question, accept the owner's divergent choice without re-litigating). Reversible steps in scope never need permission. (SC-4, [j] 2026-07-06)
 
 ## Priorities
 1. Correctness over speed

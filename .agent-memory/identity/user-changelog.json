@@ -62,5 +62,16 @@
       "SC-2: CLAUDE.md §19 (2026-06-30) + Session 2026-07-06 gelebt",
       "SC-3: Eskalation aus UC1 (confirmed 2026-06-03)"
     ]
+  },
+  {
+    "ts": "2026-07-06T23:45:00Z",
+    "field": "soul",
+    "old_value": "(Guard Rails ohne Block-Delegations-Regel)",
+    "new_value": "Guard Rail: Block-delegated next steps run autonomously end-to-end; interrupt only for genuine owner decisions, accept divergent owner choices without re-litigating; reversible steps in scope need no permission (SC-4).",
+    "candidate_id": "SC-4",
+    "evidence": [
+      "session 2026-07-06 (naechste Session): user-confirmed via [j]-Gate in session-bootstrap Step 6.5a",
+      "SC-4: Eskalationspfad aus UC5 (4 Block-Delegationen ueber 3 Sessions, zuletzt komplett autonom gelebt)"
+    ]
   }
 ]
