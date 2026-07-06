@@ -2,12 +2,11 @@
 name: context-keeper
 description: >
   Maintains the living project context: tech stack, architecture decisions,
-  dependencies, constraints, and current project status. Called whenever an
-  important decision is made or the architecture changes. Enables full context
-  restoration across session switches.
+  dependencies, constraints, and project status. Called whenever an important
+  decision is made or the architecture changes; enables full context
+  restoration across sessions.
   Trigger phrases: "update context", "record decision", "why did we choose X",
-  "update project status", "decision record", "create ADR", "stack change",
-  "new dependency".
+  "create ADR", "stack change", "new dependency".
 user_invocable: true
 metadata:
   author: agentic-os

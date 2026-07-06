@@ -1,5 +1,5 @@
 {
-  "description": "Agentic OS Lifecycle Hooks v7: Auto-Init (command), Shell Circuit Breaker (command), Intent Routing (prompt), Lightweight Logging (prompt), Context Preservation (prompt), Wrap-Up Delegation (prompt), Agent Commit Suggest (prompt)",
+  "description": "Agentic OS Lifecycle Hooks v8: Auto-Init (command), Shell Circuit Breaker (command), Intent Routing (prompt), Context Preservation (prompt), Wrap-Up Delegation + Identity Verify (prompt), Agent Commit Suggest (prompt)",
   "hooks": {
     "SessionStart": [
       {
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Scan the user's prompt for intent signals. Do NOT act on these — only add a brief internal hint if relevant:\n\n- If the prompt describes completed work (e.g. 'fixed the bug', 'feature is done', 'refactored X') → hint: 'Consider logging this iteration with iteration-logger.'\n- If the prompt mentions a decision or tech choice (e.g. 'let's use Redis', 'switching to TypeScript') → hint: 'Consider recording this decision with context-keeper.'\n- If the prompt asks about recurring problems (e.g. 'why does this keep happening', 'same error again') → hint: 'Consider running pattern-extractor.'\n\nIf no signal is detected, return 'approve' silently. Never block or delay the user. This is advisory only.\n\nReturn 'approve'.",
+            "prompt": "Advisory only — never block or delay. Add a brief internal hint only if the prompt clearly signals: completed work → 'log via iteration-logger'; a tech/architecture decision → 'record via context-keeper'; a recurring problem → 'run pattern-extractor'. Otherwise nothing. Return 'approve'.",
             "timeout": 10
           }
         ]
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Context is about to be compressed. If `.agent-memory/` exists, read these files and OUTPUT a compact survival summary (this text will persist after compression):\n\n1. Read `.agent-memory/session-summary.md` → output: 'LAST SESSION: {1-line summary}'\n2. Read `.agent-memory/context/project-context.md` → output: 'PROJECT: {name} | STACK: {compact stack}'\n3. Read `.agent-memory/context/open-tasks.json` → output: 'OPEN TASKS: {list each task ID + title on one line}' — **CRITICAL: every open/blocked task MUST appear here. These must survive compression.**\n4. Read `.agent-memory/identity/soul.md` → output: 'IDENTITY: {language preference}, {brevity level}'\n5. Note current git branch → output: 'BRANCH: {branch name}'\n\nThe goal is to produce a readable text block (not just read files silently) so the compressed context retains this information. Return 'approve'.",
+            "prompt": "Context is about to be compressed. If `.agent-memory/` exists, OUTPUT a compact survival summary (this text persists after compression):\n1. `session-summary.md` → 'LAST SESSION: {1 line}'\n2. `context/project-context.md` → 'PROJECT: {name} | STACK: {compact}'\n3. `context/open-tasks.json` → 'OPEN TASKS: {every open/blocked task, ID + title}' — CRITICAL, none may be dropped.\n4. `identity/soul.md` → 'IDENTITY: {language}, {brevity}'\n5. Current git branch → 'BRANCH: {name}'\nProduce a readable text block, not silent reads. Return 'approve'.",
             "timeout": 15
           }
         ]
@@ -55,7 +55,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve' immediately.\n\nIf it exists:\n1. **TASK PERSISTENCE GUARD (MANDATORY):** Read `.agent-memory/context/open-tasks.json`. If it exists, read ALL tasks with status 'open' or 'blocked'. Verify they appear in the 'Open Items' section of `.agent-memory/session-summary.md`. If any are missing, add them now. Never drop, skip, or summarize tasks away.\n1.5. **OPEN-TASKS DRIFT CHECK:** If a stray `.agent-memory/open-tasks.json` exists at the ROOT (canonical location is `.agent-memory/context/open-tasks.json`), merge its open tasks into the context/ file and delete the root copy. memory-maintenance heals this too but is threshold-gated and rarely runs — catch it here so no task hides in the unread root file.\n2. **DELEGATE TO WRAP-UP:** If wrap-up has NOT already run this session (check if session-summary.md Date line contains today's date), invoke `agentic-os:wrap-up` for full session summary, learnings, and pattern extraction.\n3. If wrap-up already ran, only ensure task persistence (Step 1) and return.\n4. **WIKI-SYNC VERIFY (sessionend-wiki-verify):** Read `.agent-memory/config.json`. If it exists with `sync_enabled: true` AND the session was substantial (today's commits via `git log --oneline --since=midnight`, or iterations logged today), confirm a wiki session-note for today exists for this project: look under `{wiki_root}/wiki/queries/` for a file matching `{today}-session-{project_id}*.md` (also try project_aliases). If none exists, the wrap-up wiki sync (Step 7.5) did not land — invoke `agentic-os:obsidian-sync` now so the session is captured in the wiki, then state in one line whether a note was written or why it was skipped. If `sync_enabled` is false or the session was not substantial, skip this step silently.\n\nReturn 'approve'.",
+            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve'.\n1. TASK GUARD (mandatory): every open/blocked task in `context/open-tasks.json` must appear in session-summary.md's Open Items — add missing ones. If a stray `.agent-memory/open-tasks.json` exists at root, merge it into context/open-tasks.json and delete the root copy.\n2. If wrap-up has NOT run today (session-summary.md Date line ≠ today): invoke `agentic-os:wrap-up` — it owns summary, learnings, identity growth (Step 6) and wiki sync.\n3. If wrap-up DID run: verify it emitted its mandatory 'Identity:' status line; if not, run wrap-up Step 6 now. WIKI-VERIFY (sessionend-wiki-verify): if `config.json` has `sync_enabled: true` and the session was substantial, verify a `{today}-session-{project_id}*.md` note exists under `{wiki_root}/wiki/queries/` — if missing, invoke `agentic-os:obsidian-sync` and report in one line.\nReturn 'approve'.",
             "timeout": 15
           }
         ]
@@ -63,11 +63,11 @@
     ],
     "SubagentStop": [
       {
-        "matcher": "quality-gate|improvement-agent",
+        "matcher": "improvement-agent",
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "An agent just completed a significant task. Based on the agent's output and any files it reported changing, determine if there are meaningful code changes (not just .agent-memory/ updates).\n\nIf meaningful code changes were made:\n1. Suggest a commit message based on the changes.\n2. Ask the user: 'Should I commit these changes? Suggested message: {message}'\n3. Only commit if the user confirms.\n\nIf only .agent-memory/ files changed, or if the agent made no file changes, skip silently.\n\nReturn 'approve'.",
+            "prompt": "An agent completed a task. If it made meaningful CODE changes (not just .agent-memory/): suggest a conventional commit message and ask the user to confirm before committing. Otherwise skip silently. Return 'approve'.",
             "timeout": 10
           }
         ]

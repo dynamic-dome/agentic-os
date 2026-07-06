@@ -224,18 +224,22 @@ else
     fail "session-start.sh: not found"
 fi
 
-# 10. skill-generator checks for duplicate skill names in quality checklist
+# 10. pattern-extractor skill candidate generation (skill-generator folded in, v4.0.0)
+#     Must gate on confidence>=0.7 + occurrences>=3, include a uniqueness check,
+#     and write to .agent-memory/generated-skills/.
 echo ""
-echo "-- skill-generator duplicate check --"
-SG_SKILL="$PLUGIN_ROOT/skills/skill-generator/SKILL.md"
-if [ -f "$SG_SKILL" ]; then
-    if grep -qi "duplicate\|unique\|already exist\|conflict\|exists" "$SG_SKILL"; then
-        pass "skill-generator: has duplicate/uniqueness check"
+echo "-- pattern-extractor skill candidate generation --"
+PE_SKILL="$PLUGIN_ROOT/skills/pattern-extractor/SKILL.md"
+if [ -f "$PE_SKILL" ]; then
+    if grep -qi "Skill Candidate Generation" "$PE_SKILL" \
+       && grep -q "generated-skills" "$PE_SKILL" \
+       && grep -qi "duplicate\|unique\|already exist\|conflict\|exists" "$PE_SKILL"; then
+        pass "pattern-extractor: skill candidate generation section with uniqueness check present"
     else
-        fail "skill-generator: missing duplicate check — two patterns can generate the same skill name"
+        fail "pattern-extractor: missing Skill Candidate Generation section (folded-in skill-generator) with generated-skills path and uniqueness check"
     fi
 else
-    fail "skill-generator: SKILL.md not found"
+    fail "pattern-extractor: SKILL.md not found"
 fi
 
 
@@ -281,19 +285,7 @@ else
     fail "auto-commit: command file not found"
 fi
 
-# 14. quality-gate agent should have explicit trigger phrases (not just examples)
-echo ""
-echo "-- quality-gate trigger phrases --"
-QG_AGENT="$PLUGIN_ROOT/agents/quality-gate.md"
-if [ -f "$QG_AGENT" ]; then
-    if grep -qi "trigger\|Trigger\|phrases\|trigger:" "$QG_AGENT" || grep -qi "quality check\|pre-commit check\|is the code ready\|qualitaet" "$QG_AGENT"; then
-        pass "quality-gate: has trigger phrases for discoverability"
-    else
-        fail "quality-gate: missing explicit trigger phrases — agent is hard to discover without them"
-    fi
-else
-    fail "quality-gate: agent file not found"
-fi
+# 14. quality-gate agent removed in v4.0.0 — test removed
 
 
 # 15. self-improve skill should not have hardcoded model-specific co-author string
@@ -450,23 +442,7 @@ else
 fi
 
 
-# 24. quality-gate agent hook timeout bounds must match the enforced policy (>= 10s)
-#     quality-gate says "5-30s" but the plugin test enforces >= 10s minimum.
-#     An agent following quality-gate could approve a hooks.json with 7s timeout
-#     that fails the actual test suite.
-echo ""
-echo "-- quality-gate hook timeout policy consistency --"
-QG_AGENT="$PLUGIN_ROOT/agents/quality-gate.md"
-if [ -f "$QG_AGENT" ]; then
-    # The quality-gate must not suggest a lower bound below 10s for hook timeouts
-    if grep -qiE "timeout.*5-30|5-30s|minimum.*5s|5s.*minimum|\(5-" "$QG_AGENT"; then
-        fail "quality-gate: specifies hook timeout range '5-30s' but plugin enforces >= 10s — quality-gate may approve hooks with 5-9s timeouts that fail tests"
-    else
-        pass "quality-gate: hook timeout lower bound is consistent with plugin policy (>= 10s)"
-    fi
-else
-    fail "quality-gate: agent file not found"
-fi
+# 24. quality-gate agent removed in v4.0.0 — test removed
 
 
 # 25. self-improve SKILL.md must instruct agents to filter weaknesses by severity
@@ -571,25 +547,22 @@ else
 fi
 
 
-# 30. skill-generator SKILL.md template must include 'name:' field in generated SKILL.md frontmatter.
-#     The template at Step 3 only contains 'description:' in its frontmatter block.
-#     Skills generated from this template will be missing 'name:', failing registry identification
-#     and the validate-skills.sh 'has name' check (which all existing skills pass).
+# 30. pattern-extractor skill-candidate template must include 'name:' in generated frontmatter.
+#     (skill-generator folded into pattern-extractor in v4.0.0.) Beyond pattern-extractor's own
+#     'name: pattern-extractor' frontmatter line, the generated-skill template must carry a
+#     second 'name:' placeholder line (e.g. 'name: <skill-name>').
 echo ""
-echo "-- skill-generator template name field --"
-SG_SKILL="$PLUGIN_ROOT/skills/skill-generator/SKILL.md"
-if [ -f "$SG_SKILL" ]; then
-    # The SKILL.md template inside the file must include 'name:' as a template placeholder.
-    # We verify that beyond the first 'name: skill-generator' line (the skill's own frontmatter),
-    # there is a second 'name:' line inside the generated template block (e.g. 'name: <skill-name>').
-    NAME_COUNT=$(grep -c "^name:" "$SG_SKILL")
+echo "-- pattern-extractor skill-candidate template name field --"
+PE_SKILL="$PLUGIN_ROOT/skills/pattern-extractor/SKILL.md"
+if [ -f "$PE_SKILL" ]; then
+    NAME_COUNT=$(grep -c "^[[:space:]]*name:" "$PE_SKILL")
     if [ "$NAME_COUNT" -ge 2 ]; then
-        pass "skill-generator: generated SKILL.md template includes 'name:' in frontmatter"
+        pass "pattern-extractor: generated SKILL.md template includes 'name:' in frontmatter"
     else
-        fail "skill-generator: generated SKILL.md template missing 'name:' in frontmatter — generated skills won't be identifiable by registry or pass skill validation"
+        fail "pattern-extractor: generated SKILL.md template missing 'name:' in frontmatter — generated skills won't be identifiable by registry or pass skill validation"
     fi
 else
-    fail "skill-generator: SKILL.md not found"
+    fail "pattern-extractor: SKILL.md not found"
 fi
 
 
@@ -650,24 +623,8 @@ fi
 
 
 
-# 36. skill-generator template must include user_invocable field
-#     All user-facing skills in this plugin have user_invocable: true in their frontmatter.
-#     The skill-generator template is what agents use to generate new skills — if the
-#     template is missing user_invocable, every generated skill will lack this field,
-#     making them appear non-invocable (or rely on defaults that may differ by runtime).
-echo ""
-echo "-- skill-generator template user_invocable field --"
-SG_SKILL="$PLUGIN_ROOT/skills/skill-generator/SKILL.md"
-if [ -f "$SG_SKILL" ]; then
-    if grep -qA5 "^name: <skill-name>" "$SG_SKILL" | grep -q "user_invocable" 2>/dev/null || \
-       awk '/^```markdown/{p=1} p && /user_invocable/{found=1} /^```$/{p=0} END{exit !found}' "$SG_SKILL"; then
-        pass "skill-generator: generated SKILL.md template includes 'user_invocable' field"
-    else
-        fail "skill-generator: generated SKILL.md template missing 'user_invocable' field — generated skills will lack invocability declaration"
-    fi
-else
-    fail "skill-generator: SKILL.md not found"
-fi
+# 36. skill-generator removed in v4.0.0 (folded into pattern-extractor with a
+#     minimal template: name/description/type) — user_invocable template test removed
 
 
 
@@ -842,20 +799,7 @@ else
 fi
 
 
-# 43. quality-gate must not reference a nonexistent plugin-setting
-#     plugin.json has no settings/configuration block.
-echo ""
-echo "-- quality-gate no phantom plugin-setting reference --"
-QG_SKILL="$PLUGIN_ROOT/skills/quality-gate/SKILL.md"
-if [ -f "$QG_SKILL" ]; then
-    if grep -q "Plugin-Setting\|plugin-setting\|plugin setting" "$QG_SKILL"; then
-        fail "quality-gate: references a nonexistent plugin-setting — plugin.json has no settings block"
-    else
-        pass "quality-gate: does not reference nonexistent plugin-settings"
-    fi
-else
-    fail "quality-gate: SKILL.md not found"
-fi
+# 43. quality-gate skill removed in v4.0.0 — test removed
 
 
 
@@ -1062,19 +1006,7 @@ fi
 
 
 
-# 54. quality-gate skill must have a quality-score.json update step
-echo ""
-echo "-- quality-gate skill: quality-score.json update step --"
-QG_SKILL="$PLUGIN_ROOT/skills/quality-gate/SKILL.md"
-if [ -f "$QG_SKILL" ]; then
-    if grep -q "quality-score" "$QG_SKILL" && grep -qiE "update.*quality.score|quality.score.*update|quality-score\.json" "$QG_SKILL"; then
-        pass "quality-gate: skill has a quality-score.json update step"
-    else
-        fail "quality-gate: skill declares quality-score.json as output but procedure has no step to update it"
-    fi
-else
-    fail "quality-gate: SKILL.md not found"
-fi
+# 54. quality-gate skill removed in v4.0.0 — test removed
 
 
 
@@ -1165,42 +1097,12 @@ if grep -q '"matcher":' "$PLUGIN_ROOT/hooks/hooks.json"; then
     fi
 fi
 
-# 60. run-loop command must reference agentic-os:self-improve (not loop-orchestrator)
-echo ""
-echo "-- run-loop command references self-improve skill --"
-if [ -f "$PLUGIN_ROOT/commands/run-loop.md" ]; then
-    if grep -q "loop-orchestrator" "$PLUGIN_ROOT/commands/run-loop.md"; then
-        fail "run-loop: references non-existent loop-orchestrator — should reference self-improve"
-    else
-        pass "run-loop: correctly references self-improve (no stale loop-orchestrator)"
-    fi
-fi
+# 60. run-loop command removed in v4.0.0 (self-improve skill is directly invocable) — test removed
 
-# 61. self-improve depends-on must include quality-gate
-echo ""
-echo "-- self-improve depends-on includes quality-gate --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    FRONTMATTER=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print}' "$SI_SKILL")
-    if echo "$FRONTMATTER" | grep -q "quality-gate"; then
-        pass "self-improve: depends-on includes quality-gate"
-    else
-        fail "self-improve: depends-on missing quality-gate (used for validation phase)"
-    fi
-fi
+# 61. quality-gate skill removed in v4.0.0 — self-improve depends-on test removed
+#     (validation phase runs bash tests/run-all.sh directly)
 
-# 62. research-pipeline body must be in English (no German section headers)
-echo ""
-echo "-- research-pipeline body language consistency --"
-RP_SKILL="$PLUGIN_ROOT/skills/research-pipeline/SKILL.md"
-if [ -f "$RP_SKILL" ]; then
-    RP_BODY=$(awk 'BEGIN{c=0} /^---/{c++; next} c>=2{print}' "$RP_SKILL")
-    if echo "$RP_BODY" | grep -qE '(Architektur|Ablauf|Fehlerbehandlung|Voraussetzungen|Ersparnis)'; then
-        fail "research-pipeline: body contains German section headers — must be English"
-    else
-        pass "research-pipeline: body uses English section headers"
-    fi
-fi
+# 62. research-pipeline skill removed in v4.0.0 — test removed
 
 # 63. sync-context version must be 3.0 (consistent with other skills)
 echo ""
@@ -1380,28 +1282,7 @@ if [ -f "$RA_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- quality-gate agent: WARN threshold checks regressions --"
-QGA_FILE="$PLUGIN_ROOT/agents/quality-gate.md"
-if [ -f "$QGA_FILE" ]; then
-    WARN_LINE=$(grep -i "^\- WARN:" "$QGA_FILE" | head -1)
-    if echo "$WARN_LINE" | grep -qiE "regression"; then
-        pass "quality-gate agent: WARN threshold includes regression check"
-    else
-        fail "quality-gate agent: WARN threshold missing regression check — skill requires 0 regressions for WARN; agent is inconsistent"
-    fi
-fi
-
-echo ""
-echo "-- quality-gate agent: pytest collection gate --"
-QGA_FILE="$PLUGIN_ROOT/agents/quality-gate.md"
-if [ -f "$QGA_FILE" ]; then
-    if grep -q -- "--co -q" "$QGA_FILE" && grep -qiE "0 tests collected|collected 0 items|no tests ran|exit code 5" "$QGA_FILE" && grep -qiE "test health 0|health.*0" "$QGA_FILE"; then
-        pass "quality-gate agent: pytest collection gate fails closed on zero collected tests"
-    else
-        fail "quality-gate agent: missing pytest collection gate — must run pytest --co -q and fail when zero tests are collected"
-    fi
-fi
+# quality-gate agent removed in v4.0.0 — WARN threshold + pytest collection gate tests removed
 
 echo ""
 echo "-- improvement-agent: no stale git-stash safety rule --"

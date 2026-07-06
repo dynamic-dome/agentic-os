@@ -3,11 +3,10 @@ name: sync-context
 description: >
   Manual cross-project sync between local .agent-memory/ and global
   ~/.claude-memory/global/. Pulls relevant patterns from other projects,
-  pushes local learnings for reuse. NOT auto-triggered — use only when
-  explicitly requested.
+  pushes local learnings for reuse (privacy filter + promotion gate).
+  NOT auto-triggered — use only when explicitly requested.
   Trigger phrases: "sync memory", "pull patterns", "push learnings",
-  "cross-project sync", "global memory", "sync context",
-  "get global patterns", "share knowledge".
+  "cross-project sync", "global memory", "share knowledge".
 user_invocable: true
 metadata:
   author: agentic-os

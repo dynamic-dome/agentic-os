@@ -9,24 +9,34 @@
 | Cross-Project-Handoff | aktiv | 2026-06-01 | Zentraler gestapelter Handoff (prepend) + Status-Board |
 | PreToolUse Shell-Circuit-Breaker | aktiv | 2026-06-13 | Blockiert bekannte destruktive `Bash`-Kommandos vor Ausfuehrung deterministisch mit Exit-Code 2 |
 | Self-Improve-Loop | aktiv | 2026-03 | Policy-gated Multi-Iteration mit Rollback + Circuit-Breaker |
-| Quality-Gate | aktiv | 2026-03 | Code-Review + Test-Validation + TDD in einem Skill |
-| Knowledge-Skills | aktiv | 2026-03 | research-pipeline, wiki-query, obsidian-sync |
+| Threshold-SSoT (`memory-thresholds.sh`) | aktiv | 2026-07 | Eine Definition aller Skalierungs-Schwellen; exit 10 bei Ueberschreitung (bootstrap, wrap-up, maintenance) |
+| Salience-Ranking (`learnings_top.py`) | aktiv | 2026-07 | Deterministisches Learnings-Ranking fuer den Bootstrap-Fallback statt Full-Read |
+| Identity-Growth (Queues + Gates) | aktiv | 2026-07 | wrap-up Step 6 (Producer, Pflicht-Statuszeile) + bootstrap Step 6.5 ([j/n]-Gates) |
+| Knowledge-Skill obsidian-sync | aktiv | 2026-03 | Write-Path ins Obsidian-Wiki |
+| Quality-Gate | entfernt | v4.0.0 | Skill + Agent entfernt — Review/TDD via User-Level-Skills + Test-Suite |
+| research-pipeline / wiki-query / retrospective | entfernt | v4.0.0 | User-Level-Tools bzw. Report ohne Konsumenten |
 
 Status-Werte: `aktiv`, `experimentell`, `geplant`, `deprecated`, `entfernt`
 
 ## Profile / Modi
 
 - **Standalone:** nur `.agent-memory/`, ohne Wiki/NotebookLM.
-- **Wiki-verbunden:** `config.json` mit `sync_enabled` → obsidian-sync + wiki-query + Wiki-ADR-Writeback aktiv.
+- **Wiki-verbunden:** `config.json` mit `sync_enabled` → obsidian-sync + Wiki-ADR-Writeback aktiv.
 
-## Skills (14)
+## Skills (9)
 
-Core: session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, skill-generator, sync-context, memory-maintenance.
-Quality: quality-gate, retrospective. Self-improve: self-improve. Knowledge: research-pipeline, wiki-query, obsidian-sync.
+Core: session-bootstrap, iteration-logger, pattern-extractor (inkl. Skill-Candidate-Generation), context-keeper, wrap-up, sync-context, memory-maintenance.
+Self-improve: self-improve. Knowledge: obsidian-sync.
 
-## Agents (4)
+Entfernt in v4.0.0: retrospective, research-pipeline, wiki-query, quality-gate, skill-generator (gefaltet in pattern-extractor).
 
-context-detective, improvement-agent, quality-gate, research-agent.
+## Agents (3)
+
+context-detective, improvement-agent, research-agent. (quality-gate entfernt in v4.0.0.)
+
+## Commands (5)
+
+init, status, rollback, auto-commit, memory-audit. (log, patterns, research, sync, run-loop entfernt in v4.0.0.)
 
 ## Einschraenkungen
 

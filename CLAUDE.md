@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-Agentic OS v3.0.0 — a Claude Code plugin providing a self-improving agent memory system. It installs skills, hooks, agents, and commands that persist project knowledge across sessions in `.agent-memory/`.
+Agentic OS v4.0.0 — a Claude Code plugin providing a self-improving agent memory system. It installs skills, hooks, agents, and commands that persist project knowledge across sessions in `.agent-memory/`.
 
 ## Build & Test
 
@@ -26,18 +26,19 @@ No build step. No package manager. The plugin is pure Markdown + JSON + Bash.
 ```
 .claude-plugin/plugin.json → Plugin manifest (name, version, description)
 hooks/hooks.json           → 6 hooks (SessionStart, PreToolUse, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop)
-skills/*/SKILL.md          → 14 skills with YAML frontmatter (trigger phrases, descriptions)
-agents/*.md                → 4 active agents (context-detective, improvement-agent, quality-gate, research-agent)
-commands/*.md              → 10 slash commands (init, status, run-loop, rollback, auto-commit, sync, log, patterns, research, memory-audit) — KEIN Command darf einen Skill-Namen tragen (Skill-Tool-Schatten/Loop, L17; Test erzwingt das)
+skills/*/SKILL.md          → 9 skills with YAML frontmatter (trigger phrases, descriptions)
+agents/*.md                → 3 active agents (context-detective, improvement-agent, research-agent)
+commands/*.md              → 5 slash commands (init, status, rollback, auto-commit, memory-audit) — KEIN Command darf einen Skill-Namen tragen (Skill-Tool-Schatten/Loop, L17; Test erzwingt das)
 improvements/state.json    → Self-improve loop state tracker
-scripts/                   → Hook helper scripts (session-start.sh, pretooluse-shell-circuit-breaker.sh)
+scripts/                   → Hook helpers + SSoT scripts (session-start.sh, mem-schema.sh, memory-thresholds.sh = Threshold-SSoT, learnings_top.py = Salience-Ranking, pretooluse-shell-circuit-breaker.sh)
 ```
 
-**Skills (14, layered):**
-- **Core** (session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, skill-generator, sync-context, memory-maintenance): Session lifecycle and memory management
-- **Quality** (quality-gate, retrospective): quality-gate = code review + test validation + TDD enforcement in one skill; retrospective = multi-session trend metrics, blind-spot analysis and a health grade (read-only over the store)
+**Skills (9, layered):**
+- **Core** (session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, sync-context, memory-maintenance): Session lifecycle and memory management. pattern-extractor also generates skills from confirmed skill candidates (absorbed skill-generator in v4.0.0). wrap-up Step 6 is the sole producer of identity growth (candidate queues → user.md/soul-candidates.md, mandatory status line); session-bootstrap Step 6.5 is the consumer (explicit `[j/n]` gates).
+- **Knowledge** (obsidian-sync): Write-path to the Obsidian wiki
 - **Self-improve** (self-improve): Multi-iteration loop with research, analysis, improvement, validation, meta-improve, scheduling — policy-gated (siehe `skills/self-improve/SKILL.md` Self-Improve Policy)
-- **Knowledge** (research-pipeline, wiki-query, obsidian-sync): External research via Perplexity/NotebookLM, mid-session wiki-lookup, write-path to Obsidian wiki
+
+**Removed in v4.0.0:** skills retrospective, research-pipeline, wiki-query, quality-gate, skill-generator (folded into pattern-extractor); agent quality-gate; wrapper commands log, patterns, research, sync, run-loop. Scaling thresholds live ONLY in `scripts/memory-thresholds.sh` (exit 10 = exceeded).
 
 See `skills/DEPENDENCIES.md` for the full dependency graph and data flow.
 
@@ -46,12 +47,12 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and data flow.
 - **Language policy:** Trigger phrases in SKILL.md frontmatter MUST be English (tests enforce this). Body text English. User-facing communication in German.
 - **SKILL.md format:** YAML frontmatter with `name`, `description` (used for matching — be specific), `type: skill`, trigger phrases. Body is the skill prompt.
 - **Memory dir:** Skills read/write `.agent-memory/` in the target project (not this repo). `session-bootstrap` is read-only, with ONE exception: the user-confirmed soul.md candidate gate (Step 6.5) writes soul.md only on an explicit `j` (never autonomously — Stufe-B growth, v3.3.0).
-- **Hooks:** Lightweight by design. SessionStart (15s, command) auto-inits + injects context; PreToolUse (5s, command, Bash matcher) blocks known dangerous shell commands with exit code 2 before execution; PreCompact (15s, prompt) outputs survival summary; SessionEnd (15s, prompt) task guard + delegates to wrap-up; UserPromptSubmit (10s, prompt) advisory-only; SubagentStop (10s, prompt) commit suggestion for quality-gate/improvement-agent. (The legacy Stop hook was removed in v3.1.1 — it caused an infinite feedback loop.)
+- **Hooks:** Lightweight by design. SessionStart (15s, command) auto-inits + injects context; PreToolUse (5s, command, Bash matcher) blocks known dangerous shell commands with exit code 2 before execution; PreCompact (15s, prompt) outputs survival summary; SessionEnd (15s, prompt) task guard + delegates to wrap-up; UserPromptSubmit (10s, prompt) advisory-only; SubagentStop (10s, prompt) commit suggestion for improvement-agent. (The legacy Stop hook was removed in v3.1.1 — it caused an infinite feedback loop.)
 - **Self-improve safety:** Max 20% mutation per skill per iteration. Git revert over git stash pop. Circuit breaker on diminishing returns.
 - **Self-Improve Policy (2026-04-30):** 6 hard rules in `skills/self-improve/SKILL.md` — single-cluster-rule, pattern-confirmation-threshold, wrap-up-discipline, MCP-audit-as-diagnosis-only, no-self-mod-boundary, rollback-tag-tightness. The `self-improve` skill MUST NOT modify its own SKILL.md body — meta-suggestions go to `improvements/meta-suggestions.md` for manual review.
 - **MCP-Tool-Bridge Policy (2026-04-30):** MCPs have 3 legitimate roles (tool execution, introspection, knowledge access) and 4 hard no-gos: do NOT replace `.agent-memory/`, do NOT replace `~/wiki/`, MCP-output is NEVER auto-truth, no uncontrolled cross-project mutation. Full policy: `~/wiki/wiki/concepts/mcp-tool-bridge-policy.md`. NotebookLM operations always prefer the user-skill `notebooklm` (notebooklm-py CLI) over the plugin-MCP variant — plugin-MCP is fallback for subagent contexts only.
 - **No circular dependencies** between skills — strict DAG.
-- **Deprecated agents (removed 2026-04-30):** `improvement-scout` and `fix-reviewer` were legacy and have been deleted. Use `improvement-agent` + `self-improve` instead. The `agents/` directory now contains 4 active agents (context-detective, improvement-agent, quality-gate, research-agent).
+- **Deprecated agents:** `improvement-scout` and `fix-reviewer` (removed 2026-04-30) and `quality-gate` (removed in v4.0.0). Use `improvement-agent` + `self-improve` instead. The `agents/` directory contains 3 active agents (context-detective, improvement-agent, research-agent).
 
 ## Testing Gotchas
 

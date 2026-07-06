@@ -1,16 +1,13 @@
 ---
 name: memory-maintenance
-description: |
-  Periodically compacts, archives, and integrity-checks the `.agent-memory/`
-  store — JSON validation, threshold-based archiving, stale-pattern pruning,
-  session-summary length enforcement, and consistency checks. Runs on demand
-  or when wrap-up detects exceeded thresholds. Never part of the normal
-  end-of-session flow.
-
-  Trigger phrases (memory-specific):
-  "clean memory", "memory cleanup", "memory maintenance",
-  "archive old data", "prune patterns", "memory health",
-  "compact memory", "memory report", "integrity check memory".
+description: >
+  Compacts, archives, and integrity-checks the `.agent-memory/` store —
+  JSON validation, threshold-based archiving (thresholds live in
+  scripts/memory-thresholds.sh), stale-pattern pruning, working/ scratch
+  cleanup, and consistency checks. Runs on demand or when wrap-up detects
+  exceeded thresholds; never part of the normal end-of-session flow.
+  Trigger phrases: "clean memory", "memory cleanup", "memory maintenance",
+  "prune patterns", "memory health", "archive old data".
 user_invocable: true
 metadata:
   author: agentic-os
@@ -80,17 +77,33 @@ Track repair count for Step 8.
 
 ## Step 3: Archive Old Data
 
-Thresholds:
+The threshold NUMBERS are not defined here. Run the single source of truth:
 
-- `iteration-log.md` > 100 entries: keep newest 100, archive rest
-- `errors.json` > 50 entries: keep newest 50, archive rest
-- `learnings/learnings.json` > 100 entries: keep newest 100, archive rest
-- `code-reviews.json` > 100 entries: keep newest 100, archive rest
-- `test-results.json` > 100 entries: keep newest 100, archive rest
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/memory-thresholds.sh" .agent-memory
+```
+
+Exit 0 → nothing to archive, skip. Exit 10 → each `THRESHOLD:` line names the
+file, its current count, the limit, and the action. For every flagged store file
+(e.g. `iteration-log.md`, `errors.json`, `learnings/learnings.json`): keep the
+newest entries within the script's limit, archive the rest. Apply the same
+keep-newest/archive-rest action to `quality/code-reviews.json` and
+`quality/test-results.json` if they have grown past the same order of magnitude
+(legacy quality stores, not covered by the script).
 
 Archive destination: `{filename}-archive-{YYYY-MM}.{ext}` in the same directory as the original.
 
 If an archive file for the current month already exists, append to it instead of overwriting.
+
+## Step 3b: Clean working/ Scratch Files
+
+`working/` accumulates session scratch (helper scripts, temp exports) that no other
+skill feels responsible for. Delete files directly in `.agent-memory/working/`
+matching `*.py`, `*.tmp`, or `*.bak` that are older than the staleness window in
+`memory-thresholds.sh` (its `working/` check, currently 7 days).
+
+**Exempt (never delete):** the living session artifacts `working/current-session.json`
+and `working/user-candidates.json`. Report the number of deleted files in Step 9.
 
 ## Step 4: Prune Stale Patterns
 
@@ -149,7 +162,7 @@ Verify cross-file integrity after maintenance:
 
 1. **patterns.md vs patterns.json** — if `patterns.json` has entries but `patterns.md` says "No patterns" or is outdated: regenerate it by calling `pattern-extractor` with "refresh patterns"
 2. **No duplicate open-tasks.json** — verify `.agent-memory/open-tasks.json` does NOT exist at root level; canonical location is `context/open-tasks.json` only. If both exist, merge into `context/` and delete the root copy.
-3. **Quality staleness** — if `quality-score.json` has `last_updated: null` AND `iterations/iteration-log.md` has entries: warn "Quality metrics never initialized — consider running quality-gate"
+3. **Quality staleness** — if `quality-score.json` has `last_updated: null` AND `iterations/iteration-log.md` has entries: note "Quality metrics never initialized (legacy store — no active writer since v4.0.0)"
 4. **learnings.md vs learnings.json** — if `learnings.json` exists, verify `learnings.md` header contains "Auto-generated from learnings.json". If not, regenerate from JSON.
 5. **soul.md anti-bloat** — if `identity/soul.md` exceeds **80 lines**, warn: "soul.md is {n} lines (cap 80) — condense; an overlong identity file dilutes its effect". Do NOT auto-edit soul.md (it is user-owned); only flag it for the user to prune.
 

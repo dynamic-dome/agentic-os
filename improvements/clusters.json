@@ -1,0 +1,40 @@
+{
+  "$comment": "Cluster definitions for the self-improve single-cluster-rule (Policy 1). Extracted 1:1 from skills/self-improve/SKILL.md at the v4.0.0 trim (2026-07-06); original table dated 2026-04-30. scope=internal: part of this plugin repo; scope=external: foreign plugin/repo — kept for completeness, a self-improve run in THIS repo must not mutate external entries.",
+  "version": 1,
+  "asOf": "2026-04-30",
+  "rule": "Exactly ONE cluster per self-improve run. If a run would have to enter a second cluster, ABORT and request user intervention.",
+  "clusters": [
+    {
+      "name": "memory-cluster",
+      "plugins": [
+        { "name": "agentic-os", "scope": "internal" },
+        { "name": "agentic-memory", "scope": "external" }
+      ],
+      "notes": "agentic-os is this plugin (default self-improvement target)."
+    },
+    {
+      "name": "orchestration-cluster",
+      "plugins": [
+        { "name": "agent-orchestrator-plugin", "scope": "external" },
+        { "name": "multi-model-orchestrator", "scope": "external", "repo": "inception-sandbox" },
+        { "name": "devil-advocate-swarms", "scope": "external" }
+      ],
+      "notes": ""
+    },
+    {
+      "name": "workflow-cluster",
+      "plugins": [
+        { "name": "dome-loop", "scope": "external" },
+        { "name": "agentic-workflow-suite", "scope": "external" }
+      ],
+      "notes": ""
+    },
+    {
+      "name": "creative-cluster",
+      "plugins": [
+        { "name": "crazy-professor", "scope": "external" }
+      ],
+      "notes": ""
+    }
+  ]
+}

@@ -153,10 +153,8 @@ Then check:
 
 ## Log Rotation
 
-- `iteration-log.md` > 500 entries → archive older entries to `iteration-log-archive-{YYYY-MM}.md`
-- `errors.json` > 200 entries → archive older entries to `errors-archive-{YYYY-MM}.json`
-
-Default thresholds: 500 entries for iteration-log.md, 200 entries for errors.json.
+Rotation/archiving of `iteration-log.md` and `errors.json` is `memory-maintenance`'s job — this skill only appends.
+The rotation thresholds live in `scripts/memory-thresholds.sh` (single source of truth).
 
 ## What NOT to Do
 

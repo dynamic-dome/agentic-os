@@ -4,6 +4,57 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-06] Release v4.0.0 — Konsolidierung: 9 Skills, Identity-Growth-Fixes, Token-Diaet, Threshold-SSoT
+
+**BREAKING — Komponenten entfernt:**
+
+- **5 Skills geloescht:** `retrospective` (Trend-Report ohne Konsumenten), `research-pipeline`
+  (User-Level-Skills decken das besser), `wiki-query` (Wiki-MCP/direktes Read reicht),
+  `quality-gate` (Review/TDD wandert zu User-Level-Skills + Test-Suite),
+  `skill-generator` (in `pattern-extractor` Step 6.5 gefaltet — der alleinige
+  patterns.json-Writer generiert jetzt selbst die Skills seiner Kandidaten). 14 → 9 Skills.
+- **1 Agent geloescht:** `quality-gate`. 4 → 3 Agents (context-detective, improvement-agent, research-agent).
+- **5 Wrapper-Commands geloescht:** `/log`, `/patterns`, `/research`, `/sync`, `/run-loop` —
+  duenne Wrapper um direkt invocierbare Skills (Schatten-Risiko L17). 10 → 5 Commands
+  (init, status, rollback, auto-commit, memory-audit).
+
+**Identity-Growth-Fixes (Pipeline verhungerte monatelang still):**
+
+- wrap-up Step 6.5: **Pflicht-Statuszeile** `(identity-visible)` — Identity-Growth skippt nie
+  mehr still; jede wrap-up-Ausgabe enthaelt genau eine Identity-Zeile.
+- Step 6.3 **Queue-Re-Review** `(queue-re-review)`: JEDER Kandidat in user-candidates.json wird
+  reviewt, nicht nur die dieser Session (enqueue-only liess Promotions wochenlang liegen).
+- Step 6.1 **Harvest-Checkliste** `(identity-harvest)`: konkreter 5-Punkte-Scan (Korrekturen,
+  explizite Regeln, Workflow-Gewohnheiten, bestaetigte Ansaetze, Kommunikations-Anforderungen)
+  statt vagem "scan the session".
+- Step 6.4 **Eskalationspfad** `(escalation-path)`: promotete user.md-Eintraege, die 2+ Sessions
+  re-bestaetigt wurden oder Agent-Verhalten beschreiben, eskalieren nach soul-candidates.md.
+- SessionStart-Hook injiziert jetzt **identity/user.md** in den Session-Kontext.
+
+**Token-Diaet (Descriptions/Prompts landen permanent in jedem System-Prompt):**
+
+- Hook-Prompts gestrafft; Skill-/Agent-Descriptions auf ~50-60 Woerter gekuerzt
+  (`<example>`-Bloecke raus, Trigger auf die 5-6 wichtigsten reduziert, Englisch erhalten).
+- session-bootstrap: Read-Deckelung (Learnings via RAG/`scripts/learnings_top.py` statt
+  Full-Read, errors.json nur Tail, Entity-Seiten max 80 Zeilen).
+
+**Neue SSoT-Skripte:**
+
+- `scripts/memory-thresholds.sh` — EINZIGE Definition aller Skalierungs-Schwellen
+  (exit 10 bei Ueberschreitung). Konsumiert von session-bootstrap Step 3, wrap-up Step 9,
+  memory-maintenance Step 3. Skill-Bodies nennen keine Zahlen mehr (iteration-loggers
+  widerspruechliche 500/200er-Rotation entfernt).
+- `scripts/learnings_top.py` — deterministisches Salience-Ranking
+  (`importance*0.4 + recency*0.3 + tag_overlap*0.3`) fuer den Bootstrap-Fallback.
+- `skills/wrap-up/references/handoff-template.md` — SSoT fuer den Cross-Project-Handoff
+  (Prepend-Algorithmus, Dedup, Hard-Cap, Templates), von wrap-up Step 7.6 gelesen.
+- memory-maintenance Step 3b: raeumt `working/`-Leichen auf (*.py/*.tmp/*.bak aelter 7 Tage;
+  current-session.json + user-candidates.json ausgenommen) — bisher fuehlte sich kein Skill
+  zustaendig.
+
+Doku nachgezogen: plugin.json (4.0.0, 9 Skills), CLAUDE.md, DEPENDENCIES.md (v4-Datenfluss +
+Removed-Begruendungen), PROJECT/CAPABILITIES/ARCHITECTURE.
+
 ## [2026-06-27] Release v3.9.0 — Wiki-Session-Summary-Auto-Sync gehaertet
 
 Die Auto-Wiki-Session-Zusammenfassung (SessionEnd-Hook → wrap-up Step 7.5 → obsidian-sync)

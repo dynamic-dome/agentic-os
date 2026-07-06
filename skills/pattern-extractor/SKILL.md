@@ -2,13 +2,12 @@
 name: pattern-extractor
 description: >
   Analyzes iteration history and error logs to extract recurring patterns,
-  anti-patterns, and best practices into a searchable pattern catalog.
-  Uses deterministic clustering on category, tags, and file paths.
-  Run periodically (every 5 iterations), at session end, when a problem
-  occurs 3+ times, or on explicit request.
+  anti-patterns, and best practices into a searchable pattern catalog
+  (deterministic clustering on category, tags, file paths). Also generates
+  reusable skills from confirmed skill candidates. Run every ~5 iterations,
+  at session end, or on explicit request.
   Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
-  "what patterns do you see", "lessons learned", "retrospective", "pattern scan",
-  "refresh patterns", "pattern refresh", "regenerate patterns".
+  "lessons learned", "refresh patterns".
 user_invocable: true
 metadata:
   author: agentic-os
@@ -201,6 +200,44 @@ Write a human-readable summary:
 
 - P{n}: {description} — ready for skill generation (3+ occurrences)
 ```
+
+## Step 6.5: Skill Candidate Generation
+
+When a pattern has `skill_candidate: true` with `confidence >= 0.7` AND `occurrences >= 3`,
+generate a reusable skill from it (this replaces the former `skill-generator` skill):
+
+1. **Derive structure** from the pattern: name = short descriptive slug from the
+   `description` (lowercase, hyphens, max 64 chars); steps from `recommendation` plus
+   details from the `evidence` ids in `.agent-memory/iterations/errors.json`;
+   anti-patterns from what the recommendation says to avoid.
+2. **Uniqueness check**: if `.agent-memory/generated-skills/<skill-name>/` already exists
+   or another pattern carries the same `generated_skill` value, append a version suffix
+   (e.g. `-v2`) or skip and inform the user — never overwrite silently.
+3. **Write** `.agent-memory/generated-skills/<skill-name>/SKILL.md` using this minimal template:
+
+   ```markdown
+   ---
+   name: <skill-name>
+   description: >
+     <What the skill does + English trigger phrases for when to activate it>
+   type: skill
+   ---
+
+   # <Skill Title>
+
+   ## When to Use
+   <Situations where the skill applies>
+
+   ## Steps
+   1. <Step derived from the pattern recommendation>
+
+   ## What NOT to Do
+   - <Anti-pattern from the source pattern>
+   ```
+
+4. **Mark the pattern** in `patterns.json`: set `"generated_skill": "<skill-name>"` and
+   `"skill_generated_at": "<ISO 8601>"` so the candidate is not regenerated next run.
+5. Report generated skills in the Step 8 output summary.
 
 ## Step 7: Flag Potential New Patterns
 

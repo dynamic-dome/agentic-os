@@ -96,40 +96,25 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     fi
 done
 
-# skill-generator specific: must have English intent-style trigger phrases
+# skill-generator folded into pattern-extractor (v4.0.0): the Skill Candidate
+# Generation section must gate on confidence>=0.7 + occurrences>=3 and carry the
+# minimal generated-skill template (name/description/type: skill).
 echo ""
-echo "-- skill-generator specific --"
-SG_FILE="$SKILLS_DIR/skill-generator/SKILL.md"
-if [ -f "$SG_FILE" ]; then
-    if grep -qi "keep doing\|keep repeating\|repetitive\|I keep\|automate this\|same thing" "$SG_FILE"; then
-        pass "skill-generator: has English intent triggers (e.g. 'I keep doing this')"
+echo "-- pattern-extractor: skill candidate generation (folded skill-generator) --"
+PE_SCG_FILE="$SKILLS_DIR/pattern-extractor/SKILL.md"
+if [ -f "$PE_SCG_FILE" ]; then
+    if grep -qi "Skill Candidate Generation" "$PE_SCG_FILE" \
+       && grep -qE "confidence >= 0\.7" "$PE_SCG_FILE" \
+       && grep -qE "occurrences >= 3" "$PE_SCG_FILE" \
+       && grep -q "generated-skills" "$PE_SCG_FILE" \
+       && grep -q "type: skill" "$PE_SCG_FILE"; then
+        pass "pattern-extractor: skill candidate generation present (gate + generated-skills path + minimal template)"
     else
-        fail "skill-generator: missing English intent triggers — users won't say 'generate skill', they'll say 'I keep doing this'"
+        fail "pattern-extractor: Skill Candidate Generation section missing or incomplete — must gate on confidence>=0.7 + occurrences>=3, write to .agent-memory/generated-skills/, and include the minimal template (name/description/type: skill)"
     fi
 fi
 
-echo ""
-echo "-- skill-generator trigger language consistency --"
-if [ -f "$SG_FILE" ]; then
-    if grep -qiE "skill aus pattern|workflow als skill|Skill erstellen|neuen Skill generieren|diesen workflow automatisieren|das mache ich staendig|kann man das als skill" "$SG_FILE"; then
-        fail "skill-generator: description trigger phrases contain German — triggers must use English so non-German users can invoke the skill"
-    else
-        pass "skill-generator: description trigger phrases use English (no German triggers)"
-    fi
-fi
-
-# test-validator, code-reviewer merged into quality-gate in v3 consolidation
-
-echo ""
-echo "-- quality-gate language consistency --"
-QG_FILE="$SKILLS_DIR/quality-gate/SKILL.md"
-if [ -f "$QG_FILE" ]; then
-    if grep -q "^### Schritt" "$QG_FILE"; then
-        fail "quality-gate: body uses German section headers (e.g. 'Schritt') — skill bodies must use English"
-    else
-        pass "quality-gate: body section headers use English (no 'Schritt' headers)"
-    fi
-fi
+# test-validator, code-reviewer, quality-gate skills removed — v3/v4 consolidation
 
 echo ""
 echo "-- wrap-up session-summary template language consistency --"
@@ -324,30 +309,7 @@ if [ -f "$SC_BODY_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- research-pipeline: no non-standard triggers: field --"
-RPL_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
-if [ -f "$RPL_FILE" ]; then
-    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$RPL_FILE")
-    if echo "$FRONTMATTER" | grep -q "^triggers:"; then
-        fail "research-pipeline: has non-standard triggers: field — no other skill uses this field; trigger phrases belong in the description: field"
-    else
-        pass "research-pipeline: no non-standard triggers: field (consistent with all other skills)"
-    fi
-fi
-
-echo ""
-echo "-- research-pipeline: description in English --"
-RPL_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
-if [ -f "$RPL_FILE" ]; then
-    DESC=$(awk '/^---/{c++; next} c==1 && /^description:/{sub(/^description:[[:space:]]*/,""); p=1; print} c==1 && p && /^[a-z_-]+:/{p=0} c==1 && p{print} c==2{exit}' "$RPL_FILE")
-    if echo "$DESC" | grep -qi "optimierte\|ersparnis\|spart[[:space:]]\|web-recherche"; then
-        fail "research-pipeline: description field contains German text — description must be English for consistent skill matching"
-    else
-        pass "research-pipeline: description field uses English"
-    fi
-fi
-
+# research-pipeline skill removed in v4.0.0 — tests removed
 # research-phase test removed — merged into self-improve in v3
 echo ""
 echo "-- self-improve: research findings persistence --"
@@ -383,18 +345,7 @@ if [ -f "$SI2_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- research-pipeline: metadata block present --"
-RP2_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
-if [ -f "$RP2_FILE" ]; then
-    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$RP2_FILE")
-    if echo "$FRONTMATTER" | grep -q "metadata:"; then
-        pass "research-pipeline: has metadata block (consistent with all other skills)"
-    else
-        fail "research-pipeline: missing metadata block — all skills must have metadata with author, version, part-of, layer fields for plugin membership and discoverability"
-    fi
-fi
-
+# research-pipeline metadata test removed — skill deleted in v4.0.0
 # analysis-phase tests removed — merged into self-improve in v3
 
 echo ""
@@ -408,16 +359,7 @@ if [ -f "$SI_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- research-pipeline: timeout value consistent (no 60s/600s conflict) --"
-RP3_FILE="$SKILLS_DIR/research-pipeline/SKILL.md"
-if [ -f "$RP3_FILE" ]; then
-    if grep -q "\-\-timeout 600" "$RP3_FILE" && grep -q "within 60s" "$RP3_FILE"; then
-        fail "research-pipeline: timeout inconsistency — --timeout 600 (10min) in step 4 conflicts with 'within 60s' in error handling section"
-    else
-        pass "research-pipeline: timeout values consistent (no --timeout 600 vs 60s conflict)"
-    fi
-fi
+# research-pipeline timeout test removed — skill deleted in v4.0.0
 
 echo ""
 echo "-- wrap-up: state.json path specified for self-improve loop check --"
@@ -441,40 +383,8 @@ if [ -f "$SB2_FILE" ]; then
     fi
 fi
 
-echo ""
-echo "-- quality-gate: WARN verdict checks regressions --"
-QG_FILE="$SKILLS_DIR/quality-gate/SKILL.md"
-if [ -f "$QG_FILE" ]; then
-    WARN_LINE=$(grep "^\*\*WARN\*\*:" "$QG_FILE" | head -1)
-    if echo "$WARN_LINE" | grep -qiE "regression"; then
-        pass "quality-gate: WARN verdict criteria includes regression check"
-    else
-        fail "quality-gate: WARN verdict ignores regressions — a build with regressions should never be WARN (only FAIL)"
-    fi
-fi
-
-echo ""
-echo "-- quality-gate: pytest collection gate --"
-QG_FILE="$SKILLS_DIR/quality-gate/SKILL.md"
-if [ -f "$QG_FILE" ]; then
-    if grep -q -- "--co -q" "$QG_FILE" && grep -qiE "0 tests collected|collected 0 items|no tests ran|exit code 5" "$QG_FILE" && grep -q "health_score = 0" "$QG_FILE"; then
-        pass "quality-gate: pytest collection gate fails closed on zero collected tests"
-    else
-        fail "quality-gate: missing pytest collection gate — must run pytest --co -q and fail when zero tests are collected"
-    fi
-fi
-
-echo ""
-echo "-- skill-generator: template includes metadata block --"
-SG_FILE="$SKILLS_DIR/skill-generator/SKILL.md"
-if [ -f "$SG_FILE" ]; then
-    TEMPLATE=$(awk '/^```markdown/{found=1; next} found && /^```/{exit} found{print}' "$SG_FILE")
-    if echo "$TEMPLATE" | grep -q "metadata:"; then
-        pass "skill-generator: template includes metadata block (consistent with all existing skills)"
-    else
-        fail "skill-generator: template missing metadata block — all 10 existing skills have metadata with author/version/part-of/layer; generated skills should too"
-    fi
-fi
+# quality-gate skill removed in v4.0.0 — WARN verdict + pytest collection gate tests removed
+# skill-generator removed in v4.0.0 (folded into pattern-extractor, minimal template) — metadata template test removed
 
 # --- self-improve hardening levers (Wiki-TODO 2026-06-02-self-improve-mechanismus-haerten) ---
 # Each test pins one of the 5 levers into the SKILL.md body so they cannot silently
@@ -562,23 +472,7 @@ if [ -f "$SI_HARDEN_FILE" ]; then
     fi
 fi
 
-# --- retrospective: real invocation path from the bracket (anti-dead-code, L19) ---
-# A skill with no call path in the bootstrap/wrap-up bracket is dead code with a green
-# suite (L19: months of null counters). wrap-up must invoke retrospective on an interval/
-# threshold, marked (periodic-retrospective).
-WU_RETRO_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
-echo ""
-echo "-- wrap-up: periodic retrospective hook (no dead-skill path, L19) --"
-if [ -f "$WU_RETRO_FILE" ]; then
-    if grep -qiE "\(periodic-retrospective\)" "$WU_RETRO_FILE" \
-       && grep -qiE "retrospective" "$WU_RETRO_FILE" \
-       && grep -qiE "7 days|5\+ new iterations" "$WU_RETRO_FILE" \
-       && grep -qiE "never writes its files|does not duplicate" "$WU_RETRO_FILE"; then
-        pass "wrap-up: periodic-retrospective hook present — real call path + interval/threshold trigger + no-write delegation"
-    else
-        fail "wrap-up: periodic-retrospective hook missing — the retrospective skill must be invoked from the bracket on an interval/threshold, or it is dead code with a green suite (L19)"
-    fi
-fi
+# retrospective skill removed in v4.0.0 — periodic-retrospective bracket test removed
 
 # --- Memory Growth Engine (Master-Plan 2026-06-03, Sprint user.md + soul.md) ---
 # Pins the growth mechanics into the owning skill bodies. Marker-based + concept phrase,
@@ -806,22 +700,8 @@ if [ -f "$SB_FILE" ]; then
     fi
 fi
 
-# --- skill-generator: reads pattern-extractor's CANONICAL fields, not legacy ones ---
-# pattern-extractor (sole writer of patterns.json) emits `evidence` + `recommendation`
-# and explicitly normalizes away the legacy names `error_ids`/`recommended_action`/`avoid`.
-# skill-generator must consume the canonical fields, else it reads fields that never exist.
-SG_FILE="$SKILLS_DIR/skill-generator/SKILL.md"
-echo ""
-echo "-- skill-generator: consumes canonical pattern fields (evidence/recommendation), not legacy --"
-if [ -f "$SG_FILE" ]; then
-    if ! grep -qE "\`recommended_action\`|\`error_ids\`|the \`avoid\` field" "$SG_FILE" \
-       && grep -qE "\`recommendation\`" "$SG_FILE" \
-       && grep -qE "\`evidence\`" "$SG_FILE"; then
-        pass "skill-generator: reads canonical pattern fields (recommendation/evidence), no legacy field reads"
-    else
-        fail "skill-generator: reads legacy pattern fields (recommended_action/error_ids/avoid) that pattern-extractor never emits — must use canonical recommendation/evidence"
-    fi
-fi
+# skill-generator removed in v4.0.0 — its skill-candidate flow lives inside pattern-extractor,
+# which is itself the canonical-schema writer; legacy-field consumption test removed
 
 # --- obsidian-sync: Rolling Synthesis gates on `importance`, not nonexistent `salience` ---
 # wrap-up (sole writer of learnings.json) stores `importance` (1-5); there is no stored

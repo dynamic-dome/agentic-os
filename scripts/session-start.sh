@@ -150,16 +150,18 @@ if [ -d "$MEMORY_DIR" ]; then
     [ -n "$SOUL" ] && context="$context\nIdentity: $SOUL"
   fi
 
+  # User profile (first 4 preference/work-style bullets) — primes the agent to
+  # NOTICE preference deltas mid-session; without this, identity growth relies
+  # entirely on end-of-session recall (the weakest context point).
+  if [ -f "$MEMORY_DIR/identity/user.md" ]; then
+    USER_PROFILE=$(grep -E "^- " "$MEMORY_DIR/identity/user.md" 2>/dev/null | head -4 | tr '\n' ' ' || true)
+    [ -n "$USER_PROFILE" ] && context="$context\nUser: $USER_PROFILE"
+  fi
+
   # Project context (language + framework)
   if [ -f "$MEMORY_DIR/context/project-context.md" ]; then
     STACK=$(grep -E "Language:|Framework:|Package Manager:" "$MEMORY_DIR/context/project-context.md" 2>/dev/null | tr '\n' ' ' || true)
     [ -n "$STACK" ] && context="$context\nStack: $STACK"
-  fi
-
-  # Quality warnings
-  if [ -f "$MEMORY_DIR/quality/quality-score.json" ]; then
-    DECLINING=$(grep -c '"declining"' "$MEMORY_DIR/quality/quality-score.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
-    [ "${DECLINING:-0}" -gt 0 ] 2>/dev/null && context="$context\nWARNING: Quality scores are declining!"
   fi
 
   # Statistics (tr -d removes whitespace/newlines from grep -c)

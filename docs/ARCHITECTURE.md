@@ -15,8 +15,8 @@ session-bootstrap (read-only)  →  WORK PHASE  →  wrap-up (Handoff + Learning
         ▲ liest Store + zentralen Handoff           │ schreibt session-summary, learnings,
                                                      │ zentralen Handoff (prepend), Status-Board
    Skills schreiben je EINE Datei:
-   iteration-logger→iterations/  context-keeper→context/  quality-gate→quality/
-   pattern-extractor→patterns/   skill-generator→generated-skills/
+   iteration-logger→iterations/  context-keeper→context/
+   pattern-extractor→patterns/ + generated-skills/ (Skill-Candidate-Generation)
 ```
 
 ## Kernkomponenten
@@ -31,10 +31,20 @@ session-bootstrap (read-only)  →  WORK PHASE  →  wrap-up (Handoff + Learning
 - **Aufgabe:** Phase 0 sourct die SSoT; Phase 1 = Auto-Init bei fehlendem Store; Phase 2 = Backfill (heilt partielle Stores) + Kontext-Injection.
 - **Abhaengigkeiten:** `mem-schema.sh`. Schreibt `project-context.md` selbst (Inline-Stack-Detection — bewusst ausserhalb der SSoT).
 
-### Skills (14, geschichtet)
+### Skills (9, geschichtet)
 - **Datei(en):** `skills/*/SKILL.md`
 - **Aufgabe:** Session-Lifecycle + Memory-Management. Genau ein Schreiber pro Store-Datei.
-- **Abhaengigkeiten:** Strikt azyklisch (`skills/DEPENDENCIES.md`).
+- **Abhaengigkeiten:** Strikt azyklisch (`skills/DEPENDENCIES.md`). Entfernt in v4.0.0: retrospective, research-pipeline, wiki-query, quality-gate (Skill + Agent), skill-generator (in pattern-extractor gefaltet); Wrapper-Commands log/patterns/research/sync/run-loop.
+
+### Threshold-SSoT
+- **Datei(en):** `scripts/memory-thresholds.sh`
+- **Aufgabe:** EINZIGE Definition aller Skalierungs-/Archiv-Schwellen; exit 10 bei Ueberschreitung.
+- **Abhaengigkeiten:** Konsumiert von session-bootstrap (Step 3), wrap-up (Step 9), memory-maintenance (Step 3). Skill-Bodies nennen keine Zahlen.
+
+### Salience-Ranking
+- **Datei(en):** `scripts/learnings_top.py`
+- **Aufgabe:** Deterministisches Top-N-Ranking der Learnings (`importance*0.4 + recency*0.3 + tag_overlap*0.3`) fuer den Bootstrap-Fallback ohne Full-Read.
+- **Abhaengigkeiten:** session-bootstrap (Learnings Retrieval, Fallback-Pfad).
 
 ## Datenfluss
 

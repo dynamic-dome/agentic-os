@@ -48,19 +48,19 @@ It tells you:
 - What was accomplished and what's still open
 - Which agent wrote it (Claude, Codex, etc.)
 
-### (b) Cross-project status board — all projects at a glance
+### (b) Cross-project status board — section extract only
 
-3. Read `C:\Users\domes\AI\cross-project-status.md` (the **status board**).
-   Unlike the central handoff (only the *last* session, often 10+/day), this file
-   holds **one section per project**, each updated only when that project is wrapped up.
-   Use it to see the current state of every touched project at once — and to surface
-   cross-project items flagged as relevant for ALL projects.
+3. From `C:\Users\domes\AI\cross-project-status.md` (the **status board**) load ONLY
+   two sections — do **NOT** read the full file (it grows with every project and costs
+   thousands of tokens): use Grep with context (`-A 6`) to extract (i) the
+   `## {current project}` section and (ii) the `## Cross-Project Notes` block.
+   Other projects' sections are irrelevant for this session's briefing.
 
 **Rules:**
 - The central handoff (a) is authoritative for "what happened last". The status board (b) is authoritative for "where does each project currently stand".
 - If the central handoff is **newer** than the local `.agent-memory/session-summary.md`, the central handoff takes precedence for the LAST SESSION block in the briefing
 - If the central handoff references a **different project** than the current one, note this in the briefing ("Last handoff was from project X — switching context to Y")
-- From the status board, pull (i) the section matching the **current** project, if present, and (ii) any `## Cross-Project Notes` block (items relevant for all projects).
+- From the status board, only the two extracted sections matter: the **current** project's section and `## Cross-Project Notes`.
 - **Next-steps ownership (open-tasks-priority):** the central handoff's "Naechste Schritte"
   section is a POINTER, not a list. The authoritative source for THIS project's next steps
   is the local `context/open-tasks.json` (rendered by the local session-summary). From the
@@ -92,11 +92,10 @@ Read files in this priority order. Skip any that don't exist:
 3. **`identity/user.md`** — user preferences and work style
 4. **`context/project-context.md`** — tech stack, architecture, constraints
 5. **`patterns/patterns.md`** — known patterns and anti-patterns (scan for high-confidence only)
-6. **`learnings/learnings.json`** — structured learnings with salience metadata (see Salience Retrieval below)
-7. **`quality/quality-score.json`** — test health + code quality trends
-8. **`iterations/errors.json`** — last 3 entries only (tail, not full load)
-9. **`working/current-session.json`** — if exists, resume working memory from interrupted session
-10. **`context/open-tasks.json`** — open/blocked tasks (SSoT for next steps; feeds Step 6)
+6. Learnings — via RAG-Hybrid retrieval below (do NOT full-read learnings.json)
+7. **`iterations/errors.json`** — last 3 entries only (tail, not full load)
+8. **`working/current-session.json`** — if exists, resume working memory from interrupted session
+9. **`context/open-tasks.json`** — open/blocked tasks (SSoT for next steps; feeds Step 6)
 
 Apply identity settings from `soul.md` silently (communication style, guard rails).
 
@@ -117,23 +116,22 @@ Apply identity settings from `soul.md` silently (communication style, guard rail
 
 **Fallback path — heuristic rank (when MCP unavailable or empty):**
 
-Read `learnings/learnings.json` directly. Sort by salience score; include top 10:
+Do NOT read learnings.json into context (it can be 2k+ words). Run the deterministic
+ranking script instead and use its ≤10 output lines directly:
 
 ```
-score = importance * 0.4 + recency * 0.3 + tag_overlap * 0.3
-
-recency = max(0, 1 - (days_since_last_relevant / 90))
-tag_overlap = matching_tags / total_tags  (match against project-context.md stack keywords)
+python "${CLAUDE_PLUGIN_ROOT}/scripts/learnings_top.py" .agent-memory/learnings/learnings.json --top 10 --tags {stack-keywords,comma-separated}
 ```
 
-- Skip entries where `superseded_by` is not null
-- Prefer `layer: "long-term"` over `"short-term"` at equal scores
-- Prefix the section header with `(heuristic fallback)`.
-- Do NOT update `last_relevant` here — bootstrap is strictly read-only.
+(Formula inside the script: `importance*0.4 + recency*0.3 + tag_overlap*0.3`, skips
+superseded entries.) Prefix the briefing section header with `(heuristic fallback)`.
+If python is unavailable: read only the LAST 15 entries of learnings.json and pick by
+importance.
 
-**Staleness wrapping — display only, never a write.** When an entry has
-`now − last_relevant > 90 days`, annotate visually: `[STALE? last relevant {date}] {text}`.
-Do NOT write back confidence or last_relevant — that is memory-maintenance's job.
+**Staleness wrap (staleness-wrap) — display only, never a write.** Entries with
+`now − last_relevant > 90 days` are annotated `[STALE? last relevant {date}] {text}` —
+a read-time annotation that only marks, never mutates. Do NOT decay/write confidence
+or last_relevant — that is memory-maintenance's job; bootstrap is strictly read-only.
 
 ## Step 2.5: Wiki Context Loading (optional)
 
@@ -150,6 +148,8 @@ Read `.agent-memory/config.json`. If it does not exist or `sync_enabled` is fals
    - If not found: try each alias in `project_aliases` as filename
    - If not found: try Grep for `project_id` in entity filenames
    - If still not found: skip entity, continue with other steps
+   - **Read at most the first 80 lines** of the entity page (frontmatter + summary +
+     patterns) — entity pages are uncapped in length and can cost 2k+ tokens full-read
 4. **Entry Points** — load pages from `default_entrypoints`:
    - For each path: check if file exists at `$WIKI_ROOT/{path}`
    - **Skip non-existing entry points silently** (no error — they may be planned for later sprints)
@@ -207,18 +207,16 @@ Verify these core files exist:
 - `iterations/iteration-log.md`
 - `iterations/errors.json`
 - `patterns/patterns.json`
-- `quality/quality-score.json`
 
 Missing files → warn user, suggest which skill creates them.
 
 ### JSON Validity Check
 For each JSON file loaded: if parse fails → rename to `{file}.corrupt.bak`, create fresh with default (`[]` or `{}`), warn user.
 
-### Scaling Guards
-- `errors.json` > 50 entries → warn: "Error log is large ({n} entries). Consider archiving with iteration-logger."
-- `learnings/learnings.json` > 100 entries → warn: "Learnings log is large ({n} entries). Consider pruning during wrap-up."
-- `decisions.json` > 50 active entries → warn: "Many active decisions ({n}). Review for superseded entries."
-- `iteration-log.md` > 100 entries → warn: "Iteration log is very long. Archive recommended."
+### Scaling Guards (delegated to threshold SSoT)
+Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/memory-thresholds.sh" .agent-memory`. Exit 10 →
+include its `THRESHOLD:` lines under HEALTH in the briefing. Exit 0 → no scaling warnings.
+(Thresholds live ONLY in that script — shared with wrap-up Step 9 and memory-maintenance.)
 
 ## Step 3.5: Sharepoint-Pull (Cross-Device)
 
@@ -271,14 +269,13 @@ KEY LEARNINGS (top 5 via RAG · fallback: top 10 heuristic)
 ACTIVE WARNINGS
   {high-confidence patterns (confidence >= 0.7, occurrences >= 3)}
   {last 3 unresolved errors}
-  {quality score trends: improving/declining/stable}
 
 STATISTICS
-  Iterations: {n} | Patterns: {n} | Errors: {n}
-  Test Health: {score}/100 | Code Quality: {score}/100
+  Iterations: {n} | Patterns: {n} | Errors: {n} | Learnings: {n}
 
 HEALTH
-  {any missing files or scaling warnings}
+  {any missing files or THRESHOLD lines}
+  {identity starvation warning from Step 6.5, if any}
 ---
 ```
 
@@ -307,24 +304,40 @@ RECOMMENDED NEXT STEPS
 
 **Priority:** Local `context/open-tasks.json` comes first — it owns this project's next steps. Then `[cross-project]` items from the central handoff. Then system-level warnings. Deduplicate: if an item appears both locally and centrally, show it ONCE (local wording wins).
 
-## Step 6.5: Soul Candidate Gate (the single read-only exception)
+## Step 6.5: Identity Gates + Starvation Check
 
-`wrap-up` proposes identity changes into `identity/soul-candidates.md` but never writes
-`soul.md` autonomously (Stufe B). This step surfaces those proposals for a one-line gate.
+`wrap-up` grows identity via queues (`working/user-candidates.json`,
+`identity/soul-candidates.md`) but never writes `soul.md` autonomously (Stufe B). This
+step surfaces both queues and detects a starving pipeline.
 
-1. Read `identity/soul-candidates.md`. If it is missing or only the empty stub
-   (`*Keine offenen Kandidaten.*`) → skip silently, nothing to show.
-2. If it has open candidates, add ONE line to the briefing:
-   `SOUL CANDIDATES: {n} warten — übernehmen? [j/n]`
-3. **Only on an explicit `j`** from the user: merge the candidates into `soul.md` in a single
-   write, append a `field: soul` entry to `identity/user-changelog.json` (audit/rollback), and
-   reset `soul-candidates.md` to the empty stub.
-4. On `n`, no answer, or anything else: do nothing — candidates stay queued for next time.
+### (a) Soul candidate gate (the single write exception)
 
-This confirmed soul.md write is the **one and only** exception to bootstrap's read-only rule.
-It is user-triggered (gated on `j`), never autonomous, and only touches `soul.md` +
-`user-changelog.json` + the candidate queue — nothing else. The briefing read-path itself
-stays strictly read-only.
+1. Read `identity/soul-candidates.md`. Missing or empty stub
+   (`*Keine offenen Kandidaten.*`) → skip silently.
+2. Open candidates → ONE briefing line: `SOUL CANDIDATES: {n} warten — übernehmen? [j/n]`
+3. **Only on an explicit `j`**: merge candidates into `soul.md` in a single write, append
+   a `field: soul` entry to `identity/user-changelog.json` (audit/rollback), reset
+   `soul-candidates.md` to the empty stub.
+4. On `n`/no answer/anything else: do nothing — candidates stay queued.
+
+This confirmed soul.md write is the **only** exception to bootstrap's read-only rule:
+user-triggered, never autonomous, touches only soul.md + changelog + queue.
+
+### (b) User candidate fallback gate
+
+Read `working/user-candidates.json`. If any candidate meets wrap-up's promotion gate
+(status `confirmed`, or `inferred` with occurrences >= 2 and confidence >= 0.6) but is
+not yet `promoted` — wrap-up apparently missed it. Add ONE briefing line:
+`USER CANDIDATES: {n} promotable (z.B. {id}: {key}) — jetzt übernehmen? [j/n]`
+On explicit `j`: perform wrap-up Step 6.3's promotion (changelog first, then user.md,
+then mark `promoted`). Same audit trail, same trust rules.
+
+### (c) Identity starvation warning (read-only)
+
+Compare `max(last_seen)` across user-candidates.json with the local session-summary
+date. If the last identity observation is 2+ sessions old (or the file is empty while
+sessions exist), add to HEALTH:
+`Identity-Scan zuletzt {date} — Pipeline verhungert, wrap-up Step 6 prüfen`
 
 ## Error Handling
 

@@ -1,19 +1,10 @@
 ---
 name: context-detective
-description: |
+description: >
   Agent that auto-detects project context by analyzing repository structure,
-  manifest files, and existing documentation. Use when initializing Agentic OS
-  in a new project or when project context needs refreshing.
-
-  <example>
-  Context: User runs /agentic-os:init in a new repo
-  user: "/agentic-os:init"
-  assistant: "Analyzing the repository..."
-  <commentary>
-  Init command needs project context — spawn context-detective to analyze repo.
-  </commentary>
-  </example>
-
+  manifest files, and existing documentation (docs/ read first as source of
+  truth). Use when initializing Agentic OS in a new project or when the
+  project context needs refreshing.
 model: sonnet
 color: green
 allowed_tools:

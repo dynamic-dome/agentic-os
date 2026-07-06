@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "agentic-os",
-      "description": "Self-improving agent memory system with 14 skills. Tracks iterations, extracts patterns, enforces quality gates, and generates skills from recurring workflows.",
+      "description": "Self-improving agent memory system with 9 skills. Tracks iterations, extracts patterns, and generates skills from recurring workflows.",
       "category": "development",
       "source": {
         "source": "url",
