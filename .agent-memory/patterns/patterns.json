@@ -1,92 +1,17 @@
 [
   {
-    "id": "pattern-001",
-    "type": "anti-pattern",
-    "title": "Windows/Git Bash path and shell compatibility",
-    "description": "Shell scripts fail on Windows/Git Bash due to: (1) set -e + arithmetic, (2) paths with spaces in string interpolation, (3) git pathspec syntax differences",
-    "occurrences": 3,
-    "confidence": 0.7,
-    "tags": [
-      "bash",
-      "windows",
-      "paths",
-      "compatibility"
-    ],
-    "error_ids": [
-      "err-001",
-      "err-002",
-      "err-003"
-    ],
-    "prevention": "Always use $((VAR + 1)) instead of ((VAR++)), pass file paths via process.argv not interpolation, test scripts on Windows before committing",
-    "skill_candidate": false,
-    "first_seen": "2026-03-24",
-    "last_seen": "2026-03-24",
-    "source_projects": [
-      "Desktop",
-      "agentic-os-plugin"
-    ],
-    "promotion_status": "candidate"
-  },
-  {
-    "id": "P001",
-    "name": "Windows Subprocess PATH Resolution",
-    "type": "anti-pattern",
-    "description": "subprocess.run findet CLI-Tools nicht, weil uvicorn/Service-Prozesse einen anderen PATH haben als die User-Shell",
-    "solution": "Immer shutil.which() für absolute Pfadauflösung vor subprocess.run verwenden",
-    "confidence": 0.8,
-    "occurrences": 1,
-    "tags": [
-      "windows",
-      "subprocess",
-      "path"
-    ],
-    "source_errors": [
-      "E1"
-    ],
-    "first_seen": "2026-03-29",
-    "last_seen": "2026-03-29",
-    "source_projects": [
-      "dynamic-central-orchestrator"
-    ],
-    "promotion_status": "candidate"
-  },
-  {
-    "id": "P002",
-    "name": "Windows UTF-8 Subprocess Encoding",
-    "type": "anti-pattern",
-    "description": "CLI-Argumente auf Windows mangeln UTF-8 Zeichen (Umlaute, Sonderzeichen) — Ausgabe wird korrupt",
-    "solution": "Text via input= (stdin) statt als CLI-Argument übergeben, encoding='utf-8' explizit setzen",
-    "confidence": 0.8,
-    "occurrences": 1,
-    "tags": [
-      "windows",
-      "subprocess",
-      "encoding",
-      "utf8"
-    ],
-    "source_errors": [
-      "E2"
-    ],
-    "first_seen": "2026-03-29",
-    "last_seen": "2026-03-29",
-    "source_projects": [
-      "dynamic-central-orchestrator"
-    ],
-    "promotion_status": "candidate"
-  },
-  {
     "id": "P010",
-    "name": "Three-role Codex code review (Verifier + Security parallel, Quality-Fixer serial)",
     "type": "best-practice",
-    "description": "Structured post-implementation review with 3 Codex subagent roles: (1) Verifier against spec — diff vs stated contract, finds missing parts / param-order / typos; (2) Security — injection / SSRF / path-traversal / privacy-leak review; (3) Quality-Fixer — reads findings from 1+2 and applies within budget (<=3 files, no new imports, no API/schema changes). Verifier + Security run in parallel as background agents; Quality-Fixer waits for both to consolidate. Skip Quality-Fixer when the fix scope is trivial (e.g. 2 string edits) — direct main-model edit is cheaper than subagent overhead",
+    "description": "Three-role Codex code review (Verifier + Security parallel, Quality-Fixer serial) — Structured post-implementation review with 3 Codex subagent roles: (1) Verifier against spec — diff vs stated contract, finds missing parts / param-order / typos; (2) Security — injection / SSRF / path-traversal / privacy-leak review; (3) Quality-Fixer — reads findings from 1+2 and applies within budget (<=3 files, no new imports, no API/schema changes). Verifier + Security run in parallel as background agents; Quality-Fixer waits for both to consolidate. Skip Quality-Fixer when the fix scope is trivial (e.g. 2 string edits) — direct main-model edit is cheaper than subagent overhead",
+    "recommendation": "After substantive commits: ask user '[1] Verifier [2] Security [3] Quality-Fixer [alle] [keine]'. Default wenn User nicht explizit antwortet: Verifier only. Spawn background agents with focused scope prompts. For multi-phase packages, do a second Verifier-pass over the full package to catch doc/code drift that per-phase review misses",
     "evidence": [
       "2026-04-22 Visual-Redesign",
       "2026-04-23 Paket-F",
       "2026-04-24 Paket-G Phase-5",
       "2026-04-24 Paket-G full-package"
     ],
-    "solution": "After substantive commits: ask user '[1] Verifier [2] Security [3] Quality-Fixer [alle] [keine]'. Default wenn User nicht explizit antwortet: Verifier only. Spawn background agents with focused scope prompts. For multi-phase packages, do a second Verifier-pass over the full package to catch doc/code drift that per-phase review misses",
     "confidence": 0.8,
+    "severity": "info",
     "occurrences": 4,
     "tags": [
       "workflow",
@@ -95,15 +20,75 @@
       "subagent",
       "quality-gate"
     ],
-    "source_errors": [],
-    "first_seen": "2026-04-22",
-    "last_seen": "2026-04-24",
     "skill_candidate": true,
     "generated_skill": "codex-3-role-review",
     "skill_generated_at": "2026-04-24T00:40:00Z",
+    "first_seen": "2026-04-22",
+    "last_seen": "2026-04-24",
     "source_projects": [
+      "agentic-os-plugin",
       "dynamic-central-orchestrator"
     ],
     "promotion_status": "candidate"
+  },
+  {
+    "id": "G-pattern-005",
+    "type": "best-practice",
+    "description": "Exit-Code 0 / ok-Flag beweist keinen inhaltlichen Erfolg — gegen Ground-Truth verifizieren. Ein Tool/Subprozess kann sauber mit Exit 0 / status:done enden, obwohl die Arbeit inhaltlich fehlschlug ODER nur behauptet wurde. (a) agent_smoke --live-external gab EXIT 0, aber Ergebnis-JSON sagte ok:false / worker_timeout. (b) Dual-Bridge Stage-1-Result meldete status:done + Commit-Hash — der Beweis kam erst durch `git show origin/<branch>:<datei>`. (e) 2026-06-03 PreToolUse-Hook-Live-Test: Canary überlebte, aber NICHT weil der Hook blockte, sondern weil das Modell den destruktiven Call nie absetzte (permission_denials:[]); Canary-lebt != Hook-blockte. (f) 2026-06-03 git-Härtung: zwei reale git-Bypass-Lücken nur vom Live-Spotcheck gegen das echte Binary gefunden, nicht von grünen Unit-Tests. (g) 2026-06-03 dual-bridge Hygiene: flaky-Test (#7728) VOR dem Fix deterministisch reproduziert; #7729 NDJSON-Parser brauchte KEINEN Code-Fix — 'Code war schon richtig' ist ein gültiges Verifikations-Ergebnis.",
+    "recommendation": "Nie dem Exit-Code/status/PASS-Print allein glauben: gegen den echten Zustand prüfen (DB-Row-Counts gegen Vorher-Snapshot, geschriebene Artefakt-Dateien, mtimes, Git-Branch-Inhalt, Event-Stream + permission_denials). Eigene adversariale Fälle gegen das echte Binary statt der bestandenen Suite. Gilt auch für Beweis-Skripte und Subagent-Reports. Verwandt mit Verifikation-vor-Aktion (CLAUDE.md §4) und P004.",
+    "evidence": [
+      "L19",
+      "L26",
+      "L37",
+      "E8",
+      "E9"
+    ],
+    "confidence": 0.92,
+    "severity": "major",
+    "tags": [
+      "verification",
+      "exit-code",
+      "ground-truth",
+      "honesty",
+      "verifikation-vor-aktion",
+      "dco",
+      "dual-bridge",
+      "git",
+      "claude-cli"
+    ],
+    "source_projects": [
+      "ai-hooks-bau",
+      "ai-workspace",
+      "dco",
+      "dual-bridge"
+    ],
+    "first_seen": "2026-05-30",
+    "last_seen": "2026-06-03",
+    "occurrences": 7,
+    "skill_candidate": false,
+    "lifecycle": "active",
+    "previous_id": "P007",
+    "recurrence_dates": [
+      "2026-06-03",
+      "2026-06-03b",
+      "2026-06-03c"
+    ],
+    "value": "exitcode 0 okflag beweist keinen inhaltlichen erfolg gegen groundtruth verifizieren ein toolsubprozess kann sauber mit exit 0 statusdone enden obwohl die arbeit inhaltlich fehlschlug oder nur behauptet wurde a agentsmoke liveexternal gab exit 0 aber ergebnisjson sagte okfalse workertimeout b dualbridge stage1result meldete statusdone commithash der beweis kam erst durch git show originbranchdatei e 20260603 pretoolusehooklivetest canary berlebte aber nicht weil der hook blockte sondern weil das modell den destruktiven call nie absetzte permissiondenials canarylebt hookblockte f 20260603 githrtung zwei reale gitbypasslcken nur vom livespotcheck gegen das echte binary gefunden nicht von grnen unittests g 20260603 dualbridge hygiene flakytest 7728 vor dem fix deterministisch reproduziert 7729 ndjsonparser brauchte keinen codefix code war schon richtig ist ein gltiges verifikationsergebnis",
+    "fact_type": "pattern",
+    "source_project": "ai-hooks-bau",
+    "source_evidence": [
+      "L19",
+      "L26",
+      "L37",
+      "E8",
+      "E9"
+    ],
+    "valid_from": "2026-05-30",
+    "valid_until": null,
+    "last_relevant": "2026-06-03",
+    "scope": "pattern|claude-cli,dco,dual-bridge,exit-code,git,ground-truth,honesty,verification,verifikation-vor-aktion",
+    "superseded_by": null,
+    "pulled_from_global": "2026-06-12T19:16:54",
+    "promotion_status": "ready"
   }
 ]

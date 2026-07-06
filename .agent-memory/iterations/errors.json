@@ -34,5 +34,20 @@
     "failed_approaches": ["Matching '\"$' as multiline indicator (matched inline quoted strings too)"],
     "confidence": 0.8,
     "severity": "suggestion"
+  },
+  {
+    "id": "err-004",
+    "date": "2026-06-12",
+    "category": "runtime",
+    "tags": ["powershell", "select-string", "null-guard", "frontmatter", "session-bootstrap"],
+    "description": "sharepoint-pull-check.ps1 warf 'Es ist nicht moeglich, einen Index auf ein NULL-Array anzuwenden' bei Handoff-Dateien ohne target_agent-Frontmatter (z.B. INDEX.md im 01_HANDOFFS-Ordner)",
+    "root_cause": "Direktzugriff ($head | Select-String '^feld:...').Matches.Groups[1].Value — Select-String liefert bei keinem Treffer $null, der Index-Zugriff darauf wirft. PowerShell-Frontmatter-Parsing braucht einen Match-Guard pro Feld.",
+    "solution": "Get-FmField-Helper: Select-String-Ergebnis erst in Variable, nur bei Treffer .Matches.Groups[1].Value, sonst leerer String; Anzeige-Fallback '?' fuer fehlendes target_agent",
+    "failed_approaches": [],
+    "confidence": 0.9,
+    "severity": "warning",
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-06-12"
   }
 ]

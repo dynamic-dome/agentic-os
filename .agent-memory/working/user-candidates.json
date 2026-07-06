@@ -1,0 +1,134 @@
+[
+  {
+    "id": "UC1",
+    "key": "explicit-reasoning-on-judgments",
+    "observation": "User verlangt bei jeder Bewertung/Empfehlung eine explizite Begründung — egal ob Zustimmung oder Ablehnung ('egal ob zustimmung oder ablehnung, immer mit begründung').",
+    "status": "confirmed",
+    "signal_type": "preference",
+    "confidence": 0.9,
+    "occurrences": 2,
+    "evidence": [
+      "session 2026-06-03: Audit-Evaluation explizit gefordert",
+      "session 2026-06-03: Begründung bei jeder Hebel-Bewertung"
+    ],
+    "first_seen": "2026-06-03",
+    "last_seen": "2026-06-03",
+    "trust_source": "conversation",
+    "status_after_promotion": "promoted"
+  },
+  {
+    "id": "UC2",
+    "key": "ground-truth-before-action",
+    "observation": "User belohnt/erwartet Ground-Truth-Verifikation vor Aktion — Behauptungen (auch aus externen Reports/Handoffs) gegen die Live-Realität prüfen, nicht der Buchhaltung trauen.",
+    "status": "confirmed",
+    "signal_type": "preference",
+    "confidence": 0.9,
+    "occurrences": 5,
+    "evidence": [
+      "session 2026-06-03: Audit-Claims gegen .agent-memory/ verifiziert (bestätigt)",
+      "session 2026-06-03: Supersession-Korrektur nach Nachhaken akzeptiert",
+      "wiederkehrend: Codex-Verifier nach jeder substanziellen Änderung",
+      "session 2026-06-04: 4x die Ground-Truth-Option gewählt (Fund 1 verworfen, L2/L3 in Ruhe gelassen, Gate nicht gefälscht)",
+      "session 2026-06-12: Rebase-Drift gegen origin geprueft statt force, Cache-Version + Marker ground-truth verifiziert, mtime-Check vor Migration-apply"
+    ],
+    "first_seen": "2026-06-03",
+    "last_seen": "2026-06-12",
+    "trust_source": "conversation",
+    "status_after_promotion": "promoted"
+  },
+  {
+    "id": "UC3",
+    "key": "challenge-and-question-back",
+    "observation": "User schätzt Rückfragen bei echten Entscheidungen statt stiller Annahmen, und hinterfragt selbst aktiv (z.B. 'wieso die globale supersession vertagen?') — erwartet, dass der Agent eigene Einschätzungen revidiert wenn das Nachhaken berechtigt ist.",
+    "status": "inferred",
+    "signal_type": "preference",
+    "confidence": 0.7,
+    "occurrences": 2,
+    "evidence": [
+      "session 2026-06-03: AskUserQuestion bei Pattern-Kanon + soul-Stufe beantwortet",
+      "session 2026-06-03: Supersession-Vertagung erfolgreich hinterfragt -> Agent revidierte"
+    ],
+    "first_seen": "2026-06-03",
+    "last_seen": "2026-06-03",
+    "trust_source": "conversation",
+    "status_after_promotion": "promoted"
+  },
+  {
+    "id": "UC4",
+    "key": "constitution-changes-need-diff-gate",
+    "observation": "User genehmigt Aenderungen an Verfassungs-/Workflow-Dokumenten (SESSION-WORKFLOW.md) nur mit explizitem Show-before-write: exakten Diff zeigen, auf OK/nicht-OK warten ('Du musst mir genau zeigen, was Du veraenderst, bevor Du es veraenderst').",
+    "status": "promoted",
+    "signal_type": "preference",
+    "confidence": 0.9,
+    "occurrences": 2,
+    "evidence": [
+      "session 2026-06-12: explizite Anweisung + Gate A/B-Workflow erfolgreich gelebt",
+      "session 2026-07-06: v4.0.0-Paketwahl via AskUserQuestion vor Umbau (Show-before-write gelebt); Promotion via neuem Full-Queue-Re-Review (Fix 2)"
+    ],
+    "first_seen": "2026-06-12",
+    "last_seen": "2026-07-06",
+    "trust_source": "conversation"
+  },
+  {
+    "id": "UC5",
+    "key": "autonomous-next-steps-execution",
+    "observation": "User delegiert die Abarbeitung der Bootstrap-Recommended-Next-Steps als Block ('arbeite einfach die recommended next steps weiter ab') und bestaetigt, dass der autonome Modus gut funktioniert — Zwischenfragen nur bei echten Entscheidungen (Codex-Review-Wahl), nicht bei reversiblen Arbeitsschritten.",
+    "status": "promoted",
+    "signal_type": "preference",
+    "confidence": 0.8,
+    "occurrences": 3,
+    "evidence": [
+      "session 2026-06-12 (abends): T-001/T-002/Context-Refresh als Block delegiert, Verlauf bestaetigt",
+      "session 2026-06-12 (spaeter): 'kannst Du gerne die recommended next steps zu Ende ausarbeiten' — erneute Block-Delegation",
+      "session 2026-07-06: Pakete A-D als Block genehmigt, Umbau lief autonom mit 4+3 Subagents"
+    ],
+    "first_seen": "2026-06-12",
+    "last_seen": "2026-07-06",
+    "trust_source": "conversation"
+  },
+  {
+    "id": "UC6",
+    "key": "minimal-two-call-workflow",
+    "observation": "Der reale User-Workflow ist die Zwei-Aufruf-Klammer: session-bootstrap am Anfang, wrap-up am Ende, 'sonst fast nichts'. Plugin-Funktionalitaet muss ueber diese beiden Aufrufe erreichbar sein — explizit als Anforderung formuliert und als v3.6.0 (session-harvest + decision-scan) umgesetzt.",
+    "status": "promoted",
+    "signal_type": "preference",
+    "confidence": 0.9,
+    "occurrences": 1,
+    "evidence": [
+      "session 2026-06-12 (abends): 'Ich nutze eigentlich immer am Anfang einer Session den Session Bootstrap und dann am Ende den wrap-up. Und eigentlich ansonsten fast nichts.' + Auftrag, das Plugin darauf auszurichten"
+    ],
+    "first_seen": "2026-06-12",
+    "last_seen": "2026-06-12",
+    "trust_source": "conversation"
+  },
+  {
+    "id": "UC7",
+    "key": "identity-growth-priority",
+    "observation": "User will, dass soul.md/user.md im Normal-Flow zuverlaessig mit beobachteten Eigenschaften (Agent UND User) gefuellt werden — 'das kommt aktuell zu kurz'. Identity-Steps nie skippen, Statuszeile zeigen.",
+    "status": "confirmed",
+    "signal_type": "preference",
+    "confidence": 0.9,
+    "occurrences": 1,
+    "evidence": [
+      "session 2026-07-06: expliziter Kernauftrag des v4.0.0-Umbaus"
+    ],
+    "first_seen": "2026-07-06",
+    "last_seen": "2026-07-06",
+    "trust_source": "conversation"
+  },
+  {
+    "id": "UC8",
+    "key": "subagent-model-by-complexity",
+    "observation": "User wuenscht bei Subagent-Einsatz die Modellwahl passend zur Aufgaben-Komplexitaet ('so viele Subagents wie noetig, die dann entsprechend der Komplexitaet das entsprechende Modell haben').",
+    "status": "observed",
+    "signal_type": "preference",
+    "confidence": 0.6,
+    "occurrences": 1,
+    "evidence": [
+      "session 2026-07-06: explizite Formulierung im Auftrag"
+    ],
+    "first_seen": "2026-07-06",
+    "last_seen": "2026-07-06",
+    "trust_source": "conversation"
+  }
+]

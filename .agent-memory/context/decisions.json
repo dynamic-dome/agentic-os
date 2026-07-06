@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "D-001",
+    "date": "2026-06-12",
+    "title": "Session-Bracket als unterstuetzter Minimal-Workflow (v3.6.0)",
+    "decision": "Die Zwei-Aufruf-Klammer (session-bootstrap am Start, wrap-up am Ende, dazwischen nichts) ist der offiziell unterstuetzte Minimal-Workflow des Plugins. wrap-up wird dafuer selbstversorgend: Step 1.5 (session-harvest) retro-loggt ungeloggte Iterationen via iteration-logger, Step 4.5 (decision-scan) delegiert erkannte Entscheidungen an context-keeper. Bewusst NICHT in die Klammer aufgenommen: quality-gate (voller Review, teuer), sync-context (Designprinzip 5: manual-only), self-improve (policy-gated), research-pipeline/wiki-query (reaktive Tools), skill-generator-Erzeugung (User-Entscheid).",
+    "rationale": "Der User nutzt real nur bootstrap+wrap-up; die Pattern-Pipeline hing an manuellen /log-Aufrufen und verhungerte messbar (5 Iterationen/3 Errors/Quality null nach Monaten, L19). Schreibrechte bleiben unveraendert bei den Owner-Skills (DAG intakt) — wrap-up delegiert nur.",
+    "alternatives_considered": "Hook-Auto-Logging bei Code-Aenderungen (verworfen: Designprinzip 2, no auto-triggers on code changes); quality-gate-Light in wrap-up (vertagt: Schreibordnung quality/*.json gehoert quality-gate, Nutzen unklar)",
+    "status": "active",
+    "source": "wrap-up decision-scan (erste Live-Ausfuehrung), Session 2026-06-12 abends",
+    "evidence": [
+      "commit a3b49ac",
+      "skills/DEPENDENCIES.md 'Session-Bracket Coverage'",
+      "L19"
+    ]
+  },
+  {
+    "id": "D-002",
+    "date": "2026-07-06",
+    "title": "v4.0.0: Konsolidierung 14->9 Skills + Identity-Growth-Haertung + Threshold-SSoT",
+    "decision": "Fuenf nie gelaufene bzw. extern doppelte Skills entfernt (quality-gate, retrospective, research-pipeline, wiki-query; skill-generator in pattern-extractor gefaltet), quality-gate-Agent + 5 Wrapper-Commands geloescht. Identity-Growth wird Pflicht-Pfad: wrap-up Step 6 mit Harvest-Checkliste, Full-Queue-Re-Review und Pflicht-Statuszeile (identity-visible); bootstrap Step 6.5 mit [j/n]-Gates fuer soul- UND user-Kandidaten plus Starvation-Warnung; session-start.sh injiziert user.md-Extrakt. Scaling-Schwellen leben NUR noch in scripts/memory-thresholds.sh (exit 10). self-improve bleibt als Wartungswerkzeug, halbiert (Historie -> improvements/HISTORY.md, Cluster -> clusters.json).",
+    "rationale": "Vier-Agenten-Audit 2026-07-06: 5 Skills ohne einen einzigen Store-Artefakt-Nachweis; Session-Zyklus kostete ~25-30k Tokens; Identity-Pipeline verhungerte multiplikativ (wrap-up-Ausfaelle x stille Skips x enqueue-only-Queue x unerfuellbare soul-Kriterien). User-Entscheid: Pakete A-D komplett, quality-gate streichen, self-improve behalten+halbieren.",
+    "alternatives_considered": "self-improve-Loop fuer den Umbau nutzen (verworfen: darf strukturell nicht loeschen/mergen, Policy single-cluster + max 20% Mutation); quality-gate-Light im Bracket (verworfen: dreifach extern abgedeckt via code-reviewer/test-validator/Codex-Review §9)",
+    "status": "active",
+    "source": "Session 2026-07-06 (v4.0.0-Audit + Umbau), User-bestaetigte Paketwahl",
+    "evidence": [
+      "commit 6c62fd3",
+      "docs/CHANGELOG.md v4.0.0",
+      "skills/DEPENDENCIES.md v4.0.0"
+    ]
+  }
+]

@@ -1,42 +1,25 @@
-# Letzte Session
+# Last Session
 
-*Datum: 2026-06-21*
-*Agent: Claude Code (autonome Self-Improve-/Bridge-Arbeit)*
-*Projekt: agentic-os-plugin — v3.7.0 Release*
+*Date: 2026-07-06 21:45*
+*Agent: Claude Code (Fable 5)*
 
-## Was wurde gemacht
-- **v3.7.0 getaggt** (`a49278b`): bündelt die akkumulierte 3.6.x-Feature-Arbeit
-  (PreToolUse shell circuit breaker, verified-status tool pipeline, quality-gate
-  tool signal, wrap-up long-term memory routine) plus die zwei funktionalen
-  Skill-Fixes aus self-improve iteration #81.
-- **self-improve iteration #81** (`82df17b`): skill-generator liest jetzt die
-  kanonischen Pattern-Felder (evidence/recommendation statt legacy
-  error_ids/recommended_action) — repariert die pattern→skill-generation-Pipeline;
-  obsidian-sync Rolling-Synthesis-Gate nutzt importance>=4 statt eines nicht
-  existierenden salience-Felds. +2 RED→GREEN Tests (366/366 gesamt).
-- **PreToolUse shell circuit breaker** (`cfbf268`, via Bridge-PR #6): neuer Hook +
-  `scripts/pretooluse-shell-circuit-breaker.sh` + Test.
+## What Was Done
+- v4.0.0 komplett (Commit `6c62fd3`): 4-Agenten-Audit → Skills 14→9, Agents 4→3, Commands 10→5
+- Identity-Growth-Kernfix: wrap-up Step 6 (Checkliste, Queue-Re-Review, Pflicht-Statuszeile, Eskalationspfad), bootstrap [j/n]-Gates + Starvation-Warnung, user.md-Injektion im SessionStart
+- Token-Diät: wrap-up 604→344 Z., self-improve 691→331 Z., Hook-Prompts + Descriptions gekürzt, Bootstrap-Reads gedeckelt
+- Threshold-SSoT scripts/memory-thresholds.sh; Store-Hygiene (T-004 zu, working/-Leichen weg)
+- Live-Beweis: dieser wrap-up-Lauf selbst — UC4 via Queue-Re-Review promotet, UC7/UC8 neu, 2 soul-Kandidaten
 
-## Aktueller Stand
-- Repo `main` = `origin/main` @ `a49278b` (v3.7.0). Tests grün (185 plugin /
-  366 skill-validate / 19 global-schema laut iteration #81).
-- Plugin läuft in laufenden Sessions weiter aus dem Cache bis Marketplace-Update +
-  Restart (L5).
+## Open Items
+- T-005: v4.0.0 deployen (Push 6c62fd3 = Owner, dann marketplace/plugin update + Restart)
+- T-006: User-Skills save-session/session-summary deprecaten? (Owner-Entscheid)
+- T-007: Identity-Pipeline 2-3 Sessions beobachten (Pflicht-Zeile + reale Kandidaten)
 
-## Repo-Status
-- Branch: `main`, in sync mit `origin/main`.
-- Hinweis: `.agent-memory/`-Store ist in diesem Repo getrackt (Dogfooding); aktuell
-  liegen additive Memory-Wachstums-Änderungen gestaged (nicht committet).
+## Next Steps
+1. T-005 Deploy + Restart  2. T-006 Entscheid  3. T-007 Beobachtung
 
-## Offene Punkte / Hygiene
-- **Bridge-Drift (13. Juni):** Der dual-bridge-Loop lief in diesem Repo und hat
-  drei Python-Tools (`tools/generate_watermark.py`, `verified_scanner.py`,
-  `refresh_verify_status.py` + `__pycache__`) committet. `generate_watermark.py`
-  ist dual-bridge-fremd; die anderen zwei nennt der v3.7.0-CHANGELOG als Feature,
-  werden aber von keinem Skill/Hook/Test referenziert → Klärung offen (verdrahten
-  oder entfernen).
-- T-004 (Restart für v3.6.0) ist durch das v3.7.0-Deploy obsolet.
+## Statistics
+- Iterations: 3 | Errors: 0 | New Patterns: 0 | Learnings: +3 (L20-L22)
 
-## Naechste Schritte
-- Projekt-Next-Steps: `.agent-memory/context/open-tasks.json`.
-- Eval-Sets in self-improve + retrospective-Skill (in dieser 2026-06-24-Session begonnen).
+## Active Warnings
+- Laufende Instanz nutzt bis zum Restart den 3.9.1-Cache — neue Skill-Texte greifen erst nach T-005

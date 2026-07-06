@@ -1,0 +1,54 @@
+[
+  {
+    "ts": "2026-06-03T00:00:00Z",
+    "field": "Preferences",
+    "old_value": "(Will be populated through observed patterns)",
+    "new_value": "Explizite Begründung bei jeder Bewertung/Empfehlung (Zustimmung UND Ablehnung). Ground-Truth-Verifikation vor Aktion. Rückfragen bei echten Entscheidungen statt stiller Annahmen.",
+    "candidate_id": "UC1,UC2,UC3",
+    "evidence": [
+      "session 2026-06-03: erste Anwendung der user.md Growth Engine (selbst gebaut, sofort genutzt)"
+    ]
+  },
+  {
+    "ts": "2026-06-03T00:00:01Z",
+    "field": "soul",
+    "old_value": "(Communication: Language/Brevity/Proactivity only)",
+    "new_value": "Added Communication rule: Bei explizit delegierten Entscheidungen klare Empfehlung mit Begründung und Trade-offs geben, nicht zurückspielen.",
+    "candidate_id": "soul-candidate-1",
+    "evidence": [
+      "session 2026-06-03: 2× beobachtet (Helper-Sprache Hybrid-Empfehlung, beide mit Begründung honoriert); user-confirmed via [j]-Gate in session-bootstrap Step 6.5"
+    ]
+  },
+  {
+    "ts": "2026-06-12T21:00:00Z",
+    "field": "Work Style",
+    "old_value": "(kein Eintrag zu Delegation/Workflow)",
+    "new_value": "Block-Delegation der Recommended Next Steps (UC5, 2x beobachtet) + Zwei-Aufruf-Klammer als realer Workflow: nur bootstrap am Start und wrap-up am Ende, Plugin-Features muessen darueber erreichbar sein (UC6, explizit formuliert).",
+    "candidate_id": "UC5,UC6",
+    "evidence": [
+      "session 2026-06-12 abends: 'arbeite die recommended next steps zu Ende aus' (2. Vorkommen)",
+      "session 2026-06-12 abends: 'Ich nutze eigentlich immer am Anfang Session Bootstrap und am Ende wrap-up, sonst fast nichts' + Auftrag, das Plugin darauf auszurichten (v3.6.0)"
+    ]
+  },
+  {
+    "ts": "2026-07-06T21:30:00Z",
+    "field": "Work Style",
+    "old_value": "(kein Eintrag zu Verfassungs-Diff-Gate)",
+    "new_value": "Aenderungen an Verfassungs-/Workflow-Dokumenten nur mit Show-before-write: exakten Diff zeigen, auf OK warten (UC4).",
+    "candidate_id": "UC4",
+    "evidence": [
+      "session 2026-06-12: explizite Anweisung",
+      "session 2026-07-06: Promotion via Full-Queue-Re-Review (v4.0.0 Fix 2)"
+    ]
+  },
+  {
+    "ts": "2026-07-06T21:30:01Z",
+    "field": "Preferences",
+    "old_value": "(kein Eintrag zu Identity-Wachstum)",
+    "new_value": "Identity-Wachstum (soul.md/user.md) hat hohe Prioritaet — Beobachtungen ueber Agent- und User-Eigenschaften muessen im Normal-Flow ankommen, Identity-Steps nie skippen (UC7).",
+    "candidate_id": "UC7",
+    "evidence": [
+      "session 2026-07-06: expliziter Kernauftrag v4.0.0"
+    ]
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "P003",
+    "previous_id": "pattern-001",
+    "type": "anti-pattern",
+    "description": "Windows/Git Bash path and shell compatibility — Shell scripts fail on Windows/Git Bash due to: (1) set -e + arithmetic, (2) paths with spaces in string interpolation, (3) git pathspec syntax differences",
+    "recommendation": "Always use $((VAR + 1)) instead of ((VAR++)), pass file paths via process.argv not interpolation, test scripts on Windows before committing",
+    "evidence": [
+      "err-001",
+      "err-002",
+      "err-003"
+    ],
+    "confidence": 0.7,
+    "severity": "major",
+    "occurrences": 3,
+    "tags": [
+      "bash",
+      "windows",
+      "paths",
+      "compatibility"
+    ],
+    "skill_candidate": false,
+    "first_seen": "2026-03-24",
+    "last_seen": "2026-03-24",
+    "source_projects": [
+      "Desktop",
+      "agentic-os-plugin"
+    ],
+    "promotion_status": "candidate",
+    "archived": "2026-06-12",
+    "archive_reason": "last_seen >60d (memory-maintenance Step 4)"
+  },
+  {
+    "id": "P001",
+    "type": "anti-pattern",
+    "description": "Windows Subprocess PATH Resolution — subprocess.run findet CLI-Tools nicht, weil uvicorn/Service-Prozesse einen anderen PATH haben als die User-Shell",
+    "recommendation": "Immer shutil.which() für absolute Pfadauflösung vor subprocess.run verwenden",
+    "evidence": [
+      "E1"
+    ],
+    "confidence": 0.8,
+    "severity": "major",
+    "occurrences": 1,
+    "tags": [
+      "windows",
+      "subprocess",
+      "path"
+    ],
+    "skill_candidate": false,
+    "first_seen": "2026-03-29",
+    "last_seen": "2026-03-29",
+    "source_projects": [
+      "dynamic-central-orchestrator"
+    ],
+    "promotion_status": "candidate",
+    "archived": "2026-06-12",
+    "archive_reason": "last_seen >60d (memory-maintenance Step 4)"
+  },
+  {
+    "id": "P002",
+    "type": "anti-pattern",
+    "description": "Windows UTF-8 Subprocess Encoding — CLI-Argumente auf Windows mangeln UTF-8 Zeichen (Umlaute, Sonderzeichen) — Ausgabe wird korrupt",
+    "recommendation": "Text via input= (stdin) statt als CLI-Argument übergeben, encoding='utf-8' explizit setzen",
+    "evidence": [
+      "E2"
+    ],
+    "confidence": 0.8,
+    "severity": "major",
+    "occurrences": 1,
+    "tags": [
+      "windows",
+      "subprocess",
+      "encoding",
+      "utf8"
+    ],
+    "skill_candidate": false,
+    "first_seen": "2026-03-29",
+    "last_seen": "2026-03-29",
+    "source_projects": [
+      "dynamic-central-orchestrator"
+    ],
+    "promotion_status": "candidate",
+    "archived": "2026-06-12",
+    "archive_reason": "last_seen >60d (memory-maintenance Step 4)"
+  }
+]
