@@ -15,8 +15,10 @@ count_ids() { # count JSON array entries by "id" keys (no jq dependency)
 }
 
 # iteration-log.md: max 100 entries (## headers)
+# NOTE: no `|| echo 0` after grep -c — grep prints "0" itself on no-match (exit 1),
+# the fallback would append a SECOND 0 and break the numeric compare (Codex finding).
 if [ -f "$MEM/iterations/iteration-log.md" ]; then
-  n=$(grep -c '^## ' "$MEM/iterations/iteration-log.md" 2>/dev/null || echo 0)
+  n=$(grep -c '^## ' "$MEM/iterations/iteration-log.md" 2>/dev/null); n=${n:-0}
   [ "$n" -gt 100 ] && note "iteration-log.md has $n entries (max 100) — archive oldest"
 fi
 
@@ -30,7 +32,7 @@ n=$(count_ids "$MEM/learnings/learnings.json")
 
 # open-tasks.json: max 30 done entries kept inline
 if [ -f "$MEM/context/open-tasks.json" ]; then
-  n=$(grep -c '"status": *"done"' "$MEM/context/open-tasks.json" 2>/dev/null || echo 0)
+  n=$(grep -c '"status": *"done"' "$MEM/context/open-tasks.json" 2>/dev/null); n=${n:-0}
   [ "$n" -gt 30 ] && note "open-tasks.json has $n done entries (max 30) — archive done"
 fi
 

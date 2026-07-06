@@ -118,15 +118,11 @@
 - Memory usage (file sizes, entry counts)
 - Active warnings and recommendations
 
-### C3: Quality Gate Enforcement
-**Problem:** Quality scores are informational only — no enforcement.
-**Goal:** Optional blocking gate before commits.
-**Implementation:**
-- Pre-commit check: run quality-gate agent on staged changes
-- Configurable thresholds in `.agent-memory/config/quality-gate.json`
-- Default: block if code < 60 OR test health < 70 OR critical findings exist
-- Override with `--force` flag
-- Track gate pass/fail history for effectiveness analysis
+### C3: Quality Gate Enforcement — OBSOLET (v4.0.0)
+**Status:** Verworfen am 2026-07-06. Der quality-gate-Skill + -Agent wurden in v4.0.0
+entfernt (nie gelaufen, dreifach extern abgedeckt: code-reviewer/test-validator-User-Skills,
+superpowers, Codex-Review §9). Reviews laufen bewusst außerhalb des Plugins; ein blockendes
+Gate im Plugin widerspräche Design-Prinzip 2 (user-driven, keine Auto-Trigger).
 
 ### C4: Metrics Export
 **Problem:** All data is locked in JSON files — no way to analyze externally.

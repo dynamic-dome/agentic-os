@@ -140,7 +140,8 @@ Archive decisions with `status: "superseded"` older than 90 days. Keep all `stat
 
 ## Step 6: Enforce Session Summary Length
 
-If `.agent-memory/session-summary.md` exceeds 30 lines: compress to 30 lines, keeping:
+If `scripts/memory-thresholds.sh` flagged `session-summary.md` (line limits live ONLY in
+that script): compress back to the wrap-up target length, keeping:
 
 - The date header
 - Top 5 bullets from "What Was Done"
@@ -150,7 +151,8 @@ If `.agent-memory/session-summary.md` exceeds 30 lines: compress to 30 lines, ke
 
 ## Step 7: Compact Learnings
 
-If `.agent-memory/learnings/learnings.md` exceeds 200 lines:
+If `scripts/memory-thresholds.sh` flagged `learnings.md` (line limits live ONLY in that
+script):
 
 1. Keep entries from the last 12 months
 2. Archive older entries to `learnings-archive-{YYYY}.md`
