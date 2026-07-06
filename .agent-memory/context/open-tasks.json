@@ -41,7 +41,7 @@
   },
   {
     "id": "T-005",
-    "title": "v4.0.0 deployen: Push 6c62fd3 (Owner) + claude plugin marketplace/plugin update + Session-Restart; danach Cache-Ground-Truth pruefen (plugin.json 4.0.0, 9 Skills)",
+    "title": "Session-Restart, damit v4.0.0 in der laufenden Instanz aktiv wird (Deploy KOMPLETT 2026-07-06: Push cc6c805, marketplace update, plugin update 3.9.1->4.0.0, Cache-Ground-Truth ok: plugin.json 4.0.0 / 9 Skills / 5 Commands)",
     "status": "open",
     "created": "2026-07-06",
     "updated": "2026-07-06",
