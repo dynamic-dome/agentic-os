@@ -332,3 +332,8 @@ Umsetzung des Wiki-TODO `2026-06-02-self-improve-mechanismus-haerten` (5 Hebel a
 
 - Pfad-Fix (~/AI/.agent-memory/session-summary.md), Schreib-Luecke geschlossen
 - Status-Board `cross-project-status.md` eingefuehrt; zentraler Handoff auf prepend (Datenverlust-Schutz)
+
+## [4.0.1] - 2026-07-06
+
+### Fixed
+- Codex-Verifier-Runde (§9): memory-thresholds.sh Doppel-Null-Bug bei grep -c ohne Treffer; memory-maintenance Step 6/7 Zeilen-Limits an Threshold-SSoT delegiert; optimization-goals C3 als obsolet markiert; architecture-map.html Historik-Banner.
