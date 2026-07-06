@@ -77,12 +77,13 @@
     "status": "promoted",
     "signal_type": "preference",
     "confidence": 0.85,
-    "occurrences": 4,
+    "occurrences": 5,
     "evidence": [
       "session 2026-06-12 (abends): T-001/T-002/Context-Refresh als Block delegiert, Verlauf bestaetigt",
       "session 2026-06-12 (spaeter): 'kannst Du gerne die recommended next steps zu Ende ausarbeiten' — erneute Block-Delegation",
       "session 2026-07-06: Pakete A-D als Block genehmigt, Umbau lief autonom mit 4+3 Subagents",
-      "session 2026-07-06 abends: 'j, und arbeite die recommended next steps ab' — 4. Block-Delegation, Zwischenfrage nur beim T-006-Owner-Entscheid"
+      "session 2026-07-06 abends: 'j, und arbeite die recommended next steps ab' — 4. Block-Delegation, Zwischenfrage nur beim T-006-Owner-Entscheid",
+      "session 2026-07-06 (Folge): 'bereine die Ungereimtheiten … könntest Du das gerade übernehmen' — 5. Block-Delegation, lief komplett autonom (SC-4 seither auch in soul.md)"
     ],
     "first_seen": "2026-06-12",
     "last_seen": "2026-07-06",

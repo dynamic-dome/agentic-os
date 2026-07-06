@@ -107,3 +107,19 @@
 - **Summary:** project-context.md hing drei Major-Umbauten hinterher (v3.7–v4.0.1) — via context-keeper aus docs/ + Git-Ground-Truth neu destilliert. Dabei Docs-Drift gefunden: CHANGELOG hatte 4.0.1, PROJECT.md nicht → nachgezogen. Commits c23009b + 5cbc9fc, gepusht (User).
 - **Confidence:** 5/5
 - **Tests:** not applicable
+
+## 2026-07-06 — config: SC-4 via [j]-Gate in soul.md gemergt (Session-Harvest)
+- **Type:** config
+- **Tags:** identity, soul, bootstrap-gate, block-delegation
+- **Files changed:** .agent-memory/identity/soul.md, .agent-memory/identity/user-changelog.json, .agent-memory/identity/soul-candidates.md (Stub-Reset)
+- **Summary:** Bootstrap Step 6.5a: User bestätigte SC-4 mit [j] — neue Guard Rail "Block-delegated next steps run autonomously end-to-end; interrupt only for genuine owner decisions". Changelog-first, dann Merge, dann Queue-Reset. Commit de1cac5, vom User gepusht. Soul-Queue damit leer.
+- **Confidence:** 5/5
+- **Tests:** not applicable
+
+## 2026-07-06 — docs: Wiki-Entity agentic-os-plugin.md auf v4.0.1-Ground-Truth (Session-Harvest)
+- **Type:** docs
+- **Tags:** obsidian-sync, wiki, docs-drift, entity, ground-truth
+- **Files changed:** ~/wiki/wiki/entities/agentic-os-plugin.md, ~/wiki/log.md
+- **Summary:** Kopf + Sektionen 2-7 der Entity-Seite von v3.8.0- auf v4.0.1-Stand: Version-/Installations-Zeile (Marketplace-Cache statt ~/.claude/plugins/), Surface-Tabellen 14/11/4 → 9 Skills / 5 Commands / 3 Agents (+6 Hooks), Folge-Referenzen auf gestrichene Skills (quality-gate, retrospective, research-pipeline, wiki-query, Perplexity) bereinigt, Test-Zählung auf v4.0.x. Historien-Abschnitte unangetastet, Nachtrag im v4.0.1-Block. Vorab per git status verifiziert: vermeintlicher uncommitted Drift war schon committet (6c8a74a) — Buchhaltungs-Lag, kein echter Drift (G-pattern-005-Bestätigung).
+- **Confidence:** 5/5
+- **Tests:** not applicable
