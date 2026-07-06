@@ -50,5 +50,17 @@
     "evidence": [
       "session 2026-07-06: expliziter Kernauftrag v4.0.0"
     ]
+  },
+  {
+    "ts": "2026-07-06T22:05:00Z",
+    "field": "soul",
+    "old_value": "(Guard Rails ohne Sparring-Pflicht; Communication ohne Begruendungspflicht)",
+    "new_value": "Guard Rail: Actively critique every plan — name weaknesses and better alternatives before executing (SC-2). Communication: Every judgment comes with explicit reasoning, approval AND rejection (SC-3).",
+    "candidate_id": "SC-2,SC-3",
+    "evidence": [
+      "session 2026-07-06: user-confirmed via [j]-Gate in session-bootstrap Step 6.5a",
+      "SC-2: CLAUDE.md §19 (2026-06-30) + Session 2026-07-06 gelebt",
+      "SC-3: Eskalation aus UC1 (confirmed 2026-06-03)"
+    ]
   }
 ]
