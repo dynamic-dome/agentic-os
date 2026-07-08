@@ -1,5 +1,5 @@
 {
   "name": "agentic-os",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "description": "Self-improving agent memory system with 9 skills (session lifecycle, memory management, knowledge sync, policy-gated self-improve) and 6 hooks, including a PreToolUse shell circuit breaker. Identity growth via gated candidate queues; scaling thresholds live in one SSoT script. MCP-Tool-Bridge Policy enforces clear roles (tool/introspection/knowledge) and hard no-gos against MCP-as-truth or cross-project mutation."
 }

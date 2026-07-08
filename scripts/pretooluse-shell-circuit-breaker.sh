@@ -44,6 +44,118 @@ def normalize(command):
     return command.strip()
 
 
+_READONLY_WRAPPER = re.compile(
+    r"^\s*(grep|rg|ag|ack|cat|less|more|head|tail|echo|printf|view|bat|fgrep|egrep|ls|git\s+grep|git\s+commit|git\s+log|git\s+show)\b",
+    re.IGNORECASE,
+)
+_CMD_SEPARATOR = re.compile(r"(?:\|\||&&|[;|\r\n])")
+_QUOTE_CHARS = {"\"", chr(39)}
+_QUOTED_SPAN = re.compile("\"[^\"]*\"|" + chr(39) + "[^" + chr(39) + "]*" + chr(39))
+_EXECUTOR_FLAG_PREFIX = re.compile(
+    r"(?:powershell|pwsh|cmd|bash|sh|zsh|python\d?|node)(?:\.exe)?\s+(?:\S+\s+)*(?:-command|-c|/c|/k|-e|-lc)\s*$",
+    re.IGNORECASE,
+)
+
+
+def has_balanced_quotes(command):
+    active = None
+    escaped = False
+    for char in command:
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\":
+            escaped = True
+            continue
+        if active:
+            if char == active:
+                active = None
+        elif char in _QUOTE_CHARS:
+            active = char
+    return active is None
+
+
+def has_executable_substitution(command, single_quotes_inert=True):
+    """Return True for shell substitution syntax that executes code.
+
+    Single-quoted text is inert in Bash, so `$(` there is data. Double-quoted
+    text still expands command/process substitutions and backticks, so those
+    constructs remain code and must be visible to the destructive rules.
+    """
+    active = None
+    escaped = False
+    i = 0
+    while i < len(command):
+        char = command[i]
+        if escaped:
+            escaped = False
+            i += 1
+            continue
+        if char == "\\":
+            escaped = True
+            i += 1
+            continue
+        if active == chr(39):
+            if char == active:
+                active = None
+            i += 1
+            continue
+        if active == "\"":
+            if char == active:
+                active = None
+                i += 1
+                continue
+            if char == "`" or command.startswith("$(", i) or command.startswith("<(", i) or command.startswith(">(", i):
+                return True
+            i += 1
+            continue
+        if char == chr(39) and single_quotes_inert:
+            active = char
+            i += 1
+            continue
+        if char == "\"":
+            active = char
+            i += 1
+            continue
+        if char == "`" or command.startswith("$(", i) or command.startswith("<(", i) or command.startswith(">(", i):
+            return True
+        i += 1
+    return False
+
+
+def quoted_span_contains_code(quoted):
+    if not quoted.startswith("\""):
+        return False
+    return has_executable_substitution(quoted[1:-1], single_quotes_inert=False)
+
+
+def is_readonly_command(command):
+    if not has_balanced_quotes(command):
+        return False
+    if has_executable_substitution(command):
+        return False
+    segments = [segment.strip() for segment in _CMD_SEPARATOR.split(command) if segment.strip()]
+    if not segments:
+        return False
+    return all(_READONLY_WRAPPER.match(segment) for segment in segments)
+
+
+def mask_quoted_content(command):
+    if not has_balanced_quotes(command):
+        return command
+
+    def mask(match):
+        prefix = command[:match.start()]
+        if _EXECUTOR_FLAG_PREFIX.search(prefix):
+            return match.group(0)
+        quoted = match.group(0)
+        if quoted_span_contains_code(quoted):
+            return quoted
+        return quoted[0] + ("\0" * (len(quoted) - 2)) + quoted[-1]
+
+    return _QUOTED_SPAN.sub(mask, command)
+
+
 RULES = [
     (
         "recursive forced deletion",
@@ -117,8 +229,12 @@ if not isinstance(command, str) or not command.strip():
     sys.exit(0)
 
 normalized = normalize(command)
+if is_readonly_command(normalized):
+    sys.exit(0)
+
+checked_command = mask_quoted_content(normalized)
 for label, pattern in RULES:
-    if pattern.search(normalized):
+    if pattern.search(checked_command):
         print(
             f"Agentic OS PreToolUse circuit breaker blocked shell command: {label}",
             file=sys.stderr,
