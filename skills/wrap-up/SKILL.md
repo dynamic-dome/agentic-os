@@ -81,6 +81,35 @@ Read `learnings/learnings.json`; normalize new text (lowercase, strip punctuatio
 tokenize, Jaccard similarity against existing entries. **>= 0.6 → duplicate**: update
 `last_relevant` on the existing entry, skip creation.
 
+### 3a.2: Cross-Session RAG-Check (Atlas)
+
+Before appending a candidate, ask the Atlas memory RAG whether an equivalent learning
+already exists across sessions/projects:
+
+- **Load the tool ONCE per wrap-up run** (it is deferred):
+  `ToolSearch("select:mcp__agent-memory-atlas__memory_search_tool")` — one call for the
+  whole run, never per learning.
+- **One query per candidate, capped:** `memory_search_tool("{learning text}",
+  source_system="agent-memory", top_k=3, snippet_len=200)`. Never more than one query
+  per candidate — wrap-up runs at session end where context is scarce.
+- **The duplicate verdict is yours, not the score's:** read the hits; discard the
+  candidate ONLY if a hit states the same core insight. Do NOT apply a numeric score
+  threshold — the RAG returns ranking scores (RRF), not similarity measures.
+- **On a confirmed duplicate:** if the matching entry lives in THIS project's
+  `learnings.json`, update its `last_relevant` (same handling as 3a). If the hit comes
+  from another project, discard the candidate — it is already knowledge there, and a
+  `cross_project` re-capture would be noise.
+- **Fail-soft, three layers (never block wrap-up):** (a) ToolSearch does not find the
+  tool (project/user without the Atlas MCP) → skip this step silently; the local Jaccard
+  check remains the only dedup instance. (b) The FIRST tool call fails (daemon down) →
+  fast-skip the RAG check for the REST of the run, no retries (each refused connection
+  costs a full socket timeout). (c) Anything else: warn and continue — never block
+  wrap-up.
+- **Complementary, not redundant:** the RAG index only sees learnings after the next
+  index rebuild. Duplicates created earlier in the SAME session are caught only by the
+  local Jaccard check (3a). Neither mechanism replaces the other — do not "optimize
+  away" 3a because 3a.2 exists.
+
 ### 3b: Score and Append
 
 ```json
