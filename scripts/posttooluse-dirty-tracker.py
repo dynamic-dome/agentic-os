@@ -25,7 +25,9 @@ TRACKED_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
 MAX_TOUCHED_FILES = 200
 # Paths that are never "work": memory consolidation itself, the Claude
 # scratchpad (session-temporary by definition) and git internals.
-SKIP_MARKERS = ("/.agent-memory/", "/AppData/Local/Temp/claude/", "/.git/")
+# Compared lowercase against an absolute, slash-normalized path (Windows
+# filesystems are case-insensitive; relative inputs are resolved first).
+SKIP_MARKERS = ("/.agent-memory/", "/appdata/local/temp/claude/", "/.git/")
 
 
 def main() -> None:
@@ -37,11 +39,16 @@ def main() -> None:
     file_path = tool_input.get("file_path") or tool_input.get("notebook_path") or ""
     if not file_path:
         return
-    norm = file_path.replace("\\", "/")
-    if any(marker in norm for marker in SKIP_MARKERS):
-        return
 
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd()
+
+    # Resolve relative paths against the project dir BEFORE the skip check —
+    # a relative ".agent-memory/x" must be skipped exactly like its absolute
+    # form. Lowercase both sides: Windows filesystems are case-insensitive.
+    abs_path = file_path if os.path.isabs(file_path) else os.path.join(project_dir, file_path)
+    norm = abs_path.replace("\\", "/").lower()
+    if any(marker in norm for marker in SKIP_MARKERS):
+        return
     memory_dir = os.path.join(project_dir, ".agent-memory")
     if not os.path.isdir(memory_dir):
         return  # project does not use agentic-os

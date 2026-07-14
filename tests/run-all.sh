@@ -56,6 +56,22 @@ fi
 
 echo ""
 
+# Run PostToolUse dirty-tracker tests (python; try python3 first, then python)
+echo ">>> Running PostToolUse dirty-tracker tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-posttooluse-dirty-tracker.py"; then
+    echo ">>> PostToolUse dirty-tracker tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> PostToolUse dirty-tracker tests: SKIPPED (no python found)"
+else
+    echo ">>> PostToolUse dirty-tracker tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Python unit tests + quality-signal contract test removed in v4.0.0
 # (tools/ watermark pipeline and quality-gate skill deleted)
 

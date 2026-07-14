@@ -7,7 +7,7 @@ Self-improving agent memory system that works across any project.
 - **Project Memory** (`.agent-memory/`): Per-project knowledge — iterations, patterns, decisions, learnings
 - **Identity Growth**: wrap-up harvests user/agent traits into gated candidate queues (`user.md`, `soul-candidates.md`); bootstrap surfaces them via explicit `[j/n]` gates — mandatory status line, no silent starvation
 - **Session Lifecycle**: Auto-bootstrap at start, user-driven during work, wrap-up at end (the two-skill bracket is the supported minimal workflow)
-- **Lean Hook Surface**: 6 hooks (SessionStart, PreToolUse, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop), no per-edit triggers
+- **Lean Hook Surface**: 7 hooks (SessionStart, PreToolUse, PostToolUse, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop); the only per-edit hook is the mechanical fail-soft dirty-tracker (no LLM, bookkeeping only)
 - **Wiki / Knowledge Layer**: `obsidian-sync` writes session results into the Obsidian wiki
 - **Optional Cross-Project Sync**: Manual pattern sharing via `sync-context` skill
 
@@ -47,12 +47,13 @@ pattern-extractor). See `skills/DEPENDENCIES.md` for the dependency graph.
 | `improvement-agent` | sonnet | Executes a single self-improvement iteration end-to-end |
 | `research-agent` | sonnet | Combines NotebookLM + web search for skill-improvement research |
 
-## Hooks (6)
+## Hooks (7)
 
 | Event | Timeout | Type | Action |
 |-------|---------|------|--------|
-| `SessionStart` | 15s | command | Auto-init `.agent-memory/`, inject briefing + soul/user identity extract |
+| `SessionStart` | 15s | command | Auto-init `.agent-memory/`, inject briefing + soul/user identity extract, dirty-recovery check |
 | `PreToolUse` | 5s | command | Deterministic shell circuit breaker for dangerous `Bash` commands; blocks with exit code 2 |
+| `PostToolUse` | 5s | command | Dirty-state tracker: records un-consolidated work per session in `working/dirty-<sid>.json` (fail-soft, mechanical) |
 | `UserPromptSubmit` | 10s | prompt | Advisory-only context hint (short) |
 | `PreCompact` | 15s | prompt | Emit survival summary before context compaction |
 | `SessionEnd` | 15s | prompt | Task guard, delegate to wrap-up, identity + wiki-note verify |
@@ -98,12 +99,14 @@ Work:   User-driven — log iterations, record decisions
 End:    SessionEnd hook (15s) delegates to wrap-up (incl. identity growth)
 ```
 
-No per-edit overhead. No auto-triggers on code changes. Skills are invoked by the user or via CLAUDE.md rules.
+No LLM-triggering per-edit overhead. The single per-edit hook (dirty-tracker) is pure
+mechanical bookkeeping (<50ms, fail-soft, exit 0 always) so crashed sessions become
+recoverable. Skills are invoked by the user or via CLAUDE.md rules.
 
 ## Design Principles
 
-1. **Lean hook surface** — 6 hooks, total budget ≤ 70s per session plus only-on-shell PreToolUse checks
-2. **User-driven** — no auto-triggers on every edit
+1. **Lean hook surface** — 7 hooks, total budget ≤ 70s per session plus only-on-shell PreToolUse checks and the mechanical per-edit dirty-tracker
+2. **User-driven** — no LLM auto-triggers on every edit; per-edit work is limited to mechanical dirty-state bookkeeping
 3. **Read-only bootstrap** — `session-bootstrap` never writes (single exception: the user-confirmed `[j/n]` identity gates)
 4. **Append-only decisions** — `decisions.json` is never deleted, only superseded
 5. **Genuine learnings only** — no trivial facts in the knowledge base

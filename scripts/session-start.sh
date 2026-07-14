@@ -202,13 +202,15 @@ fi
 
 # Mechanical recovery check (dirty-tracker): un-consolidated sessions.
 # Only files older than 30 min count — younger dirty files are most likely a
-# parallel session running RIGHT NOW, never flag those. Filenames are
-# dirty-<sanitized-sid>.json (no spaces), so unquoted for-loop is safe.
+# parallel session running RIGHT NOW, never flag those. while-read (not an
+# unquoted for-loop): the FULL path includes $MEMORY_DIR, which may contain
+# spaces even though the dirty-<sid>.json filename itself never does.
 DIRTY_COUNT=0
 if [ -d "$MEMORY_DIR/working" ]; then
-  for df in $(find "$MEMORY_DIR/working" -name 'dirty-*.json' -mmin +30 2>/dev/null); do
+  while IFS= read -r df; do
+    [ -n "$df" ] || continue
     grep -q '"dirty": true' "$df" 2>/dev/null && DIRTY_COUNT=$((DIRTY_COUNT + 1))
-  done
+  done < <(find "$MEMORY_DIR/working" -name 'dirty-*.json' -mmin +30 2>/dev/null)
 fi
 if [ "$DIRTY_COUNT" -gt 0 ]; then
   RECOVERY_LINE="RECOVERY: ${DIRTY_COUNT} unkonsolidierte Session(s) erkannt — wrap-up ausfuehren (Step 1.5 harvestet aus touched_files + git)"

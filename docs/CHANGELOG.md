@@ -19,8 +19,15 @@ haengt nicht mehr allein an Disziplin bzw. Best-Effort-Prompt-Hooks.
   (tmp + `os.replace`); Skips: `.agent-memory/`-Pfade, Claude-Scratchpad
   (`AppData/Local/Temp/claude/`), `.git/`. Session-Dateien pro session_id →
   parallele Sessions kollidieren nicht.
-- 9 Standalone-Tests (create, dedup, skips, no-store, korrupte Datei, garbage stdin,
-  fremdes Tool, Re-Dirty-Self-Healing, Scratchpad-Skip).
+- 12 Tests in `tests/test-posttooluse-dirty-tracker.py` (in run-all.sh eingehaengt):
+  create, dedup, Skips absolut/relativ/case-insensitiv, relativer Work-Pfad, no-store,
+  korrupte Datei, garbage stdin, fremdes Tool, Re-Dirty-Self-Healing, Scratchpad-Skip.
+
+**Codex-Verifier-Fixes (Review nach Erst-Commit):** Skip-Marker greifen jetzt auch bei
+relativen Pfaden + case-insensitiv (Windows); session-start.sh nutzt while-read statt
+unquoted for-loop (Projektpfade mit Leerzeichen); README/CLAUDE.md auf 7 Hooks/v4.3.0
+aktualisiert (Design-Prinzip ehrlich angepasst: einziger Per-Edit-Hook ist der
+mechanische Dirty-Tracker).
 
 **wrap-up 4.0 → 4.1 — Konsolidierungsmarker (`consolidation-marker`):**
 
