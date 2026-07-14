@@ -1,6 +1,6 @@
 #!/bin/bash
-# Agentic OS — SessionStart Hook (v3)
-# Auto-Init + Context Injection. Platform: Windows (Git Bash) + Linux/Mac.
+# Agentic OS — SessionStart Hook (v4)
+# Auto-Init + Context Injection + Dirty-Recovery-Check. Platform: Windows (Git Bash) + Linux/Mac.
 # Output: JSON with systemMessage for Claude.
 
 # No set -euo pipefail — we want to continue even if files are missing
@@ -198,6 +198,21 @@ if [ -f "$MEMORY_DIR/session-summary.md" ]; then
   # Extract active warnings
   WARNINGS=$(sed -n '/## Active Warnings/,/^## /{ /^## Active Warnings/d; /^## /d; /^$/d; p; }' "$MEMORY_DIR/session-summary.md" 2>/dev/null | head -3 | tr '\n' ' ' || true)
   [ -n "$WARNINGS" ] && BRIEFING="$BRIEFING | Warnings: $WARNINGS"
+fi
+
+# Mechanical recovery check (dirty-tracker): un-consolidated sessions.
+# Only files older than 30 min count — younger dirty files are most likely a
+# parallel session running RIGHT NOW, never flag those. Filenames are
+# dirty-<sanitized-sid>.json (no spaces), so unquoted for-loop is safe.
+DIRTY_COUNT=0
+if [ -d "$MEMORY_DIR/working" ]; then
+  for df in $(find "$MEMORY_DIR/working" -name 'dirty-*.json' -mmin +30 2>/dev/null); do
+    grep -q '"dirty": true' "$df" 2>/dev/null && DIRTY_COUNT=$((DIRTY_COUNT + 1))
+  done
+fi
+if [ "$DIRTY_COUNT" -gt 0 ]; then
+  RECOVERY_LINE="RECOVERY: ${DIRTY_COUNT} unkonsolidierte Session(s) erkannt — wrap-up ausfuehren (Step 1.5 harvestet aus touched_files + git)"
+  BRIEFING="${BRIEFING:+$BRIEFING | }$RECOVERY_LINE"
 fi
 
 # Instruction to Claude: compact briefing in chat.

@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""PostToolUse hook: mechanical dirty-state tracker (agentic-os).
+
+Records un-consolidated work per session: after every successful Write/Edit
+outside .agent-memory/, upserts .agent-memory/working/dirty-<session_id>.json
+with dirty: true and the touched file list. wrap-up consumes these files
+(sets dirty: false + consolidated_at); session-bootstrap and session-start.sh
+use them to detect sessions that ended without consolidation.
+
+Contract (must never break):
+- Fail-soft: any error -> silent no-op, always exit 0. A memory hook must
+  never block or delay real work.
+- Only mechanical facts (paths, counts, timestamps) — no LLM, no content.
+- Writes are atomic (tmp + os.replace) so a killed session never leaves a
+  half-written state file.
+- Re-dirtying is self-healing: if wrap-up consolidates a live parallel
+  session's file, that session's next write simply sets dirty: true again.
+"""
+import json
+import os
+import sys
+from datetime import datetime, timezone
+
+TRACKED_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
+MAX_TOUCHED_FILES = 200
+# Paths that are never "work": memory consolidation itself, the Claude
+# scratchpad (session-temporary by definition) and git internals.
+SKIP_MARKERS = ("/.agent-memory/", "/AppData/Local/Temp/claude/", "/.git/")
+
+
+def main() -> None:
+    data = json.loads(sys.stdin.read() or "{}")
+    if (data.get("tool_name") or "") not in TRACKED_TOOLS:
+        return
+
+    tool_input = data.get("tool_input") or {}
+    file_path = tool_input.get("file_path") or tool_input.get("notebook_path") or ""
+    if not file_path:
+        return
+    norm = file_path.replace("\\", "/")
+    if any(marker in norm for marker in SKIP_MARKERS):
+        return
+
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd()
+    memory_dir = os.path.join(project_dir, ".agent-memory")
+    if not os.path.isdir(memory_dir):
+        return  # project does not use agentic-os
+
+    raw_sid = str(data.get("session_id") or "unknown")[:64]
+    sid = "".join(c for c in raw_sid if c.isalnum() or c in "-_") or "unknown"
+
+    working_dir = os.path.join(memory_dir, "working")
+    os.makedirs(working_dir, exist_ok=True)
+    state_path = os.path.join(working_dir, f"dirty-{sid}.json")
+
+    state = {}
+    if os.path.isfile(state_path):
+        try:
+            with open(state_path, encoding="utf-8") as fh:
+                state = json.load(fh)
+            if not isinstance(state, dict):
+                state = {}
+        except Exception:
+            state = {}  # corrupt file -> rebuild from scratch
+
+    now = datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    touched = state.get("touched_files")
+    if not isinstance(touched, list):
+        touched = []
+    if file_path not in touched:
+        touched.append(file_path)
+        touched = touched[-MAX_TOUCHED_FILES:]
+
+    state.update(
+        {
+            "session_id": raw_sid,
+            "dirty": True,
+            "started": state.get("started") or now,
+            "updated": now,
+            "touched_files": touched,
+            "write_count": int(state.get("write_count") or 0) + 1,
+            "consolidated_at": None,
+            "consolidated_by": None,
+        }
+    )
+
+    tmp_path = state_path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as fh:
+        json.dump(state, fh, ensure_ascii=False, indent=1)
+    os.replace(tmp_path, state_path)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        pass  # fail-soft by contract
+    sys.exit(0)

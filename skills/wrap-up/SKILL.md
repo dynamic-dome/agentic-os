@@ -12,7 +12,7 @@ description: |
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '4.0'
+  version: '4.1'
   part-of: agentic-os
   layer: core
 ---
@@ -42,6 +42,9 @@ Reject trivial facts. Manual-only — no hook triggers this automatically.
 2. `git diff --stat` + `git log --oneline -5` (if git available)
 3. `.agent-memory/quality/test-results.json` — latest entry (if present)
 4. `.agent-memory/iterations/errors.json` — entries from today
+5. `.agent-memory/working/dirty-*.json` — mechanical dirty-state files written by the
+   PostToolUse dirty-tracker hook (`dirty: true` = un-consolidated work; `touched_files`
+   is hard evidence of what was edited, independent of conversation memory)
 
 If iteration-log.md has no entries from today: do NOT skip ahead — run Step 1.5 first.
 Only if Step 1.5 also yields nothing: note "No iterations in this session", proceed to
@@ -53,8 +56,14 @@ Users who run ONLY bootstrap + wrap-up never call iteration-logger mid-session �
 without this step the pattern pipeline starves.
 
 **Condition:** no iteration-log entry for today AND the session did substantial work
-(today's commits in `git log --oneline --since=midnight`, working-tree changes, or
-completed features/fixes/refactors visible in the conversation).
+(today's commits in `git log --oneline --since=midnight`, working-tree changes,
+`touched_files` in any `working/dirty-*.json` with `dirty: true`, or completed
+features/fixes/refactors visible in the conversation).
+
+**Stale-session harvest:** a dirty file whose `session_id` is NOT this session
+(crashed or abandoned session) is still evidence — harvest its `touched_files` the
+same way, but mark reconstructed iterations with `(recovered from session {id})`.
+Do not invent details the files and git history cannot support.
 
 1. Reconstruct 1–5 **distinct iterations** from conversation + git evidence
    (feature/bugfix/refactor/config/docs/test — distinct approaches, not individual edits).
@@ -340,6 +349,37 @@ memory-maintenance). Exit 10 (thresholds exceeded) or explicit user request ("cl
 memory", "prune patterns") → invoke the `memory-maintenance` skill after Step 8; it
 owns its own report and error handling. Exit 0 → skip entirely.
 
+## Step 9.5: Consolidation Marker + Dirty Reset (consolidation-marker)
+
+This step makes consolidation VERIFIABLE: bootstrap and session-start.sh detect
+crashed sessions by "dirty file exists but no matching marker". It is mandatory
+and runs LAST — only after Steps 1–8 actually completed.
+
+1. Read all `.agent-memory/working/dirty-*.json` with `dirty: true` (their
+   `touched_files` were already used as evidence in Steps 1/1.5).
+2. Overwrite `.agent-memory/consolidation-marker.json` (single file, no history —
+   git history preserves older markers):
+
+```json
+{
+  "last_wrapup": "{ISO timestamp}",
+  "consolidated_sessions": ["{session_id}", "..."],
+  "iterations_logged": 0,
+  "learnings_added": 0,
+  "touched_files_seen": 0
+}
+```
+
+3. For EVERY dirty file consumed: set `dirty: false`, `consolidated_at: {ISO timestamp}`,
+   `consolidated_by: "wrap-up"`. Do NOT delete the files — `memory-maintenance` archives
+   consolidated dirty files older than 7 days.
+4. **Self-healing rule (parallel sessions):** if a consumed dirty file belonged to a
+   session that is still running in parallel, its next Write/Edit simply re-sets
+   `dirty: true` via the hook — consolidating it here is harmless. Never try to guess
+   which sessions are "still alive".
+5. On any failure in Steps 1–8: do NOT write the marker and do NOT reset dirty flags —
+   an honest dirty state is exactly what recovery needs.
+
 ---
 
 # Handoff Mode (Pre-Compression)
@@ -371,3 +411,5 @@ When triggered by long context or explicit handoff request, append to session-su
 - Do NOT log trivial "learnings"; do NOT prune skill_candidate patterns
 - Do NOT run memory maintenance during an active self-improve loop
   (`improvements/state.json` → `status: "running"`)
+- Do NOT delete `working/dirty-*.json` (Step 9.5 flips flags; memory-maintenance
+  archives) and do NOT write the consolidation marker when the wrap-up was incomplete

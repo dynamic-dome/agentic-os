@@ -11,7 +11,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '3.0'
+  version: '3.1'
   part-of: agentic-os
   layer: core
 ---
@@ -218,6 +218,33 @@ Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/memory-thresholds.sh" .agent-memory`. E
 include its `THRESHOLD:` lines under HEALTH in the briefing. Exit 0 → no scaling warnings.
 (Thresholds live ONLY in that script — shared with wrap-up Step 9 and memory-maintenance.)
 
+### Recovery Detection (recovery-detect) — read-only
+
+Detect sessions that ended WITHOUT consolidation (crash, closed window, skipped
+wrap-up). Sources: `working/dirty-*.json` (PostToolUse dirty-tracker hook) and
+`consolidation-marker.json` (wrap-up Step 9.5).
+
+1. List `working/dirty-*.json` with `dirty: true`.
+2. Ignore files whose `updated` is younger than **30 minutes** — that is most likely a
+   session running in parallel RIGHT NOW, not a crash. Never flag it.
+3. Every remaining dirty file is an **un-consolidated session**. For each, extract:
+   `session_id` (short), `updated`, `write_count`, up to 3 `touched_files`.
+4. Cross-check `consolidation-marker.json`: if its `last_wrapup` is NEWER than the
+   dirty file's `updated`, downgrade to a one-line note (work probably consolidated
+   by a later session's wrap-up; the flag survived a crash between edit and marker).
+5. Output a RECOVERY block in the briefing (Step 4) and recommend the fix:
+
+```
+RECOVERY
+  Unkonsolidierte Session {sid-8} vom {updated}: {write_count} Writes,
+  z.B. {file1}, {file2}
+  → Empfehlung: wrap-up ausführen (Step 1.5 harvestet aus touched_files + git)
+```
+
+This step is strictly read-only: bootstrap NEVER resets dirty flags, never deletes
+dirty files, never writes the marker — that is wrap-up Step 9.5's job. If the user
+declines recovery, the dirty files simply stay and are re-reported next session.
+
 ## Step 3.5: Sharepoint-Pull (Cross-Device)
 
 If the Google-Drive Sharepoint is mounted (`G:\Meine Ablage\dynamic-AI\dynamic_sharepoint`), run a read-only pull-check to surface what other agents/devices changed:
@@ -276,6 +303,10 @@ STATISTICS
 HEALTH
   {any missing files or THRESHOLD lines}
   {identity starvation warning from Step 6.5, if any}
+
+RECOVERY
+  {un-consolidated sessions from Recovery Detection, with wrap-up recommendation}
+  {omit this block entirely if nothing was flagged}
 ---
 ```
 

@@ -105,6 +105,11 @@ matching `*.py`, `*.tmp`, or `*.bak` that are older than the staleness window in
 **Exempt (never delete):** the living session artifacts `working/current-session.json`
 and `working/user-candidates.json`. Report the number of deleted files in Step 9.
 
+**Dirty-state files (`working/dirty-*.json`):** delete only files with
+`dirty: false` (consolidated by wrap-up Step 9.5) whose `consolidated_at` is older
+than 7 days. NEVER delete a file with `dirty: true` — that is recovery evidence for
+an un-consolidated session; session-bootstrap reports it, wrap-up consumes it.
+
 ## Step 4: Prune Stale Patterns
 
 Read `.agent-memory/patterns/patterns.json`:

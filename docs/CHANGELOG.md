@@ -4,6 +4,53 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-14] Release v4.3.0 — Crash-sichere Konsolidierung: Dirty-Tracker, Marker, Recovery
+
+Erster Schnitt aus der membrain-Gedaechtnis-Spezifikation (Realitaets-Abgleich
+`membrain/memrealitycheck.md`): Der Uebergang Session → Abschluss → naechster Start
+haengt nicht mehr allein an Disziplin bzw. Best-Effort-Prompt-Hooks.
+
+**Neu — PostToolUse Dirty-State-Tracker (Hook 7, `posttooluse-dirty-tracker.py`):**
+
+- Schreibt nach jedem erfolgreichen Write/Edit/MultiEdit/NotebookEdit ausserhalb von
+  `.agent-memory/` mechanisch `working/dirty-<session_id>.json` (`dirty: true`,
+  `touched_files` max 200, `write_count`, Timestamps). Kein LLM, rein mechanisch.
+- Fail-soft-Kontrakt: jeder Fehler → stiller No-op, immer Exit 0; atomare Writes
+  (tmp + `os.replace`); Skips: `.agent-memory/`-Pfade, Claude-Scratchpad
+  (`AppData/Local/Temp/claude/`), `.git/`. Session-Dateien pro session_id →
+  parallele Sessions kollidieren nicht.
+- 9 Standalone-Tests (create, dedup, skips, no-store, korrupte Datei, garbage stdin,
+  fremdes Tool, Re-Dirty-Self-Healing, Scratchpad-Skip).
+
+**wrap-up 4.0 → 4.1 — Konsolidierungsmarker (`consolidation-marker`):**
+
+- Step 1 liest `working/dirty-*.json` als harte Evidenz; Step 1.5 harvestet auch
+  fremde/verwaiste Dirty-Sessions (`recovered from session {id}`), erfindet nichts.
+- Neuer Step 9.5: schreibt `.agent-memory/consolidation-marker.json`
+  (last_wrapup, consolidated_sessions, Zaehler), setzt konsumierte Dirty-Files auf
+  `dirty: false` + `consolidated_at/by`. Loescht nie (Archivierung ist
+  memory-maintenance). Bei unvollstaendigem wrap-up: kein Marker, kein Reset —
+  ehrlicher Dirty-State ist die Recovery-Grundlage. Self-Healing-Regel: konsolidierte
+  Parallel-Session re-dirtied sich beim naechsten Write selbst.
+
+**session-bootstrap 3.0 → 3.1 — Recovery Detection (`recovery-detect`, read-only):**
+
+- Dirty-Files mit `dirty: true` und `updated` aelter als 30 Minuten → RECOVERY-Block
+  im Briefing (Session-ID, Writes, Beispieldateien, wrap-up-Empfehlung). Juengere
+  Dateien = vermutlich laufende Parallel-Session, nie flaggen. Marker-Cross-Check
+  gegen False Positives. Bootstrap bleibt strikt read-only.
+
+**session-start.sh v3 → v4:** mechanischer Grep-Check derselben Bedingung direkt im
+SessionStart-Hook — die RECOVERY-Zeile erscheint auch, wenn niemand session-bootstrap
+aufruft. Live getestet (alte Dirty-Datei erkannt, frische ignoriert).
+
+**memory-maintenance:** archiviert nur konsolidierte Dirty-Files (`dirty: false`,
+aelter 7 Tage); `dirty: true` ist Recovery-Evidenz und wird NIE geloescht.
+
+Suite: 49 PreToolUse-Tests + wrap-up-Memory-Contract weiterhin gruen.
+
+---
+
 ## [2026-07-06] Release v4.0.0 — Konsolidierung: 9 Skills, Identity-Growth-Fixes, Token-Diaet, Threshold-SSoT
 
 **BREAKING — Komponenten entfernt:**
