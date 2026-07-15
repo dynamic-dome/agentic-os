@@ -125,6 +125,15 @@ def main():
         check("--session-id scopes changed_files",
               "other.txt" not in state["changed_files"], str(state["changed_files"]))
 
+        # 9. Malformed CLI args -> still JSON + exit 0 (fail-soft contract)
+        p = run([mem, "--bogus-flag"], cwd=tmp)
+        check("bogus flag still exits 0", p.returncode == 0, f"rc={p.returncode}")
+        try:
+            json.loads(p.stdout)
+            check("bogus flag still emits valid JSON", True)
+        except Exception as e:
+            check("bogus flag still emits valid JSON", False, str(e))
+
     n = len(FAILURES)
     print(f"=== {('ALL PASSED' if n == 0 else str(n) + ' FAILURE(S)')} ===")
     return 0 if n == 0 else 1

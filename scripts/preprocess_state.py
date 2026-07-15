@@ -93,6 +93,8 @@ def git_diff_summary():
     if not git:
         return ""
     try:
+        # NOTE: runs in the process cwd (callers invoke from the project root);
+        # no cwd= arg on purpose — the mem dir may live outside the git repo.
         proc = subprocess.run(
             [git, "diff", "--stat", "HEAD"],
             capture_output=True, encoding="utf-8", errors="replace", timeout=15,
@@ -165,7 +167,16 @@ def main():
     parser.add_argument("mem", nargs="?", default=".agent-memory")
     parser.add_argument("--session-id", default="")
     parser.add_argument("--write-hash", action="store_true")
-    args = parser.parse_args()
+    try:
+        args = parser.parse_args()
+    except SystemExit:
+        # fail-soft contract: even malformed argv must yield JSON + exit 0
+        print(json.dumps({
+            "session_id": "", "changed_files": [], "git_diff_summary": "",
+            "threshold_events": [], "validation_errors": [], "open_tasks": [],
+            "previous_state_hash": "", "current_state_hash": "",
+        }, ensure_ascii=False))
+        return 0
     mem = args.mem
 
     state = {
