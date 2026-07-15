@@ -1,5 +1,5 @@
 {
   "name": "agentic-os",
-  "version": "4.6.1",
-  "description": "Self-improving agent memory system with 9 skills (session lifecycle, memory management, knowledge sync, policy-gated self-improve) and 7 hooks, including a PreToolUse shell circuit breaker and a PostToolUse dirty-state tracker (crash-safe consolidation via marker + recovery detection). Identity growth via gated candidate queues; scaling thresholds live in one SSoT script. MCP-Tool-Bridge Policy enforces clear roles (tool/introspection/knowledge) and hard no-gos against MCP-as-truth or cross-project mutation."
+  "version": "4.7.0",
+  "description": "Self-improving agent memory system with 9 skills (session lifecycle, memory management, knowledge sync, policy-gated self-improve) and 7 hooks, including a PreToolUse shell circuit breaker and a PostToolUse dirty-state tracker (crash-safe consolidation via marker + recovery detection). Identity growth via gated candidate queues; scaling thresholds live in one SSoT script. Cost-aware model routing: routine skills declare model/effort frontmatter (class SSoT in model-routing.sh), stage-0 preprocessing + escalation rules keep quality, cost-trace.jsonl records context estimates. MCP-Tool-Bridge Policy enforces clear roles (tool/introspection/knowledge) and hard no-gos against MCP-as-truth or cross-project mutation."
 }

@@ -46,7 +46,7 @@ Agents (bereits `model: sonnet`): `effort: medium` für research-agent und conte
 
 Begründungen: wrap-up braucht Gesprächsverlauf (kein Fork) und 1M-Fenster (kein Haiku); session-bootstrap läuft am Session-Start, wo der Kontext klein ist → Modellwechsel kostet praktisch keinen Cache; pattern-extractor bleibt konservativ auf inherit, weil Skill-Generierung folgenreich ist (Downgrade erst nach Messdaten, P7).
 
-### 3.3 Stufe 0 — `scripts/preprocess-state.sh` (neu)
+### 3.3 Stufe 0 — `scripts/preprocess_state.py` (neu, Python statt Bash — robustes JSON, Muster posttooluse-dirty-tracker.py)
 
 Deterministisches Zustandsobjekt ohne Modellaufruf, JSON auf stdout:
 
@@ -67,7 +67,7 @@ Fail-soft wie der dirty-tracker: fehlende Quellen → leere Felder, Exit 0.
 
 ### 3.4 Skill-Umbauten (Kontextdiät)
 
-**wrap-up:** Neuer Step 0 ruft `preprocess-state.sh`; Kandidaten-Extraktion arbeitet auf Zustandsobjekt + Gesprächskontext; explizite Anweisung, das Transkript nicht systematisch nachzulesen (nur gezielte Rückgriffe auf einzelne ungeklärte Punkte, Spec §13.2). session-summary wird per Delta aktualisiert (added/updated/resolved), nicht neu geschrieben. Am Ende `cost-trace.sh append` und `state-hash` schreiben.
+**wrap-up:** Neuer Step 0 ruft `preprocess_state.py`; Kandidaten-Extraktion arbeitet auf Zustandsobjekt + Gesprächskontext; explizite Anweisung, das Transkript nicht systematisch nachzulesen (nur gezielte Rückgriffe auf einzelne ungeklärte Punkte, Spec §13.2). session-summary wird per Delta aktualisiert (added/updated/resolved), nicht neu geschrieben. Am Ende `cost-trace.sh append` und `state-hash` schreiben.
 
 **session-bootstrap:** Preprocess zuerst; bei `previous_state_hash == current_state_hash` nur bestehendes Briefing laden statt aller Memory-Dateien (Spec-Testfall 24.1); sonst nur veränderte Bereiche + `learnings_top.py`-Salience. Step-6.5-Gate (`[j/n]`) bleibt unverändert im Hauptloop.
 
@@ -82,7 +82,7 @@ Fester Block „Escalation Rules" in wrap-up- und session-bootstrap-SKILL.md. Be
 ## 4. Tests (TDD, bash)
 
 1. **Routing-Konsistenz:** `validate-skills.sh` prüft `model:`/`effort:` jedes SKILL.md gegen `model-routing.sh list` (awk-Extraktion wegen Multiline-YAML).
-2. **preprocess-state.sh:** Fixtures — dirty-file vorhanden/fehlt, kein Git-Repo, Threshold überschritten, Hash-Gleichheit (deckt Spec 24.1/24.4 deterministisch).
+2. **preprocess_state.py:** Fixtures — dirty-file vorhanden/fehlt, kein Git-Repo, Threshold überschritten, Hash-Gleichheit (deckt Spec 24.1/24.4 deterministisch).
 3. **cost-trace.sh:** JSONL-Format valide, fail-soft bei fehlendem Verzeichnis.
 4. **Struktur-Assertions:** wrap-up/session-bootstrap enthalten Escalation-Rules-Block + preprocess-Aufruf; Spec 24.5/24.6 (modellabhängiges Verhalten) als dokumentierte manuelle Eval-Checkliste in `docs/`, nicht als vorgetäuschte Verhaltenstests.
 

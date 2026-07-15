@@ -30,7 +30,7 @@ skills/*/SKILL.md          → 9 skills with YAML frontmatter (trigger phrases, 
 agents/*.md                → 3 active agents (context-detective, improvement-agent, research-agent)
 commands/*.md              → 5 slash commands (init, status, rollback, auto-commit, memory-audit) — KEIN Command darf einen Skill-Namen tragen (Skill-Tool-Schatten/Loop, L17; Test erzwingt das)
 improvements/state.json    → Self-improve loop state tracker
-scripts/                   → Hook helpers + SSoT scripts (session-start.sh, mem-schema.sh, memory-thresholds.sh = Threshold-SSoT, learnings_top.py = Salience-Ranking, pretooluse-shell-circuit-breaker.sh, posttooluse-dirty-tracker.py = Dirty-State-SSoT)
+scripts/                   → Hook helpers + SSoT scripts (session-start.sh, mem-schema.sh, memory-thresholds.sh = Threshold-SSoT, model-routing.sh = Modellklassen-SSoT, preprocess_state.py = Stufe-0-Zustandsobjekt, cost-trace.sh = Kontext-Kostentrace, learnings_top.py = Salience-Ranking, pretooluse-shell-circuit-breaker.sh, posttooluse-dirty-tracker.py = Dirty-State-SSoT)
 ```
 
 **Skills (9, layered):**
@@ -51,6 +51,7 @@ See `skills/DEPENDENCIES.md` for the full dependency graph and data flow.
 - **Self-improve safety:** Max 20% mutation per skill per iteration. Git revert over git stash pop. Circuit breaker on diminishing returns.
 - **Self-Improve Policy (2026-04-30):** 6 hard rules in `skills/self-improve/SKILL.md` — single-cluster-rule, pattern-confirmation-threshold, wrap-up-discipline, MCP-audit-as-diagnosis-only, no-self-mod-boundary, rollback-tag-tightness. The `self-improve` skill MUST NOT modify its own SKILL.md body — meta-suggestions go to `improvements/meta-suggestions.md` for manual review.
 - **MCP-Tool-Bridge Policy (2026-04-30):** MCPs have 3 legitimate roles (tool execution, introspection, knowledge access) and 4 hard no-gos: do NOT replace `.agent-memory/`, do NOT replace `~/wiki/`, MCP-output is NEVER auto-truth, no uncontrolled cross-project mutation. Full policy: `~/wiki/wiki/concepts/mcp-tool-bridge-policy.md`. NotebookLM operations always prefer the user-skill `notebooklm` (notebooklm-py CLI) over the plugin-MCP variant — plugin-MCP is fallback for subagent contexts only.
+- **Model-Routing Policy (v4.7.0):** Routine skills run on the cheap-write class (`model: sonnet` frontmatter); the class table lives ONLY in `scripts/model-routing.sh` (SSoT — a validate-skills test enforces frontmatter consistency). wrap-up/session-bootstrap run stage-0 preprocessing (`scripts/preprocess_state.py`) first and obey the (context-diet)/(bootstrap-fast-path) rules; conflicts, identity changes, decision replacements, and pattern-to-skill promotions are never resolved on the cheap class — they escalate via `working/escalations-<sid>.json` + `ESKALATION:` marker to the session model. Run costs are traced to `.agent-memory/metrics/cost-trace.jsonl` (estimates). Design: `docs/superpowers/specs/2026-07-15-model-routing-design.md`, manual evals: `docs/model-routing-eval-checklist.md`.
 - **No circular dependencies** between skills — strict DAG.
 - **Deprecated agents:** `improvement-scout` and `fix-reviewer` (removed 2026-04-30) and `quality-gate` (removed in v4.0.0). Use `improvement-agent` + `self-improve` instead. The `agents/` directory contains 3 active agents (context-detective, improvement-agent, research-agent).
 
