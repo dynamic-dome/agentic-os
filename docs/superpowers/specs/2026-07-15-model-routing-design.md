@@ -1,4 +1,4 @@
-# Design: Kosten- und tokenbewusstes Modell-Routing (v4.6.0)
+# Design: Kosten- und tokenbewusstes Modell-Routing (v4.7.0)
 
 **Datum:** 2026-07-15
 **Status:** Freigegeben (Brainstorming-Dialog, 3 Design-Abschnitte einzeln bestätigt)
@@ -88,7 +88,7 @@ Fester Block „Escalation Rules" in wrap-up- und session-bootstrap-SKILL.md. Be
 
 ## 5. Rollout, Risiken, Rollback
 
-- **Ein Release v4.6.0** (minor; plugin.json = Source of Truth, VERSIONING.md-Mapping).
+- **Ein Release v4.7.0** (minor; plugin.json = Source of Truth, VERSIONING.md-Mapping).
 - Begrenzung auf niedrige Risikoklassen = Phase-3-Entsprechung der Spec; kein Live-Shadow.
 - **Risiken dokumentiert:** Haiku-Kontextfenster (deshalb unbelegt); Cache-Invalidierung bei Mid-Session-Modellwechsel (wrap-up am Session-Ende = unkritisch; mid-session getriggerte cheap-Skills zahlen einmalig uncached Input auf Sonnet — bei $2/MTok verschmerzbar, dokumentiert); Frontmatter-`model:` wird von Org-Allowlists ggf. ignoriert (Fallback = Session-Modell, sicher).
 - **Rollback:** `git revert` des Release-Commits; keine Datenmigration, keine Breaking Changes.
