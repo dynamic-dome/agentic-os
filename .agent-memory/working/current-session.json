@@ -1,5 +1,10 @@
 {
   "session_start": null,
-  "errors_this_session": [],
+  "errors_this_session": [
+    "err-005",
+    "err-006",
+    "err-007",
+    "err-008"
+  ],
   "learnings_draft": []
 }

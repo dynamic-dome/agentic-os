@@ -92,5 +92,37 @@
     "superseded_by": null,
     "pulled_from_global": "2026-06-12T19:16:54",
     "promotion_status": "ready"
+  },
+  {
+    "id": "P011",
+    "type": "anti-pattern",
+    "description": "Robustheits-Vertraege (fail-soft, always-exit-0, JSONL-Integritaet) ohne Randfall-Regressionstests: Happy-Path-Suiten bleiben gruen, waehrend kaputte Args (argparse sys.exit), trailing Flags (bash shift-Endlosschleife), Kontrollzeichen (JSONL-Zeilenriss) und Non-ASCII auf Windows-cp1252-stdout den Vertrag brechen",
+    "evidence": [
+      "err-005",
+      "err-006",
+      "err-007",
+      "err-008"
+    ],
+    "confidence": 0.8,
+    "severity": "major",
+    "tags": [
+      "fail-soft",
+      "cli-contract",
+      "edge-cases",
+      "testing",
+      "windows",
+      "arg-parsing"
+    ],
+    "source_projects": [
+      "agentic-os-plugin"
+    ],
+    "first_seen": "2026-07-15",
+    "last_seen": "2026-07-15",
+    "occurrences": 4,
+    "recommendation": "Fuer jedes Script mit Robustheits-Vertrag eine Randfall-Matrix testen: (1) malformed/unbekannte Args -> Exit-Code + stdout-Reinheit, (2) Flag als letztes Token ohne Wert -> Terminierung mit timeout-Test, (3) --help -> reiner Help-Text, (4) Kontrollzeichen/Newline-Injection in Feldwerte -> Record-Integritaet (Whitelist-Sanitization), (5) Non-ASCII-Inhalt bei gepipetem stdout auf Windows -> UTF-8-reconfigure. Vertrag gilt erst als getestet, wenn alle 5 Klassen rot/gruen verifiziert sind.",
+    "skill_candidate": true,
+    "lifecycle": "active",
+    "generated_skill": "cli-robustness-edge-case-tests",
+    "skill_generated_at": "2026-07-15T20:13:38Z"
   }
 ]

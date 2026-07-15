@@ -3,7 +3,12 @@
     "id": "err-001",
     "date": "2026-03-24",
     "category": "bash-compatibility",
-    "tags": ["bash", "windows", "set-e", "arithmetic"],
+    "tags": [
+      "bash",
+      "windows",
+      "set-e",
+      "arithmetic"
+    ],
     "description": "Bash test scripts failed silently on Windows/Git Bash due to set -e combined with ((TESTS++)) which returns exit code 1 when incrementing from 0",
     "root_cause": "In bash, ((expr)) returns exit code 1 when result is 0. ((0++)) evaluates to 0 before increment, triggering set -e",
     "solution": "Replaced ((VAR++)) with VAR=$((VAR + 1)) and removed set -euo pipefail",
@@ -15,11 +20,18 @@
     "id": "err-002",
     "date": "2026-03-24",
     "category": "path-handling",
-    "tags": ["windows", "node", "paths", "spaces"],
+    "tags": [
+      "windows",
+      "node",
+      "paths",
+      "spaces"
+    ],
     "description": "Node.js JSON parsing failed when file paths contained spaces (OneDrive/Desktop)",
     "root_cause": "String interpolation in node -e put unquoted paths with spaces into JS code",
     "solution": "Used process.argv[1] instead of string interpolation: node -e '...' \"$filepath\"",
-    "failed_approaches": ["python3 fallback (same issue)"],
+    "failed_approaches": [
+      "python3 fallback (same issue)"
+    ],
     "confidence": 0.9,
     "severity": "warning"
   },
@@ -27,11 +39,18 @@
     "id": "err-003",
     "date": "2026-03-24",
     "category": "yaml-parsing",
-    "tags": ["yaml", "multiline", "frontmatter", "description"],
+    "tags": [
+      "yaml",
+      "multiline",
+      "frontmatter",
+      "description"
+    ],
     "description": "Skill description length check measured 2 chars for multiline YAML descriptions (| syntax)",
     "root_cause": "grep '^description:' only captures the line with '|', not the actual content on following lines",
     "solution": "Added detection for | and > YAML multiline indicators, then used sed to extract content between description: and next frontmatter key",
-    "failed_approaches": ["Matching '\"$' as multiline indicator (matched inline quoted strings too)"],
+    "failed_approaches": [
+      "Matching '\"$' as multiline indicator (matched inline quoted strings too)"
+    ],
     "confidence": 0.8,
     "severity": "suggestion"
   },
@@ -39,7 +58,13 @@
     "id": "err-004",
     "date": "2026-06-12",
     "category": "runtime",
-    "tags": ["powershell", "select-string", "null-guard", "frontmatter", "session-bootstrap"],
+    "tags": [
+      "powershell",
+      "select-string",
+      "null-guard",
+      "frontmatter",
+      "session-bootstrap"
+    ],
     "description": "sharepoint-pull-check.ps1 warf 'Es ist nicht moeglich, einen Index auf ein NULL-Array anzuwenden' bei Handoff-Dateien ohne target_agent-Frontmatter (z.B. INDEX.md im 01_HANDOFFS-Ordner)",
     "root_cause": "Direktzugriff ($head | Select-String '^feld:...').Matches.Groups[1].Value — Select-String liefert bei keinem Treffer $null, der Index-Zugriff darauf wirft. PowerShell-Frontmatter-Parsing braucht einen Match-Guard pro Feld.",
     "solution": "Get-FmField-Helper: Select-String-Ergebnis erst in Variable, nur bei Treffer .Matches.Groups[1].Value, sonst leerer String; Anzeige-Fallback '?' fuer fehlendes target_agent",
@@ -49,5 +74,99 @@
     "occurrences": 1,
     "recurrence_dates": [],
     "last_seen": "2026-06-12"
+  },
+  {
+    "id": "err-005",
+    "date": "2026-07-15",
+    "category": "logic",
+    "tags": [
+      "python",
+      "argparse",
+      "fail-soft",
+      "cli-contract"
+    ],
+    "trigger": "Review-Probe: preprocess_state.py mit --bogus-flag bzw. --help aufgerufen",
+    "problem": "Script mit Fail-soft-Vertrag (immer Exit 0 + JSON) beendete sich bei kaputten Args mit Exit 2 ohne JSON; nach erstem Fix druckte --help Help-Text UND Fallback-JSON gemischt auf stdout",
+    "root_cause": "argparse ruft sys.exit(2) bei Parse-Fehlern und print_help()+SystemExit(0) bei -h — beides ausserhalb des try/except-Blocks; ein pauschales 'except SystemExit: print JSON' behandelt den Help-Pfad falsch, weil argparse den Help-Text VOR dem Raise auf stdout schreibt",
+    "fix": "parse_args in try/except SystemExit; e.code==0 (Help) -> return 0 ohne JSON (stdout bleibt rein), e.code!=0 -> Fallback-JSON + Exit 0; Regressionstests fuer beide Pfade",
+    "failed_approaches": [
+      "Pauschales except SystemExit mit unbedingtem JSON-Print — erzeugte gemischten, unparsebaren stdout bei --help"
+    ],
+    "prevention": "Fail-soft-CLI-Vertraege muessen argv-Parsing MIT einschliessen; --help und Fehler-Args getrennt testen (Exit-Code UND stdout-Reinheit)",
+    "severity": "major",
+    "attempts": 2,
+    "confidence": 5,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-15"
+  },
+  {
+    "id": "err-006",
+    "date": "2026-07-15",
+    "category": "logic",
+    "tags": [
+      "bash",
+      "shift",
+      "infinite-loop",
+      "arg-parsing"
+    ],
+    "trigger": "Review-Probe: cost-trace.sh append --mem X --task (Flag als letztes Token ohne Wert)",
+    "problem": "Script hing endlos (timeout exit 124) statt fail-soft Exit 0",
+    "root_cause": "bash 'shift 2' mit nur 1 verbleibendem Positionsparameter schlaegt fehl OHNE zu konsumieren (kein set -e) — die while-Schleife sieht dasselbe Flag ewig wieder",
+    "fix": "Guard pro Flag: [ \"$#\" -ge 2 ] && shift 2 || shift; Regressionstest mit timeout 10",
+    "prevention": "In bash-Arg-Loops nie ungeschuetztes shift 2; trailing-Flag-Fall immer testen",
+    "severity": "critical",
+    "attempts": 1,
+    "confidence": 5,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-15"
+  },
+  {
+    "id": "err-007",
+    "date": "2026-07-15",
+    "category": "logic",
+    "tags": [
+      "bash",
+      "jsonl",
+      "sanitization",
+      "tr",
+      "control-chars"
+    ],
+    "trigger": "Review-Probe: cost-trace.sh --task mit eingebettetem Newline",
+    "problem": "Ein logischer JSONL-Record wurde ueber zwei physische, je invalide Zeilen geschrieben — Zeilen-basierte Konsumenten wuerden falsch parsen",
+    "root_cause": "Blacklist-Sanitization tr -d '\"\\\\' entfernt nur Quotes/Backslashes, laesst Newlines/Tabs durch",
+    "fix": "Whitelist tr -cd 'A-Za-z0-9._:-' + Leerstring-Fallback 'unknown'; Regressionstest zaehlt Zeilen-Delta",
+    "prevention": "Fuer JSONL-Felder Whitelist statt Blacklist sanitizen; Newline-Injection immer testen",
+    "severity": "major",
+    "attempts": 1,
+    "confidence": 5,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-15"
+  },
+  {
+    "id": "err-008",
+    "date": "2026-07-15",
+    "category": "runtime",
+    "tags": [
+      "python",
+      "windows",
+      "cp1252",
+      "unicode",
+      "stdout",
+      "fail-soft"
+    ],
+    "trigger": "Final-Review-Probe: preprocess_state.py-Output mit Non-ASCII-Inhalt (Emoji/CJK) in Pipe umgeleitet",
+    "problem": "UnicodeEncodeError + Exit 1 + leerer stdout — Fail-soft-Vertrag gebrochen, unsichtbar fuer die ASCII-only-Testsuite",
+    "root_cause": "Auf Windows resolved gepipeter stdout zur Legacy-Codepage (cp1252); print(json.dumps(..., ensure_ascii=False)) crasht bei Zeichen ausserhalb cp1252 — die bekannte Subprocess-utf-8-Regel galt bisher nur fuer subprocess-AUFRUFE, nicht fuer den EIGENEN stdout",
+    "fix": "sys.stdout.reconfigure(encoding='utf-8', errors='replace') am main()-Anfang (try/except-gewrappt); Regressionstest im Bytes-Modus ohne maskierendes errors='replace'",
+    "prevention": "Jedes Python-Script mit JSON-stdout-Vertrag auf Windows: stdout-reconfigure Pflicht; Tests brauchen mindestens eine Non-ASCII-Fixture",
+    "severity": "critical",
+    "attempts": 1,
+    "confidence": 5,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-15"
   }
 ]

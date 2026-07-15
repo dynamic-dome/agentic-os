@@ -43,5 +43,162 @@
       "open-tasks.json T-006 resolution",
       "D-001 Session-Bracket"
     ]
+  },
+  {
+    "id": "D-004",
+    "date": "2026-07-15",
+    "type": "architecture-decision",
+    "title": "Modellklassen-SSoT in scripts/model-routing.sh; cheap-write = sonnet (nicht haiku)",
+    "status": "active",
+    "context": "v4.7.0 Modell-Routing: Routine-Skills sollen auf ein guenstigeres Modell; Klassen-Zuordnung braucht einen einzigen Definitionsort.",
+    "options_considered": [
+      {
+        "option": "haiku fuer alle Routine-Skills",
+        "pros": [
+          "billigster Output ($5/MTok)"
+        ],
+        "cons": [
+          "200k-Kontextfenster sprengt lange Sessions beim wrap-up (400er)",
+          "Schreibverlaesslichkeit geringer"
+        ]
+      },
+      {
+        "option": "sonnet fuer cheap-write, haiku reserviert als cheap-read",
+        "pros": [
+          "1M-Fenster",
+          "Output 5x billiger als Fable",
+          "Schreiber bleiben verlaesslich"
+        ],
+        "cons": [
+          "weniger Ersparnis als haiku"
+        ]
+      }
+    ],
+    "decision": "cheap-write = sonnet; haiku als Klasse cheap-read definiert aber in v4.7.0 unbelegt (reserviert fuer Phase-2-Fork-Lesepfad). SSoT ausschliesslich scripts/model-routing.sh; bidirektionaler Konsistenztest in validate-skills.sh.",
+    "consequences": "Routine-Skill-Output ~80% guenstiger; Modellnamen nie in Skill-Prosa; jede neue Skill/Agent-Datei erzwingt eine SSoT-Zeile.",
+    "supersedes": null,
+    "tags": [
+      "architecture",
+      "model-routing",
+      "ssot",
+      "cost"
+    ]
+  },
+  {
+    "id": "D-005",
+    "date": "2026-07-15",
+    "type": "architecture-decision",
+    "title": "Deklaratives Modell-Routing via Frontmatter statt programmatischem Router",
+    "status": "active",
+    "context": "GPT-Spec memospartoken.md §8 forderte eine Router-Komponente mit Confidence-Scores und Provider-Adaptern.",
+    "options_considered": [
+      {
+        "option": "Code-Router (eigener Skill/Bibliothek)",
+        "pros": [
+          "Spec-woertlich",
+          "dynamische Entscheidungen"
+        ],
+        "cons": [
+          "Router-Turn laeuft selbst aufs teure Session-Modell",
+          "Plugin ist pures Markdown+Bash ohne API-Zugriff",
+          "DAG-Kopplung"
+        ]
+      },
+      {
+        "option": "Deklarativ: model:/effort:-Frontmatter + SSoT + Eskalations-Konvention",
+        "pros": [
+          "Claude Code routet nativ",
+          "null neue Infrastruktur",
+          "voll testbar"
+        ],
+        "cons": [
+          "keine Laufzeit-Dynamik"
+        ]
+      }
+    ],
+    "decision": "Deklaratives Routing; Eskalation als Skill-Text-Konvention (escalations-<sid>.json + ESKALATION:-Marker, Folge-Turn auf Session-Modell entscheidet).",
+    "consequences": "Kein neuer Code-Pfad im Hot Loop; Routing-Aenderungen = Frontmatter+SSoT-Edit; modellabhaengiges Verhalten braucht manuelle Evals (E1-E5).",
+    "supersedes": null,
+    "tags": [
+      "architecture",
+      "model-routing",
+      "frontmatter"
+    ]
+  },
+  {
+    "id": "D-006",
+    "date": "2026-07-15",
+    "type": "architecture-decision",
+    "title": "Kein Live-Shadow-Mode fuer das Modell-Routing",
+    "status": "active",
+    "context": "Spec §23 verlangte parallelen Shadow-Betrieb vor Aktivierung.",
+    "options_considered": [
+      {
+        "option": "Live-Shadow (alter+neuer Pfad parallel)",
+        "pros": [
+          "direkter Qualitaetsvergleich"
+        ],
+        "cons": [
+          "doppelte Laufkosten — konterkariert das Sparziel"
+        ]
+      },
+      {
+        "option": "Fixture-Tests + Begrenzung auf niedrige Risikoklassen",
+        "pros": [
+          "kostenneutral",
+          "deterministisch pruefbar"
+        ],
+        "cons": [
+          "modellabhaengige Qualitaet erst per manueller Eval belegt"
+        ]
+      }
+    ],
+    "decision": "Fixture-basierte Vergleichstests + Downgrade nur fuer cheap-write-Klasse; manuelle Eval-Checkliste docs/model-routing-eval-checklist.md (E1-E5) mit Rollback-Trigger.",
+    "consequences": "Sofortige Ersparnis; Qualitaetsnachweis folgt ueber echte Sessions (DCO #8948).",
+    "supersedes": null,
+    "tags": [
+      "architecture",
+      "model-routing",
+      "testing"
+    ]
+  },
+  {
+    "id": "D-007",
+    "date": "2026-07-15",
+    "type": "stack-change",
+    "title": "Stufe-0-Preprocessor als Python (preprocess_state.py), nicht Bash",
+    "status": "active",
+    "context": "Design-Doc sah urspruenglich preprocess-state.sh vor; JSON-Erzeugung in Bash ist fehleranfaellig (Escaping).",
+    "options_considered": [
+      {
+        "option": "Bash-Script",
+        "pros": [
+          "konsistent mit memory-thresholds.sh"
+        ],
+        "cons": [
+          "JSON-Escaping von Hand",
+          "kein sauberes Non-ASCII-Handling"
+        ]
+      },
+      {
+        "option": "Python stdlib",
+        "pros": [
+          "robustes json-Modul",
+          "folgt Muster posttooluse-dirty-tracker.py",
+          "atomare Writes"
+        ],
+        "cons": [
+          "Python-Laufzeit noetig (run-all skippt fail-soft)"
+        ]
+      }
+    ],
+    "decision": "Python stdlib mit Fail-soft-Vertrag (immer Exit 0 + 8-Key-JSON), UTF-8-stdout-Haertung, shutil.which-Guards; Design-Doc nachgezogen.",
+    "consequences": "Windows-Encoding-Regeln gelten jetzt auch fuer EIGENEN stdout (err-008/L15-atlas); Tests brauchen Non-ASCII-Fixtures.",
+    "supersedes": null,
+    "tags": [
+      "stack-change",
+      "python",
+      "model-routing"
+    ]
   }
 ]

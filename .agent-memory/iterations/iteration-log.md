@@ -123,3 +123,45 @@
 - **Summary:** Kopf + Sektionen 2-7 der Entity-Seite von v3.8.0- auf v4.0.1-Stand: Version-/Installations-Zeile (Marketplace-Cache statt ~/.claude/plugins/), Surface-Tabellen 14/11/4 → 9 Skills / 5 Commands / 3 Agents (+6 Hooks), Folge-Referenzen auf gestrichene Skills (quality-gate, retrospective, research-pipeline, wiki-query, Perplexity) bereinigt, Test-Zählung auf v4.0.x. Historien-Abschnitte unangetastet, Nachtrag im v4.0.1-Block. Vorab per git status verifiziert: vermeintlicher uncommitted Drift war schon committet (6c8a74a) — Buchhaltungs-Lag, kein echter Drift (G-pattern-005-Bestätigung).
 - **Confidence:** 5/5
 - **Tests:** not applicable
+
+## 2026-07-15 — docs: Design + Implementierungsplan Modell-Routing v4.7.0 (Session-Harvest)
+- **Type:** docs
+- **Tags:** model-routing, brainstorming, writing-plans, spec-konsolidierung
+- **Files changed:** docs/superpowers/specs/2026-07-15-model-routing-design.md, docs/superpowers/plans/2026-07-15-model-routing.md
+- **Summary:** GPT-5.6-Spec (memospartoken.md) gegen realen Bestand konsolidiert (7 dokumentierte Abweichungen, u.a. kein Code-Router, Sonnet statt Haiku, kein Live-Shadow), Design in 3 freigegebenen Abschnitten, Plan mit 7 TDD-Tasks und vollstaendigem Soll-Code. Commits a215de8, b0e1014, fa94da0.
+- **Confidence:** 5/5
+- **Tests:** not applicable
+
+## 2026-07-15 — feature: Routing-Kern — Modellklassen-SSoT + Frontmatter (Session-Harvest)
+- **Type:** feature
+- **Tags:** model-routing, ssot, frontmatter, validate-skills
+- **Files changed:** scripts/model-routing.sh, tests/test-model-routing.sh, tests/validate-skills.sh, skills/{wrap-up,session-bootstrap,memory-maintenance,iteration-logger,sync-context,obsidian-sync}/SKILL.md, agents/{context-detective,research-agent}.md
+- **Summary:** model-routing.sh als Modellklassen-SSoT (TSV list/list-agents), model: sonnet + effort-Frontmatter in 6 Routine-Skills + effort in 2 Agents, bidirektionaler Konsistenztest (Frontmatter<->SSoT und Datei<->Row). Commits bbc20e0, 91fcb6f.
+- **Confidence:** 5/5
+- **Tests:** passed (Suite gruen)
+
+## 2026-07-15 — feature: Stufe-0-Preprocessor + Kostentrace mit 4 Review-Fixes (Session-Harvest)
+- **Type:** feature
+- **Tags:** model-routing, preprocess, cost-trace, fail-soft, tdd, windows
+- **Files changed:** scripts/preprocess_state.py, scripts/cost-trace.sh, tests/test-preprocess-state.py, tests/test-cost-trace.sh, tests/run-all.sh
+- **Summary:** Deterministisches Stufe-0-Zustandsobjekt (8-Key-JSON, Hash-Fast-Path-Grundlage) + append-only JSONL-Kostentrace. Reviews fanden 4 echte Fail-soft-Bugs (err-005..err-007), alle mit Regressionstests gefixt (29/29, 19/19). Commits 9888bf2, 445add7, 8e829d1, ca960ee, a92e6e5.
+- **Confidence:** 5/5
+- **Tests:** passed (29/29 + 19/19, Suite gruen)
+- **Errors:** err-005, err-006, err-007
+
+## 2026-07-15 — feature: Skill-Verdrahtung wrap-up + session-bootstrap (Session-Harvest)
+- **Type:** feature
+- **Tags:** model-routing, wrap-up, session-bootstrap, escalation, context-diet
+- **Files changed:** skills/wrap-up/SKILL.md, skills/session-bootstrap/SKILL.md, tests/validate-skills.sh
+- **Summary:** wrap-up: Step-0-Preflight, (context-diet), (delta-update), (escalation-rules), (cost-trace); session-bootstrap: Hash-Fast-Path, Eskalation, Trace — alle Marker mit Struktur-Assertions (TDD). Plan-Anker "## Handoff Context" lag in einem Template-Fence, Platzierung begruendet abgewichen (Review approved). Commits c17cb49, 42bb9e9.
+- **Confidence:** 5/5
+- **Tests:** passed (143/143 validate-skills, Suite gruen)
+
+## 2026-07-15 — config: Release v4.7.0 + Final-Review-Fixes + Codex-VERIFIED (Session-Harvest)
+- **Type:** config
+- **Tags:** release, model-routing, codex-verifier, utf-8, windows
+- **Files changed:** docs/model-routing-eval-checklist.md, CLAUDE.md, .claude-plugin/plugin.json, docs/superpowers/specs/2026-07-15-model-routing-design.md, scripts/preprocess_state.py, tests/*
+- **Summary:** Eval-Checkliste E1-E5, Model-Routing-Policy-Bullet, Versions-Bump 4.6.1->4.7.0. Final-Whole-Branch-Review fand cp1252-stdout-Crash (err-008) + JSON-Literal-Typo + einseitige Drift-Checks — alle gefixt. Codex-Verifier: VERIFIED (alle 7 Kern-Behauptungen PASS). Push durch User, Plugin-Update auf 4.7.0. Commits a691994, e2a454c.
+- **Confidence:** 5/5
+- **Tests:** passed (Suite komplett, Controller-ground-truth-verifiziert)
+- **Errors:** err-008

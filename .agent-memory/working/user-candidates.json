@@ -123,15 +123,46 @@
     "id": "UC8",
     "key": "subagent-model-by-complexity",
     "observation": "User wuenscht bei Subagent-Einsatz die Modellwahl passend zur Aufgaben-Komplexitaet ('so viele Subagents wie noetig, die dann entsprechend der Komplexitaet das entsprechende Modell haben').",
-    "status": "observed",
+    "status": "promoted",
     "signal_type": "preference",
+    "confidence": 0.8,
+    "occurrences": 2,
+    "evidence": [
+      "session 2026-07-06: explizite Formulierung im Auftrag",
+      "session 2026-07-15: gesamter Session-Auftrag war Modell-Routing nach Komplexitaet (memospartoken-Spec-Umsetzung); Implementer/Reviewer auf sonnet, Fixer auf haiku bestaetigt"
+    ],
+    "first_seen": "2026-07-06",
+    "last_seen": "2026-07-15",
+    "trust_source": "conversation"
+  },
+  {
+    "id": "UC9",
+    "key": "superpowers-skill-chain-for-features",
+    "observation": "User beauftragt fuer substantielle Features explizit die superpowers-Kette brainstorming -> writing-plans -> subagent-driven-development, alles test-driven ('nutze superpowers, gerne mit Brainstorming, writing plans und dann mit subagent driven development natuerlich alles test driven und go').",
+    "status": "observed",
+    "signal_type": "workflow",
     "confidence": 0.6,
     "occurrences": 1,
     "evidence": [
-      "session 2026-07-06: explizite Formulierung im Auftrag"
+      "session 2026-07-15: expliziter Auftrag im Modell-Routing-Feature"
     ],
-    "first_seen": "2026-07-06",
-    "last_seen": "2026-07-06",
+    "first_seen": "2026-07-15",
+    "last_seen": "2026-07-15",
+    "trust_source": "conversation"
+  },
+  {
+    "id": "UC10",
+    "key": "external-spec-as-template-with-critique",
+    "observation": "User gibt Specs anderer Modelle (GPT-5.6) als Vorlage und erwartet ausdruecklich kritische Konsolidierung gegen den realen Bestand plus eigene Erkenntnisse statt Uebernahme ('nimm das Ganze als Vorlage, integriere deine Gedanken') — Multi-Model-Arbeitsteilung als Arbeitsstil (GPT plant, Claude konsolidiert+baut, Codex verifiziert).",
+    "status": "observed",
+    "signal_type": "workflow",
+    "confidence": 0.6,
+    "occurrences": 1,
+    "evidence": [
+      "session 2026-07-15: memospartoken.md-Auftrag; Spec §2 verlangte die Pruefung selbst, User bestaetigte die 7 Abweichungen durchweg"
+    ],
+    "first_seen": "2026-07-15",
+    "last_seen": "2026-07-15",
     "trust_source": "conversation"
   }
 ]

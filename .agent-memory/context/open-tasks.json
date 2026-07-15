@@ -67,5 +67,32 @@
     "updated": "2026-07-06",
     "source": "wrap-up",
     "cross_project": false
+  },
+  {
+    "id": "T-008",
+    "title": "Manuelle Eval-Checkliste E1-E5 durchfuehren (docs/model-routing-eval-checklist.md, Quality-Gate mit Rollback-Trigger; DCO #8948)",
+    "status": "open",
+    "created": "2026-07-15",
+    "updated": "2026-07-15",
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-009",
+    "title": "docs/PROJECT.md + ARCHITECTURE.md auf v4.7.0 nachziehen (Docs-Drift: stehen auf v4.0.1-Stand)",
+    "status": "open",
+    "created": "2026-07-15",
+    "updated": "2026-07-15",
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-010",
+    "title": "Phase 2 Modell-Routing: session-bootstrap-Lesepfad als cheap-read-Fork (haiku, context: fork) mit Umbau des Step-6.5-Gates",
+    "status": "open",
+    "created": "2026-07-15",
+    "updated": "2026-07-15",
+    "source": "wrap-up",
+    "cross_project": false
   }
 ]

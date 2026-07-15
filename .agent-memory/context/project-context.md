@@ -1,25 +1,19 @@
 # Project Context
 
-*Last updated: 2026-07-06 (Refresh auf v4.0.1)*
+*Last updated: 2026-07-15 (v4.7.0 Modell-Routing; docs/PROJECT.md hinkt nach — siehe Open Questions)*
 *Source: docs/ (PROJECT.md, ARCHITECTURE.md, CAPABILITIES.md) + CLAUDE.md + Git-Ground-Truth. This file is a cache — docs win on drift.*
 
 ## Project
 agentic-os — Claude-Code-Plugin fuer selbst-verbesserndes Agent-Gedaechtnis (`.agent-memory/`).
 
 ## Tech Stack
-- **Language:** Markdown (skills/agents/commands), JSON (config/state), Bash (hooks/tests/SSoT-Skripte), Python (learnings_top.py)
+- **Language:** Markdown (skills/agents/commands), JSON (config/state), Bash (hooks/tests/SSoT-Skripte inkl. model-routing.sh + cost-trace.sh), Python (learnings_top.py, posttooluse-dirty-tracker.py, preprocess_state.py)
 - **Framework:** Claude Code Plugin System v2
 - **Package Manager:** none (keine Runtime-Deps); Tests via `bash tests/run-all.sh`
 - **Repository:** https://github.com/dynamic-dome/agentic-os.git
 
 ## Architecture
-- Memory-Store `.agent-memory/` mit Schema-SSoT (`scripts/mem-schema.sh`, Hook + /init) und DAG-Schreibordnung: genau ein schreibberechtigter Skill pro Store-Datei
-- **v4.0.0-Konsolidierung:** 9 Skills (core: session-bootstrap, iteration-logger, pattern-extractor inkl. Skill-Generation, context-keeper, wrap-up, sync-context, memory-maintenance; knowledge: obsidian-sync; self-improve), 3 Agents (context-detective, improvement-agent, research-agent), 5 Commands (init, status, rollback, auto-commit, memory-audit), 6 Hooks (inkl. PreToolUse Shell-Circuit-Breaker)
-- **Identity-Growth gehaertet (v4.0.0):** wrap-up Step 6 = einziger Producer (Harvest-Checkliste, Full-Queue-Re-Review, Pflicht-Statuszeile `Identity: ...`, Eskalationspfad user→soul); bootstrap Step 6.5 = Consumer ([j/n]-Gates, Starvation-Warnung); user.md-Injektion im SessionStart
-- **Threshold-SSoT** `scripts/memory-thresholds.sh` (alle Skalierungs-Schwellen, exit 10; konsumiert von bootstrap/wrap-up/maintenance) + **Salience-Ranking** `scripts/learnings_top.py` (Bootstrap-Fallback ohne Full-Read)
-- Session-Bracket-Coverage (v3.6.0): bootstrap+wrap-up = selbstversorgende Zwei-Aufruf-Klammer (Step 1.5 session-harvest, Step 4.5 decision-scan)
-- Handoff-Ownership (v3.5.0): open-tasks.json = projekt-lokale SSoT fuer Next Steps; zentraler Handoff max 1 Block/Projekt (Template-SSoT: `skills/wrap-up/references/handoff-template.md`)
-- Global Memory Layer 4.A (v3.4.0): `~/.claude-memory/global/` provenance-grounded, Promotion-Gate (conf≥0.6 ∧ occ≥3 ∧ ≥2 Projekte), Decay, Privacy-Denylist (`scripts/global-schema.sh`)
+Seit v4.7.0: kosten-/tokenbewusstes Modell-Routing — Routine-Skills (wrap-up, session-bootstrap, memory-maintenance, iteration-logger, sync-context, obsidian-sync) laufen per model:/effort:-Frontmatter auf sonnet (Klassen-SSoT scripts/model-routing.sh, D-004/D-005); Stufe-0-Preflight preprocess_state.py, Eskalation via working/escalations-<sid>.json, Kostentrace metrics/cost-trace.jsonl.
 
 ## Key Dependencies
 | Package | Version | Purpose |

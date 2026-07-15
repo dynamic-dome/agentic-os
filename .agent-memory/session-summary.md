@@ -1,22 +1,27 @@
 # Last Session
 
-*Date: 2026-07-06 22:20*
-*Agent: Claude Code (Fable 5)*
+*Date: 2026-07-15 22:05*
+*Agent: Claude Code*
 
 ## What Was Done
-- SC-4 via bootstrap [j]-Gate in soul.md gemergt (Block-Delegation autonom end-to-end, Unterbrechung nur bei Owner-Entscheiden); Changelog-first, Queue-Reset — Soul-Queue leer; Commit de1cac5, vom User gepusht
-- Wiki-Entity agentic-os-plugin.md auf v4.0.1-Ground-Truth: Kopf + Sektionen 2-7 (9 Skills / 5 Commands / 3 Agents / 6 Hooks), Folge-Referenzen auf gestrichene Skills bereinigt, Installations-Zeile auf Marketplace-Cache korrigiert; log.md-Eintrag
-- Ground-Truth-Check vor Aktion: vermeintlicher uncommitted Wrap-up-Drift war schon committet (6c8a74a) — Buchhaltungs-Lag der Session-Summary, kein echter Drift
-- UC5 fortgeschrieben (5. Block-Delegation: "bereinige die Ungereimtheiten, übernimm das")
+- Release v4.7.0 "Modell-Routing" komplett: Design (aus GPT-Spec memospartoken.md konsolidiert), Plan (7 TDD-Tasks), subagent-driven Umsetzung, gepusht, Plugin auf 4.7.0 aktualisiert
+- scripts/model-routing.sh (Modellklassen-SSoT) + model:/effort:-Frontmatter in 6 Skills + 2 Agents, bidirektionaler Konsistenztest
+- scripts/preprocess_state.py (Stufe-0-Zustandsobjekt) + scripts/cost-trace.sh (JSONL-Kostentrace), beide fail-soft mit Randfall-Tests
+- wrap-up/session-bootstrap verdrahtet: Kontextdiaet, Delta-Update, Hash-Fast-Path, Eskalationsregeln
+- 5 echte Bugs via Review-Loops gefixt (err-005..err-008); Codex-Verifier: VERIFIED; Suite gruen (Controller-verifiziert)
+- Memory: 5 Iterationen geharvestet, L25-L29, P011 + generierter Skill cli-robustness-edge-case-tests, D-004..D-007
 
 ## Open Items
-- T-007: Identity-Pipeline beobachten — Session 2/2-3 POSITIV (Statuszeile emittiert, UC5-Occurrence real); bei erneut positivem Befund nächste Session schließen
+- Neue 4.7.0-Skill-Version greift erst nach Session-Restart (diese Session lief auf 4.5.1-Cache)
+- docs/PROJECT.md + ARCHITECTURE.md hinken auf v4.0.1-Stand (Drift, siehe T-014)
 
 ## Next Steps
-1. T-007 letzte Beobachtung + ggf. schließen  2. Normale Projektarbeit (Plugin konsolidiert, Wiki synchron)
+1. Manuelle Eval-Checkliste E1-E5 durchfuehren (docs/model-routing-eval-checklist.md, DCO #8948)
+2. docs/PROJECT.md + ARCHITECTURE.md auf v4.7.0 nachziehen
+3. Phase 2 Modell-Routing: bootstrap-Lesepfad als cheap-read-Fork (haiku) mit Gate-Umbau
 
 ## Statistics
-- Iterations: 2 (Harvest) | Errors: 0 | New Patterns: 0 | Learnings: +0 (keine neuen — Ground-Truth-Fund ist G-pattern-005-Bestätigung)
+- Iterations: 5 | Errors: 4 | New Patterns: 1 (P011 + generated skill)
 
 ## Active Warnings
-- G-pattern-005 (0.92, occ 8): Exit-Code/Buchhaltung ≠ Ground-Truth — gegen Live-Zustand prüfen (heute erneut bestätigt, diesmal in Gegenrichtung: gemeldeter Drift existierte nicht)
+- P011 (conf 0.8): Robustheits-Vertraege ohne Randfall-Tests — bei jedem neuen CLI-Script die 5er-Matrix testen

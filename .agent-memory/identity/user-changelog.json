@@ -73,5 +73,13 @@
       "session 2026-07-06 (naechste Session): user-confirmed via [j]-Gate in session-bootstrap Step 6.5a",
       "SC-4: Eskalationspfad aus UC5 (4 Block-Delegationen ueber 3 Sessions, zuletzt komplett autonom gelebt)"
     ]
+  },
+  {
+    "ts": "2026-07-15T22:10:00+02:00",
+    "field": "user.md#Work Style",
+    "old_value": "(kein Eintrag zu Subagent-Modellwahl)",
+    "new_value": "Subagent-Modellwahl nach Aufgaben-Komplexitaet (UC8 promoted)",
+    "candidate_id": "UC8",
+    "evidence": "2026-07-06 explizite Formulierung + 2026-07-15 gesamter Session-Auftrag Modell-Routing"
   }
 ]
