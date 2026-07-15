@@ -4,6 +4,33 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-15] Release v4.6.1 — Verifier-Findings an der Rueckfluss-Bruecke
+
+Codex-Verifier-Review von 3fa7751: FAIL, 5 Major + 1 Minor — alle eingearbeitet
+(P2 bestaetigt sich 6/6; erster Lauf des rueckfluss-delta-gates auf sich selbst).
+
+- **Major 1 (Writer-Widerspruch):** pattern-extractor-Kanon von "only writer"
+  auf "sole creator + schema owner" praezisiert; autorisierte Field-GAIN-Writer
+  explizit benannt (obsidian-sync: promotion_status/promotion_scope; Haupt-
+  Session: implemented_by/validated_by + Daten per Step 6.6). DEPENDENCIES-
+  Matrix beide Zeilen nachgezogen.
+- **Major 2 (Store-Ownership):** Step 6.6 schreibt Delta-Entwuerfe nur noch
+  nach open-tasks.json (Authority-Trias: Tasks darf jeder Agent schreiben);
+  Architektur-Entscheide routen ueber context-keeper, decisions.json wird nie
+  direkt geschrieben.
+- **Major 3 (Zeitregel unpruefbar):** implemented_at/validated_at (ISO, null-
+  Default) neben den Ref-Listen kanonisiert; Vergleichsregel: validated_at
+  darf implemented_at nicht vorausgehen + Evidenz aus anderer Session.
+- **Major 4 (Idempotenz):** Step 6.6 prueft delta_task_id VOR jedem Draft und
+  markiert Patterns mit delta_task_id + delta_drafted_at (analog Step 6.5
+  generated_skill); vager Trigger ("clearly implies") gestrichen — nur noch
+  explizit benannte Komponenten, sonst Unmatched.
+- **Major 5 (Taxonomie erreichte Report nicht):** memory-audit Step-4-Template
+  um FINDINGS-Block mit GAP-CLASS-Spalte ergaenzt.
+- **Minor 1 (Test zu lasch):** Contract-Test section-scoped (awk-Extraktion je
+  Step), Kopplungs-Checks (Scope-Bedingungen beidseitig, Idempotenz-Marker,
+  Ownership-Routing, GAP CLASS im Report), Template-Bindung der neuen Felder.
+
 ## [2026-07-15] Release v4.6.0 — Rueckfluss-Bruecke Pattern→Verhaltensaenderung (membrain T-15/T-17)
 
 Loop-8-Ernte (membrain memloop8harvest.md, Rosinen 1+3+4): schliesst die letzte

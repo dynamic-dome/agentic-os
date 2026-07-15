@@ -11,7 +11,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '3.1'
+  version: '3.2'
   part-of: agentic-os
   layer: analysis
 ---
@@ -139,15 +139,19 @@ Use **Jaccard similarity on word tokens** to determine if two descriptions refer
   "skill_candidate": false,
   "lifecycle": "active",
   "implemented_by": [],
-  "validated_by": []
+  "implemented_at": null,
+  "validated_by": [],
+  "validated_at": null
 }
 ```
 
-`implemented_by` and `validated_by` close the feedback loop (see Step 6.6): refs to the
+`implemented_by`/`validated_by` close the feedback loop (see Step 6.6): refs to the
 change that implements the recommendation (commit hash, `skill@version`, rule file) and to
-the post-implementation evidence that the change actually worked. New entries start with
-honest empty lists; pre-4.6.0 entries lack both fields — every consumer must tolerate both
-shapes (same contract as `derived_from`/`review_after` on learnings, v4.4.0).
+the post-implementation evidence that the change actually worked. Because refs alone carry
+no timestamp, each list is paired with an ISO date: `implemented_at` (when the change
+landed) and `validated_at` (when the effect evidence was observed). New entries start with
+honest empty lists and null dates; pre-4.6.0 entries lack all four fields — every consumer
+must tolerate both shapes (same contract as `derived_from`/`review_after` on learnings, v4.4.0).
 
 `lifecycle` is `"active"` by default. When a newer entry supersedes this one in the same scope
 (see `sync-context` recency-supersession), it becomes `"superseded"` and gains
@@ -162,11 +166,21 @@ Append to `patterns.json` array.
 
 ### Canonical schema + legacy normalization (pattern-schema-canon)
 
-pattern-extractor is the **only** writer of `patterns.json`, so the field set above is the
-**single canonical schema**. The canonical fields are `description` (what the pattern is),
-`recommendation` (what to do/avoid), and `evidence` (source error/iteration ids) — plus
+pattern-extractor is the **sole creator and schema owner** of `patterns.json` entries, so
+the field set above is the **single canonical schema**. The canonical fields are `description`
+(what the pattern is), `recommendation` (what to do/avoid), and `evidence` (source
+error/iteration ids) — plus
 `id/type/confidence/severity/tags/source_projects/first_seen/last_seen/occurrences/skill_candidate`
-and the feedback-loop fields `implemented_by`/`validated_by` (since 4.6.0, optional on legacy entries).
+and the feedback-loop fields `implemented_by`/`implemented_at`/`validated_by`/`validated_at`
+(since 4.6.0, optional on legacy entries).
+
+**Authorized field-writers besides pattern-extractor** (field-GAIN only — no other skill or
+session may create, delete, or rewrite entries; same model as decisions.json "Append +
+field-extend"):
+- obsidian-sync Step 6 sets the promotion metadata `promotion_status`/`promotion_scope`.
+- The implementing/validating main session sets `implemented_by`+`implemented_at` and
+  `validated_by`+`validated_at` under the Step 6.6 rules (a landed change and a later
+  effect check cannot wait for the next extractor run).
 
 Older entries in the wild used divergent shapes. Before appending, **normalize any legacy
 entry you read** to the canonical schema (one-shape convergence):
@@ -254,13 +268,23 @@ Step 6.5 covers NEW skills. This step covers the other half of the feedback loop
 patterns whose `recommendation` targets an **existing** skill, hook, prompt rule, or
 other agentic-os component. Source: membrain Loop-8 harvest (Rosine 1, T-15).
 
-**Trigger:** a pattern with `confidence >= 0.7` whose recommendation names or clearly
-implies a change to an existing component (e.g. "wrap-up should…", "the lint must…").
+**Trigger:** a pattern with `confidence >= 0.7` whose recommendation explicitly names an
+existing component (skill, hook, rule file — e.g. "wrap-up should…", "the lint must…").
+If the target is only vaguely implied, list the pattern under "Unmatched" in Step 8
+instead of guessing a component.
 
 **Gate — do NOT modify the target component from this skill.** Instead:
 
-1. **Write a delta draft** (4 lines, no new artifact format — persist it as an entry in
-   `context/open-tasks.json` or, for architecture-level changes, `context/decisions.json`):
+1. **Idempotency check** — before writing anything, inspect the pattern for `"delta_task_id"`.
+   If set (or an open task already references this pattern id), do NOT
+   create another draft — report it as "draft pending" in Step 8 and stop here for this
+   pattern. Step 6.5 uses `generated_skill` the same way.
+
+2. **Write a delta draft** (4 lines, no new artifact format) as a task entry in
+   `context/open-tasks.json` — tasks are the one store any agent may write
+   (Authority-Trias). For architecture-level changes, additionally hand the draft to
+   `context-keeper` and never write context/decisions.json directly (context-keeper
+   owns the decision log):
 
    ```text
    Affected component: <skill/hook/rule + file>
@@ -269,14 +293,20 @@ implies a change to an existing component (e.g. "wrap-up should…", "the lint m
    Acceptance check:   <how a later session verifies the change worked>
    ```
 
-2. **After implementation** — set `implemented_by` on the pattern,
+   Then **mark the pattern**: set `"delta_task_id": "<task id>"` and
+   `"delta_drafted_at": "<ISO 8601>"` so the next run skips it (see step 1).
+
+3. **After implementation** — the implementing session sets `implemented_by` (refs) plus
+   `implemented_at` (ISO date the change landed) on the pattern,
    but only after the change has landed (commit hash, `skill@version`, or rule file ref).
    Never set it for a draft, a plan, or an unmerged change.
 
-3. **After the effect check** — set `validated_by` with evidence that the problem
-   actually receded (recurrence drop in `errors.json`, a later audit/bilanz finding).
-   The evidence must be dated AFTER implemented_by — the implementing session itself
-   can never validate its own change; validation always comes from later observation.
+4. **After the effect check** — set `validated_by` (evidence refs) plus `validated_at`
+   (ISO date of the observation) once the problem actually receded (recurrence drop in
+   `errors.json`, a later audit/bilanz finding). Comparison rule: `validated_at`
+   must not precede implemented_at, and the evidence must come from a
+   session other than the implementing one — a session can never validate its own change;
+   validation always comes from later observation.
 
 **Provenance chain closed** (one line, end to end):
 iteration/error → learning (`derived_from`) → pattern (`evidence`) → change (`implemented_by`) → effect (`validated_by`).

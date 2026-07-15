@@ -1,12 +1,16 @@
 #!/bin/bash
-# Contract test (v4.6.0, membrain T-15/T-17 — Loop-8 Rosinen 1, 3, 4):
+# Contract test (v4.6.x, membrain T-15/T-17 — Loop-8 Rosinen 1, 3, 4):
 # the pattern feedback loop ("Rueckfluss") must be documented end-to-end:
 #   1. pattern-extractor: canonical schema carries implemented_by/validated_by
-#      + a delta-draft gate for changes to EXISTING components (no auto-change).
+#      (+ dated implemented_at/validated_at) + a delta-draft gate for changes
+#      to EXISTING components (no auto-change, idempotent via marker fields,
+#      ownership-clean routing for decisions).
 #   2. obsidian-sync Step 6: promotion_scope (project|global) derived from
 #      source_projects — scope gate before any wiki promotion.
 #   3. memory-audit: findings labeled with the gap taxonomy (7 classes)
-#      + the late-filter diagnosis rule.
+#      + the late-filter diagnosis rule + gap class visible in the report.
+#   4. DEPENDENCIES.md names every authorized patterns.json field-writer.
+# v4.6.1: greps section-scoped + coupling/negative checks (Verifier Minor 1).
 
 set -e
 
@@ -14,19 +18,34 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXTRACTOR="$ROOT_DIR/skills/pattern-extractor/SKILL.md"
 OBSIDIAN="$ROOT_DIR/skills/obsidian-sync/SKILL.md"
 AUDIT="$ROOT_DIR/commands/memory-audit.md"
+DEPS="$ROOT_DIR/skills/DEPENDENCIES.md"
 
 fail() {
     echo "FAIL: $1"
     exit 1
 }
 
-# --- 1. pattern-extractor: schema fields + delta-draft gate -----------------
+# Section extractors (scope greps to the section they belong to — Minor 1)
+extractor_step5()  { awk '/^## Step 5: Write Pattern Entry/,/^## Step 6: Update/'      "$EXTRACTOR"; }
+extractor_step66() { awk '/^## Step 6.6: Feedback Loop/,/^## Step 7: Flag/'            "$EXTRACTOR"; }
+obsidian_step6()   { awk '/^## Step 6: Update Pattern Promotion/,/^## Step 7: Update/' "$OBSIDIAN"; }
+audit_step35()     { awk '/^## Step 3.5: Classify/,/^## Step 4: Report/'               "$AUDIT"; }
+audit_step4()      { awk '/^## Step 4: Report/,0'                                      "$AUDIT"; }
 
-grep -q '"implemented_by"' "$EXTRACTOR" \
-    || fail "pattern-extractor template must carry implemented_by"
+# --- 1. pattern-extractor: schema fields in the Step 5 template -------------
 
-grep -q '"validated_by"' "$EXTRACTOR" \
-    || fail "pattern-extractor template must carry validated_by"
+for field in '"implemented_by"' '"validated_by"' '"implemented_at"' '"validated_at"'; do
+    extractor_step5 | grep -q "$field" \
+        || fail "pattern-extractor Step 5 template must carry $field"
+done
+
+extractor_step5 | grep -q '"implemented_at": null' \
+    || fail "implemented_at must default to null in the template"
+
+extractor_step5 | grep -q '"validated_at": null' \
+    || fail "validated_at must default to null in the template"
+
+# --- 2. pattern-extractor: delta-draft gate (Step 6.6) ----------------------
 
 grep -q 'rueckfluss-delta-gate' "$EXTRACTOR" \
     || fail "pattern-extractor must carry the rueckfluss-delta-gate anchor"
@@ -37,40 +56,80 @@ for token in \
     "Proposed change" \
     "Acceptance check"
 do
-    grep -q "$token" "$EXTRACTOR" \
-        || fail "pattern-extractor delta draft must contain field: $token"
+    extractor_step66 | grep -q "$token" \
+        || fail "delta draft must contain field: $token"
 done
 
-# Gate semantics: never auto-modify, implemented_by only after the change landed,
-# validated_by only from evidence AFTER implementation (effect check).
-grep -qi "do NOT modify the target component" "$EXTRACTOR" \
-    || fail "pattern-extractor gate must forbid auto-modifying existing components"
+# Gate semantics: never auto-modify the target
+extractor_step66 | grep -qi "do NOT modify the target component" \
+    || fail "gate must forbid auto-modifying existing components"
 
-grep -q "only after the change has landed" "$EXTRACTOR" \
-    || fail "pattern-extractor must bind implemented_by to a landed change"
+# Ownership routing: tasks go to open-tasks.json (any agent may write tasks);
+# decisions are NEVER written directly — they route through context-keeper.
+extractor_step66 | grep -q "open-tasks.json" \
+    || fail "gate must persist delta drafts as open tasks"
 
-grep -q "dated AFTER implemented_by" "$EXTRACTOR" \
-    || fail "pattern-extractor must bind validated_by to post-implementation evidence"
+extractor_step66 | grep -q "never write .*decisions.json directly" \
+    || fail "gate must forbid writing decisions.json directly"
+
+extractor_step66 | grep -q "context-keeper" \
+    || fail "gate must route decision-level drafts through context-keeper"
+
+# Idempotency: marker fields + dedup check before drafting (Verifier Major 4)
+extractor_step66 | grep -q '"delta_task_id"' \
+    || fail "gate must mark drafted patterns with delta_task_id"
+
+extractor_step66 | grep -q '"delta_drafted_at"' \
+    || fail "gate must timestamp drafts with delta_drafted_at"
+
+extractor_step66 | grep -qi "before writing.*delta_task_id\|delta_task_id.*before writing" \
+    || fail "gate must check delta_task_id BEFORE writing a new draft"
+
+# Temporal validation rule (Verifier Major 3): dated fields + comparison rule
+extractor_step66 | grep -q "only after the change has landed" \
+    || fail "implemented_by must be bound to a landed change"
+
+extractor_step66 | grep -q "implemented_at" \
+    || fail "gate must set implemented_at alongside implemented_by"
+
+extractor_step66 | grep -q "must not precede implemented_at" \
+    || fail "gate must define the validated_at >= implemented_at comparison rule"
+
+extractor_step66 | grep -qi "session other than the implementing one\|never validate its own change" \
+    || fail "gate must forbid self-validation by the implementing session"
 
 # Provenance chain must be stated (closes the loop from iteration to validation)
 grep -q "derived_from.*evidence.*implemented_by.*validated_by" "$EXTRACTOR" \
     || fail "pattern-extractor must document the full provenance chain"
 
-# --- 2. obsidian-sync: promotion scope gate ---------------------------------
+# --- 3. pattern-extractor canon: authorized field-writers (Major 1) ---------
 
-grep -q '"promotion_scope"' "$OBSIDIAN" \
+grep -q "sole creator" "$EXTRACTOR" \
+    || fail "canon must define pattern-extractor as sole creator of entries"
+
+grep -q "obsidian-sync.*promotion_status.*promotion_scope" "$EXTRACTOR" \
+    || fail "canon must authorize obsidian-sync for promotion metadata"
+
+# --- 4. obsidian-sync: promotion scope gate ---------------------------------
+
+obsidian_step6 | grep -q '"promotion_scope"' \
     || fail "obsidian-sync Step 6 must set promotion_scope"
 
-grep -q '"promotion_scope": "global"' "$OBSIDIAN" \
-    || fail "obsidian-sync must define the global promotion scope"
+obsidian_step6 | grep -q 'source_projects >= 2.*"promotion_scope": "global"' \
+    || fail "global scope must be bound to source_projects >= 2"
 
-grep -q '"promotion_scope": "project"' "$OBSIDIAN" \
-    || fail "obsidian-sync must define the project promotion scope"
+obsidian_step6 | grep -q 'single project.*"promotion_scope": "project"' \
+    || fail "project scope must be bound to the single-project condition"
 
-grep -q 'source_projects >= 2.*"promotion_scope": "global"' "$OBSIDIAN" \
-    || fail "obsidian-sync must bind global scope to source_projects >= 2"
+# --- 5. DEPENDENCIES.md: writer matrix current (Major 1) --------------------
 
-# --- 3. memory-audit: gap taxonomy (Loop-8 Rosine 3) ------------------------
+grep -q "promotion_status + promotion_scope" "$DEPS" \
+    || fail "DEPENDENCIES must list obsidian-sync's patterns.json fields completely"
+
+grep -q "implemented_by/validated_by" "$DEPS" \
+    || fail "DEPENDENCIES must name the rueckfluss field-writer exception"
+
+# --- 6. memory-audit: gap taxonomy (Loop-8 Rosine 3) ------------------------
 
 grep -q 'gap-taxonomy' "$AUDIT" \
     || fail "memory-audit must carry the gap-taxonomy anchor"
@@ -84,11 +143,15 @@ for gap in \
     "usage-gap" \
     "feedback-loop-gap"
 do
-    grep -q "$gap" "$AUDIT" \
-        || fail "memory-audit gap taxonomy must contain class: $gap"
+    audit_step35 | grep -q "$gap" \
+        || fail "gap taxonomy must contain class: $gap"
 done
 
-grep -qi "late filter" "$AUDIT" \
+audit_step35 | grep -qi "late filter" \
     || fail "memory-audit must state the late-filter diagnosis rule"
 
-echo "PASS: pattern rueckfluss contract (extractor fields + delta gate, promotion scope, gap taxonomy)"
+# Taxonomy must reach the report (Verifier Major 5)
+audit_step4 | grep -q "GAP CLASS" \
+    || fail "report template must carry a GAP CLASS column for findings"
+
+echo "PASS: pattern rueckfluss contract (schema+dates, delta gate w/ idempotency+ownership, scope gate, deps matrix, gap taxonomy in report)"

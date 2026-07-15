@@ -113,6 +113,11 @@ GLOBAL (~/.claude-memory/global/ — omit block if absent)
   promotion-gate violations: {n} (active but |source_projects| < 2)
   decay-due:             {n} (conf<=0.3, not archived, >365d)
 
+FINDINGS (one line per flagged item — GAP CLASS from Step 3.5)
+  {finding}            | {GAP CLASS}        | heals via {skill}
+  e.g. legacy P003     | index-gap          | heals via pattern-extractor normalization
+  e.g. P7 no evidence  | link-gap           | heals via wrap-up backfill
+
 VERDICT: {clean | N drift items, M staleness items — see above}
 Heals via: {memory-maintenance | wrap-up | migrate-global-schema-4A.sh | none needed}
 ```
