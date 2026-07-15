@@ -113,6 +113,17 @@ fi
 
 echo ""
 
+# Run model-routing SSoT tests (v4.7.0)
+echo ">>> Running model-routing SSoT tests..."
+if bash "$SCRIPT_DIR/test-model-routing.sh"; then
+    echo ">>> Model-routing SSoT tests: ALL PASSED"
+else
+    echo ">>> Model-routing SSoT tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run pattern rueckfluss contract test (v4.6.0: implemented_by/validated_by + delta gate)
 echo ">>> Running pattern rueckfluss contract test..."
 if bash "$SCRIPT_DIR/test-pattern-rueckfluss-contract.sh"; then
