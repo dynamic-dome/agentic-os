@@ -140,6 +140,17 @@ fi
 
 echo ""
 
+# Run cost-trace tests (v4.7.0)
+echo ">>> Running cost-trace tests..."
+if bash "$SCRIPT_DIR/test-cost-trace.sh"; then
+    echo ">>> Cost-trace tests: ALL PASSED"
+else
+    echo ">>> Cost-trace tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run pattern rueckfluss contract test (v4.6.0: implemented_by/validated_by + delta gate)
 echo ">>> Running pattern rueckfluss contract test..."
 if bash "$SCRIPT_DIR/test-pattern-rueckfluss-contract.sh"; then
