@@ -112,6 +112,17 @@ else
 fi
 
 echo ""
+
+# Run pattern rueckfluss contract test (v4.6.0: implemented_by/validated_by + delta gate)
+echo ">>> Running pattern rueckfluss contract test..."
+if bash "$SCRIPT_DIR/test-pattern-rueckfluss-contract.sh"; then
+    echo ">>> Pattern rueckfluss contract: ALL PASSED"
+else
+    echo ">>> Pattern rueckfluss contract: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
 echo "========================================"
 if [ "$TOTAL_ERRORS" -eq 0 ]; then
     echo "  ALL TEST SUITES PASSED"

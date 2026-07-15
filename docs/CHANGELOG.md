@@ -4,6 +4,35 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-15] Release v4.6.0 — Rueckfluss-Bruecke Pattern→Verhaltensaenderung (membrain T-15/T-17)
+
+Loop-8-Ernte (membrain memloop8harvest.md, Rosinen 1+3+4): schliesst die letzte
+grosse Luecke des Gedaechtnis-Kreislaufs — vom bestaetigten Pattern zur
+validierten Aenderung an BESTEHENDEN Komponenten.
+
+- **pattern-extractor (3.1):** kanonisches Schema um `implemented_by` +
+  `validated_by` erweitert (ehrliche Leerlisten, Legacy-Eintraege ohne Felder
+  bleiben gueltig — gleicher Kontrakt wie derived_from/review_after in v4.4.0).
+  Neuer Step 6.6 (rueckfluss-delta-gate): Patterns mit conf>=0.7, deren
+  recommendation eine bestehende Komponente betrifft, erzeugen einen
+  4-Zeilen-Delta-Entwurf (Affected component / Observed problem / Proposed
+  change / Acceptance check) als Task/Decision — NIE eine Auto-Aenderung.
+  implemented_by erst nach gelandetem Change; validated_by nur aus Evidenz,
+  die NACH implemented_by datiert (die implementierende Session validiert
+  sich nie selbst). Herkunftskette geschlossen: iteration → learning
+  (derived_from) → pattern (evidence) → change (implemented_by) → effect
+  (validated_by).
+- **obsidian-sync (1.4), Scope-Gate:** promotion_status "ready" traegt jetzt
+  `promotion_scope` — "global" nur bei source_projects >= 2, sonst "project"
+  (Haeufigkeit allein beweist keine Uebertragbarkeit); Wiki-Promotion muss
+  den Scope respektieren (projektgebundene Notiz statt Konzeptseite).
+- **memory-audit (Command), Luecken-Taxonomie:** Step 3.5 klassifiziert jeden
+  Befund in 7 Klassen (knowledge/capture/index/retrieval/link/usage/
+  feedback-loop-gap) + Diagnose-Regel "zero-hit nach spaetem Filter beweist
+  keine Wissensluecke" (L23-Fehlerklasse).
+- **Test:** tests/test-pattern-rueckfluss-contract.sh (TDD, RED verifiziert),
+  in run-all.sh registriert.
+
 ## [2026-07-15] Release v4.5.1 — Verifier-Findings am Decision-Promotion-Release
 
 Codex-Verifier-Review von 9a3dbc3: FAIL, 2 Major + 2 Minor — alle eingearbeitet

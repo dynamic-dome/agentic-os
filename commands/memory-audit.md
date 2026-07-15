@@ -65,6 +65,26 @@ Report age-based risks (the dimension the manual audit got wrong from old data):
    - Count entries with `confidence <= 0.3` AND `lifecycle != archived` older than 365d →
      "decay-due" (heals via `memory-maintenance` Step 4b).
 
+## Step 3.5: Classify Every Finding (gap-taxonomy)
+
+Label each finding from Steps 1–3 with exactly one gap class, so the reader knows WHERE
+in the memory loop the problem sits (source: membrain Loop-8 harvest, Rosine 3 / T-17):
+
+| Class | Meaning |
+|---|---|
+| `knowledge-gap` | the information was never captured anywhere |
+| `capture-gap` | recognized during a session, but never written to a durable store |
+| `index-gap` | stored, but invisible to the index (quarantine, adapter error, bad frontmatter) |
+| `retrieval-gap` | indexed, but not findable (filter/ranking/mapping error) |
+| `link-gap` | both entries exist, but the relation between them is missing |
+| `usage-gap` | found, but ignored by the acting agent |
+| `feedback-loop-gap` | problem recognized repeatedly, but no procedural change followed |
+
+**Diagnosis rule before any verdict:** a zero-hit search after a late filter is NOT proof
+that the record does not exist — check for an index-gap or retrieval-gap before declaring
+a knowledge-gap. (This is the real-world L23 failure class: quarantined records looked
+like missing knowledge.)
+
 ## Step 4: Report
 
 Print a compact table. Example shape:

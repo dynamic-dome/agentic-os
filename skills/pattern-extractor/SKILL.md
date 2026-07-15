@@ -11,7 +11,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '3.0'
+  version: '3.1'
   part-of: agentic-os
   layer: analysis
 ---
@@ -137,9 +137,17 @@ Use **Jaccard similarity on word tokens** to determine if two descriptions refer
   "occurrences": 3,
   "recommendation": "Specific action to take or avoid",
   "skill_candidate": false,
-  "lifecycle": "active"
+  "lifecycle": "active",
+  "implemented_by": [],
+  "validated_by": []
 }
 ```
+
+`implemented_by` and `validated_by` close the feedback loop (see Step 6.6): refs to the
+change that implements the recommendation (commit hash, `skill@version`, rule file) and to
+the post-implementation evidence that the change actually worked. New entries start with
+honest empty lists; pre-4.6.0 entries lack both fields — every consumer must tolerate both
+shapes (same contract as `derived_from`/`review_after` on learnings, v4.4.0).
 
 `lifecycle` is `"active"` by default. When a newer entry supersedes this one in the same scope
 (see `sync-context` recency-supersession), it becomes `"superseded"` and gains
@@ -157,7 +165,8 @@ Append to `patterns.json` array.
 pattern-extractor is the **only** writer of `patterns.json`, so the field set above is the
 **single canonical schema**. The canonical fields are `description` (what the pattern is),
 `recommendation` (what to do/avoid), and `evidence` (source error/iteration ids) — plus
-`id/type/confidence/severity/tags/source_projects/first_seen/last_seen/occurrences/skill_candidate`.
+`id/type/confidence/severity/tags/source_projects/first_seen/last_seen/occurrences/skill_candidate`
+and the feedback-loop fields `implemented_by`/`validated_by` (since 4.6.0, optional on legacy entries).
 
 Older entries in the wild used divergent shapes. Before appending, **normalize any legacy
 entry you read** to the canonical schema (one-shape convergence):
@@ -238,6 +247,41 @@ generate a reusable skill from it (this replaces the former `skill-generator` sk
 4. **Mark the pattern** in `patterns.json`: set `"generated_skill": "<skill-name>"` and
    `"skill_generated_at": "<ISO 8601>"` so the candidate is not regenerated next run.
 5. Report generated skills in the Step 8 output summary.
+
+## Step 6.6: Feedback Loop to EXISTING Components (rueckfluss-delta-gate)
+
+Step 6.5 covers NEW skills. This step covers the other half of the feedback loop:
+patterns whose `recommendation` targets an **existing** skill, hook, prompt rule, or
+other agentic-os component. Source: membrain Loop-8 harvest (Rosine 1, T-15).
+
+**Trigger:** a pattern with `confidence >= 0.7` whose recommendation names or clearly
+implies a change to an existing component (e.g. "wrap-up should…", "the lint must…").
+
+**Gate — do NOT modify the target component from this skill.** Instead:
+
+1. **Write a delta draft** (4 lines, no new artifact format — persist it as an entry in
+   `context/open-tasks.json` or, for architecture-level changes, `context/decisions.json`):
+
+   ```text
+   Affected component: <skill/hook/rule + file>
+   Observed problem:   <what the pattern evidence shows>
+   Proposed change:    <the minimal delta>
+   Acceptance check:   <how a later session verifies the change worked>
+   ```
+
+2. **After implementation** — set `implemented_by` on the pattern,
+   but only after the change has landed (commit hash, `skill@version`, or rule file ref).
+   Never set it for a draft, a plan, or an unmerged change.
+
+3. **After the effect check** — set `validated_by` with evidence that the problem
+   actually receded (recurrence drop in `errors.json`, a later audit/bilanz finding).
+   The evidence must be dated AFTER implemented_by — the implementing session itself
+   can never validate its own change; validation always comes from later observation.
+
+**Provenance chain closed** (one line, end to end):
+iteration/error → learning (`derived_from`) → pattern (`evidence`) → change (`implemented_by`) → effect (`validated_by`).
+
+Report delta drafts in the Step 8 output summary as "Rueckfluss candidates".
 
 ## Step 7: Flag Potential New Patterns
 

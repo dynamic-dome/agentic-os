@@ -10,7 +10,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '1.3'
+  version: '1.4'
   part-of: agentic-os
   layer: core
 ---
@@ -202,6 +202,16 @@ For each pattern in patterns.json:
 - If confidence 0.70–0.84 → set `"promotion_status": "candidate"` if not already set
 - If confidence >= 0.85 AND (occurrences >= 2 OR source_projects >= 2) → set `"promotion_status": "ready"`
 - If confidence >= 0.85 BUT single project/single occurrence → set `"promotion_status": "candidate"`
+
+**Scope gate (since 4.6.0, membrain Loop-8 Rosine 4):** whenever `promotion_status` is set
+to `"ready"`, also record how far the pattern is allowed to travel — frequency alone does
+not prove transferability:
+- If source_projects >= 2 → set `"promotion_scope": "global"` (evidence spans projects)
+- If ready via occurrences within a single project → set `"promotion_scope": "project"`
+
+Whoever later promotes a ready pattern into the wiki (migration or manual) MUST respect
+the scope: a `"promotion_scope": "project"` pattern becomes a project-bound note with an
+explicit scope remark, never a general concept page.
 
 **Do NOT create Concept pages from patterns.** That happens during migration (Sprint 4+) or manually.
 
