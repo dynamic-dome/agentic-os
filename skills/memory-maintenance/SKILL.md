@@ -11,7 +11,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '1.1'
+  version: '1.2'
   part-of: agentic-os
   layer: core
   extracted-from: wrap-up
@@ -47,6 +47,24 @@ Compacts and verifies the `.agent-memory/` store. Runs only when thresholds are 
 - `.agent-memory/` directory exists (if not: suggest `/agentic-os:init`)
 - No active self-improve loop. Read `improvements/state.json` in the plugin root;
   if `status == "running"`, abort with: "Self-improve loop is active — maintenance deferred."
+
+## Step 0: Pre-Run Commit (backup light)
+
+Maintenance mutates the store (archiving, pruning, recreating corrupt files). If the
+project versions its `.agent-memory/`, snapshot it FIRST so every mutating run has a
+one-command rollback:
+
+1. `git -C {project_root} rev-parse --is-inside-work-tree` fails → skip silently
+   (optionally one hint line: "Store unversioniert — kein Pre-Run-Snapshot möglich").
+2. `git -C {project_root} status --porcelain -- .agent-memory` empty → skip (clean).
+3. Otherwise stage ONLY the store — `git add .agent-memory` (NEVER `-A`; foreign
+   project files stay untouched) — and commit:
+   `chore(memory): pre-run snapshot vor memory-maintenance`.
+4. Any failure here is non-blocking: report one line and continue — a missed
+   snapshot must never prevent the maintenance itself.
+
+Rollback later: `git log --oneline -- .agent-memory` →
+`git checkout {hash} -- .agent-memory`.
 
 ## Step 1: Assess Memory Health
 

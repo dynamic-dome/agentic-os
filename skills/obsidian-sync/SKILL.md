@@ -10,7 +10,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '1.0'
+  version: '1.1'
   part-of: agentic-os
   layer: core
 ---
@@ -36,6 +36,18 @@ Sync session results from .agent-memory/ (RAM) into ~/wiki/ (Brain).
 - `.agent-memory/config.json` must exist with `wiki_root` and `sync_enabled: true`
 - The wiki at `wiki_root` must have a valid `CLAUDE.md` file
 - `.agent-memory/session-summary.md` should have current session data
+
+## Step 0: Pre-Run Commit (backup light)
+
+Sync consolidates syntheses and updates sync-state in the store. If the project
+versions its `.agent-memory/`, snapshot it before writing:
+
+1. `git -C {project_root} rev-parse --is-inside-work-tree` fails → skip silently.
+2. `git -C {project_root} status --porcelain -- .agent-memory` empty → skip.
+3. Otherwise `git add .agent-memory` (NEVER `-A` — foreign project files stay
+   untouched) + commit: `chore(memory): pre-run snapshot vor obsidian-sync`.
+4. Failures are non-blocking (one report line, continue). The wiki side needs no
+   extra snapshot here — it is its own git repo; never commit foreign wiki drift.
 
 ## Step 1: Read Config and Validate
 

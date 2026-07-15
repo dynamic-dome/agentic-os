@@ -23,6 +23,12 @@ naechste Bootstrap meldete die laengst konsolidierte Session als RECOVERY-Kandid
   Konsolidierung).
 - **wrap-up Step 9.5:** Self-Healing-Regel dokumentiert die bewahrte Historie.
 
+**T-9-Rest — Pre-Run Commit (backup light):** memory-maintenance (1.2) und
+obsidian-sync (1.1) haben einen neuen Step 0: Ist `.agent-memory/` git-versioniert,
+wird der Store VOR jedem mutierenden Lauf chirurgisch committet
+(`git add .agent-memory`, nie `-A`) — Ein-Kommando-Rollback via
+`git checkout {hash} -- .agent-memory`. Fail-open: fehlender Snapshot blockt nie.
+
 **Codex-Verifier-Fixes (Review nach Erst-Commit, 2 Major + 2 Minor):**
 
 - Regel 4b verschaerft: Downgrade zusaetzlich nur bei `updated` <= 15 min nach
