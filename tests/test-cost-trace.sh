@@ -73,6 +73,18 @@ fi
 bash "$CT" append --mem "$TMP/does/not/exist/deep" --task x --class standard --context-bytes 1 --escalated 0 2>/dev/null
 if [ "$?" -eq 0 ]; then pass "fail-soft exit 0 on bad mem dir"; else fail "must never exit non-zero (fail-soft)"; fi
 
+# 7. trailing flag without value must terminate (no infinite loop) and exit 0
+timeout 10 bash "$CT" append --mem "$MEM" --task 2>/dev/null
+rc=$?
+if [ "$rc" -eq 0 ]; then pass "trailing flag without value terminates with exit 0"; else fail "trailing flag hung or exited $rc (must terminate, exit 0)"; fi
+
+# 8. control chars in --task must not split the JSONL record
+before=$(wc -l < "$TRACE" | tr -d ' ')
+bash "$CT" append --mem "$MEM" --task "$(printf 'evil\ntask')" --class standard --context-bytes 10 --escalated 0
+after=$(wc -l < "$TRACE" | tr -d ' ')
+if [ "$((after - before))" -eq 1 ]; then pass "newline in task adds exactly one line"; else fail "newline in task split the record ($before -> $after lines)"; fi
+if tail -1 "$TRACE" | grep -qF '"task_type":"eviltask"'; then pass "control chars stripped from task_type"; else fail "task_type not sanitized: $(tail -1 "$TRACE")"; fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

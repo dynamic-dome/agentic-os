@@ -24,11 +24,11 @@ ESC="0"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --mem)            MEM="${2:-.agent-memory}"; shift 2 ;;
-    --task)           TASK="${2:-unknown}"; shift 2 ;;
-    --class)          CLASS="${2:-unknown}"; shift 2 ;;
-    --context-bytes)  BYTES="${2:-0}"; shift 2 ;;
-    --escalated)      ESC="${2:-0}"; shift 2 ;;
+    --mem)            MEM="${2:-.agent-memory}"; [ "$#" -ge 2 ] && shift 2 || shift ;;
+    --task)           TASK="${2:-unknown}"; [ "$#" -ge 2 ] && shift 2 || shift ;;
+    --class)          CLASS="${2:-unknown}"; [ "$#" -ge 2 ] && shift 2 || shift ;;
+    --context-bytes)  BYTES="${2:-0}"; [ "$#" -ge 2 ] && shift 2 || shift ;;
+    --escalated)      ESC="${2:-0}"; [ "$#" -ge 2 ] && shift 2 || shift ;;
     *) shift ;;
   esac
 done
@@ -38,11 +38,13 @@ if [ "$cmd" != "append" ]; then
   exit 0  # fail-soft: even usage errors must not break a skill run
 fi
 
-# sanitize numerics (non-numeric -> 0) and enum-ish strings (strip quotes/backslashes)
+# sanitize numerics (non-numeric -> 0) and enum-ish strings (whitelist A-Za-z0-9._:-)
 case "$BYTES" in (*[!0-9]*|"") BYTES=0 ;; esac
 case "$ESC" in (0|1) : ;; (*) ESC=0 ;; esac
-TASK=$(printf '%s' "$TASK" | tr -d '"\\' | cut -c1-64)
-CLASS=$(printf '%s' "$CLASS" | tr -d '"\\' | cut -c1-32)
+TASK=$(printf '%s' "$TASK" | tr -cd 'A-Za-z0-9._:-' | cut -c1-64)
+CLASS=$(printf '%s' "$CLASS" | tr -cd 'A-Za-z0-9._:-' | cut -c1-32)
+[ -n "$TASK" ] || TASK="unknown"
+[ -n "$CLASS" ] || CLASS="unknown"
 TOKENS=$((BYTES / 4))
 TS=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "")
 
