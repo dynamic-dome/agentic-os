@@ -82,7 +82,9 @@
       "model-routing",
       "ssot",
       "cost"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-07-15"
   },
   {
     "id": "D-005",
@@ -123,7 +125,9 @@
       "architecture",
       "model-routing",
       "frontmatter"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-07-15"
   },
   {
     "id": "D-006",
@@ -160,7 +164,9 @@
       "architecture",
       "model-routing",
       "testing"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-07-15"
   },
   {
     "id": "D-007",
@@ -199,6 +205,8 @@
       "stack-change",
       "python",
       "model-routing"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-07-15"
   }
 ]
