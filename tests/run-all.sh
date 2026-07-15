@@ -113,6 +113,22 @@ fi
 
 echo ""
 
+# Run stage-0 preprocess-state tests (v4.7.0)
+echo ">>> Running preprocess-state tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-preprocess-state.py"; then
+    echo ">>> Preprocess-state tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Preprocess-state tests: SKIPPED (no python found)"
+else
+    echo ">>> Preprocess-state tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run model-routing SSoT tests (v4.7.0)
 echo ">>> Running model-routing SSoT tests..."
 if bash "$SCRIPT_DIR/test-model-routing.sh"; then
