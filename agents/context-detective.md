@@ -6,6 +6,7 @@ description: >
   truth). Use when initializing Agentic OS in a new project or when the
   project context needs refreshing.
 model: sonnet
+effort: medium
 color: green
 allowed_tools:
   - Read

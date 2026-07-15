@@ -9,6 +9,8 @@ description: >
   Trigger phrases: "clean memory", "memory cleanup", "memory maintenance",
   "prune patterns", "memory health", "archive old data".
 user_invocable: true
+model: sonnet
+effort: low
 metadata:
   author: agentic-os
   version: '1.2'

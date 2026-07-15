@@ -2,6 +2,7 @@
 name: research-agent
 description: Subagent that combines NotebookLM queries with web search to research skill improvement best practices. Spawned by self-improve skill's Phase 1 research phase.
 model: sonnet
+effort: medium
 allowed_tools:
   - Skill
   - WebSearch

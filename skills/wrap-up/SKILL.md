@@ -10,6 +10,8 @@ description: |
   "wrap up", "end session", "save session", "session handoff",
   "finish for today", "I'm done for today", "close session".
 user_invocable: true
+model: sonnet
+effort: medium
 metadata:
   author: agentic-os
   version: '4.1'

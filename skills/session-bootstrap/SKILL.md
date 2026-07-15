@@ -9,6 +9,8 @@ description: >
   "begin work", "what was I working on", "context restore", "new session",
   "project status", "where were we", "what do we know".
 user_invocable: true
+model: sonnet
+effort: low
 metadata:
   author: agentic-os
   version: '3.1'

@@ -719,6 +719,56 @@ if [ -f "$OS_FILE" ]; then
     fi
 fi
 
+# --- Model-Routing SSoT consistency (v4.7.0) ---
+# The frontmatter `model:`/`effort:` of every skill must match the routing
+# table in scripts/model-routing.sh ("-" in the table = field must be ABSENT).
+# Only top-level fields count (^model:), so metadata sub-keys never match.
+echo ""
+echo "-- model routing: skill frontmatter matches scripts/model-routing.sh --"
+MR_SCRIPT="$PLUGIN_ROOT/scripts/model-routing.sh"
+if [ -f "$MR_SCRIPT" ]; then
+    while IFS=$'\t' read -r mr_skill mr_class mr_model mr_effort; do
+        [ -n "$mr_skill" ] || continue
+        mr_file="$SKILLS_DIR/$mr_skill/SKILL.md"
+        if [ ! -f "$mr_file" ]; then
+            fail "model-routing: $mr_skill listed in SSoT but SKILL.md missing"
+            continue
+        fi
+        mr_fm=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$mr_file")
+        got_model=$(echo "$mr_fm" | grep '^model:' | head -1 | sed 's/^model: *//' | tr -d ' \r')
+        got_effort=$(echo "$mr_fm" | grep '^effort:' | head -1 | sed 's/^effort: *//' | tr -d ' \r')
+        want_model="$mr_model"; [ "$want_model" = "-" ] && want_model=""
+        want_effort="$mr_effort"; [ "$want_effort" = "-" ] && want_effort=""
+        if [ "$got_model" = "$want_model" ] && [ "$got_effort" = "$want_effort" ]; then
+            pass "model-routing: $mr_skill frontmatter matches SSoT ($mr_class: model='${want_model:--}' effort='${want_effort:--}')"
+        else
+            fail "model-routing: $mr_skill frontmatter (model='$got_model' effort='$got_effort') != SSoT (model='$want_model' effort='$want_effort') — fix frontmatter OR scripts/model-routing.sh, they must never drift"
+        fi
+    done < <(bash "$MR_SCRIPT" list)
+
+    # Agents: same check against list-agents (agents/<name>.md)
+    while IFS=$'\t' read -r mr_agent mr_class mr_model mr_effort; do
+        [ -n "$mr_agent" ] || continue
+        mr_afile="$PLUGIN_ROOT/agents/$mr_agent.md"
+        if [ ! -f "$mr_afile" ]; then
+            fail "model-routing: agent $mr_agent listed in SSoT but agents/$mr_agent.md missing"
+            continue
+        fi
+        mr_afm=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$mr_afile")
+        got_model=$(echo "$mr_afm" | grep '^model:' | head -1 | sed 's/^model: *//' | tr -d ' \r')
+        got_effort=$(echo "$mr_afm" | grep '^effort:' | head -1 | sed 's/^effort: *//' | tr -d ' \r')
+        want_model="$mr_model"; [ "$want_model" = "-" ] && want_model=""
+        want_effort="$mr_effort"; [ "$want_effort" = "-" ] && want_effort=""
+        if [ "$got_model" = "$want_model" ] && [ "$got_effort" = "$want_effort" ]; then
+            pass "model-routing: agent $mr_agent frontmatter matches SSoT"
+        else
+            fail "model-routing: agent $mr_agent frontmatter (model='$got_model' effort='$got_effort') != SSoT (model='$want_model' effort='$want_effort')"
+        fi
+    done < <(bash "$MR_SCRIPT" list-agents)
+else
+    fail "model-routing: scripts/model-routing.sh missing — model-class SSoT required since v4.7.0"
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

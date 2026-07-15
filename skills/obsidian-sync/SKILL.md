@@ -8,6 +8,8 @@ description: >
   Trigger phrases: "sync to wiki", "obsidian sync", "wiki sync",
   "wiki update", "push to obsidian".
 user_invocable: true
+model: sonnet
+effort: medium
 metadata:
   author: agentic-os
   version: '1.4'

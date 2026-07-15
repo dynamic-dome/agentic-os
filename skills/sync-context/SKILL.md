@@ -8,6 +8,8 @@ description: >
   Trigger phrases: "sync memory", "pull patterns", "push learnings",
   "cross-project sync", "global memory", "share knowledge".
 user_invocable: true
+model: sonnet
+effort: low
 metadata:
   author: agentic-os
   version: '3.0'
