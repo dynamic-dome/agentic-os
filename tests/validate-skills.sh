@@ -769,6 +769,46 @@ else
     fail "model-routing: scripts/model-routing.sh missing — model-class SSoT required since v4.7.0"
 fi
 
+# --- Model-Routing v4.7.0: wrap-up stage-0 + context diet + escalation + trace ---
+echo ""
+echo "-- wrap-up: stage-0 preprocess, context diet, delta update, escalation, cost trace --"
+WU_MR_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+if [ -f "$WU_MR_FILE" ]; then
+    if grep -q "(stage0-preprocess)" "$WU_MR_FILE" && grep -q "preprocess_state.py" "$WU_MR_FILE"; then
+        pass "wrap-up: (stage0-preprocess) — deterministic preflight via preprocess_state.py"
+    else
+        fail "wrap-up: missing (stage0-preprocess) — Step 0 must run scripts/preprocess_state.py and use its JSON as primary data source"
+    fi
+    CD_BLOCK=$(grep -A4 "(context-diet)" "$WU_MR_FILE")
+    if echo "$CD_BLOCK" | grep -qi "NOT systematically re-read" && echo "$CD_BLOCK" | grep -qi "targeted"; then
+        pass "wrap-up: (context-diet) — no systematic transcript re-read, targeted lookups only"
+    else
+        fail "wrap-up: missing (context-diet) — must forbid systematic transcript/full-memory re-reads (state object + held context first, targeted lookups only)"
+    fi
+    DU_BLOCK=$(grep -A4 "(delta-update)" "$WU_MR_FILE")
+    if echo "$DU_BLOCK" | grep -qi "delta" && echo "$DU_BLOCK" | grep -qi "unchanged sections"; then
+        pass "wrap-up: (delta-update) — session-summary updated as delta, unchanged sections untouched"
+    else
+        fail "wrap-up: missing (delta-update) — Step 5 must update session-summary.md as a delta (only changed sections), not rewrite the whole file"
+    fi
+    ER_BLOCK=$(grep -A20 "(escalation-rules)" "$WU_MR_FILE")
+    if echo "$ER_BLOCK" | grep -q "escalations-" \
+       && echo "$ER_BLOCK" | grep -q "ESKALATION:" \
+       && echo "$ER_BLOCK" | grep -qi "contradict" \
+       && echo "$ER_BLOCK" | grep -qi "identity" \
+       && echo "$ER_BLOCK" | grep -qi "difficult to reverse"; then
+        pass "wrap-up: (escalation-rules) — conditions + escalations log + visible marker"
+    else
+        fail "wrap-up: missing/incomplete (escalation-rules) — must log to working/escalations-<sid>.json, emit ESKALATION: line, and name the conditions (contradiction, identity, decision replacement, pattern promotion, hard-to-reverse, missing sources)"
+    fi
+    CT_BLOCK=$(grep -A8 "(cost-trace)" "$WU_MR_FILE")
+    if echo "$CT_BLOCK" | grep -q "cost-trace.sh" && echo "$CT_BLOCK" | grep -q "cheap-write"; then
+        pass "wrap-up: (cost-trace) — run cost logged via cost-trace.sh"
+    else
+        fail "wrap-up: missing (cost-trace) — end of run must call scripts/cost-trace.sh append with class cheap-write"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

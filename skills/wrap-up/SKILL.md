@@ -38,6 +38,26 @@ central .agent-memory/ knowledge base instead of leaving it in the conversation:
 
 Reject trivial facts. Manual-only — no hook triggers this automatically.
 
+## Step 0: Deterministic Preflight (stage0-preprocess)
+
+Run the stage-0 preprocessor FIRST — it gathers every mechanical session fact
+without model work:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/preprocess_state.py" .agent-memory --session-id <session-id>
+```
+
+Use its JSON output (`changed_files`, `git_diff_summary`, `threshold_events`,
+`validation_errors`, `open_tasks`, state hashes) as the PRIMARY data source
+for all following steps. If `validation_errors` is non-empty, surface them in
+the summary instead of re-validating files by reading them.
+
+(context-diet) Do NOT systematically re-read the session transcript or full
+memory files: work from the preprocess state object plus the conversation
+context you already hold. Fall back to targeted lookups ONLY for single
+unresolved points — never a full re-scan. Track roughly how many bytes of
+files you actually read this run; Step 9.5 logs that number.
+
 ## Step 1: Gather Session Data
 
 1. `.agent-memory/iterations/iteration-log.md` — entries from today
@@ -176,6 +196,11 @@ If found: **invoke `context-keeper`** with the list — it owns `decisions.json`
 implementation details are NOT decisions — when in doubt, skip. None found: skip silently.
 
 ## Step 5: Update session-summary.md
+
+(delta-update) Update session-summary.md as a DELTA against the existing
+file: rewrite only sections whose content actually changed this session
+(added / updated / resolved items) and keep unchanged sections untouched —
+do not regenerate the whole file from scratch.
 
 Overwrite `.agent-memory/session-summary.md` (**max 30 lines**):
 
@@ -400,7 +425,38 @@ and runs LAST — only after Steps 1–8 actually completed.
 5. On any failure in Steps 1–8: do NOT write the marker and do NOT reset dirty flags —
    an honest dirty state is exactly what recovery needs.
 
+(cost-trace) Finally, log the run trace and refresh the state hash (both
+fail-soft, never blocking):
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/cost-trace.sh" append --mem .agent-memory \
+  --task wrap-up --class cheap-write \
+  --context-bytes <approx bytes of files read this run> --escalated <0|1>
+python "${CLAUDE_PLUGIN_ROOT}/scripts/preprocess_state.py" .agent-memory --write-hash > /dev/null
+```
+
 ---
+
+## Escalation Rules (escalation-rules)
+
+This skill runs on the cheap-write model class (SSoT:
+`scripts/model-routing.sh`). The following cases must NOT be resolved by this
+skill run itself. When one occurs:
+
+1. Append `{"ts": "...", "task": "wrap-up", "reason": "...", "detail": "..."}`
+   to `.agent-memory/working/escalations-<session-id>.json` (create as JSON
+   array if missing).
+2. Emit a visible `ESKALATION: <reason>` line in the output.
+3. Leave the decision itself to the next turn on the session model.
+
+Escalate when:
+- two active sources contradict each other,
+- a change would touch identity or stable user preferences (identity writes
+  additionally stay behind the existing [j/n] gates),
+- an active decision record would be replaced,
+- a pattern would be promoted into a skill or Agentic-OS rule,
+- a change is difficult to reverse,
+- required sources are missing.
 
 # Handoff Mode (Pre-Compression)
 
