@@ -134,6 +134,14 @@ def main():
         except Exception as e:
             check("bogus flag still emits valid JSON", False, str(e))
 
+        # 10. --help stays pure help text (exit 0, no JSON mixed into stdout)
+        p = run(["--help"], cwd=tmp)
+        check("--help exits 0", p.returncode == 0, f"rc={p.returncode}")
+        check("--help prints usage", p.stdout.lstrip().startswith("usage"), p.stdout[:80])
+        check("--help stdout contains no JSON object line",
+              not any(ln.lstrip().startswith("{") for ln in p.stdout.splitlines()),
+              p.stdout[-120:])
+
     n = len(FAILURES)
     print(f"=== {('ALL PASSED' if n == 0 else str(n) + ' FAILURE(S)')} ===")
     return 0 if n == 0 else 1

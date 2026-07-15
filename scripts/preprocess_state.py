@@ -13,6 +13,7 @@ Contract (must never break):
 
 Usage:
   python preprocess_state.py [mem-dir] [--session-id SID] [--write-hash]
+  -h/--help prints usage; every other invocation prints the JSON state object.
 """
 import argparse
 import hashlib
@@ -169,8 +170,10 @@ def main():
     parser.add_argument("--write-hash", action="store_true")
     try:
         args = parser.parse_args()
-    except SystemExit:
-        # fail-soft contract: even malformed argv must yield JSON + exit 0
+    except SystemExit as e:
+        if not e.code:  # -h/--help: argparse printed help; keep stdout pure
+            return 0
+        # fail-soft contract: malformed argv must still yield JSON + exit 0
         print(json.dumps({
             "session_id": "", "changed_files": [], "git_diff_summary": "",
             "threshold_events": [], "validation_errors": [], "open_tasks": [],
