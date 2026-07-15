@@ -4,6 +4,28 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-15] Release v4.5.0 — Decision-Promotion (decisions.json → Wiki-Projektion)
+
+membrain Schnitt 5 (T-3): `context/decisions.json` bleibt der fuehrende
+Entscheidungsspeicher; das Wiki erhaelt erstmals eine mechanisch idempotente
+Batch-Projektion.
+
+- **obsidian-sync (1.2), neuer Step 4.5 Decision Promotion:** promotet
+  architekturrelevante Decisions (`architecture-decision`/`stack-change`,
+  status active, ohne `wiki_ref`) als Kompakt-Bloecke in die Sektion
+  `## Architecture Decisions` des Projekt-Entities; legt bei Bedarf ein
+  minimales Entity an (einzige Entity-Erzeugungs-Ausnahme, wird im Report
+  ausgewiesen). Idempotenz via Write-back-Marker `wiki_ref` + `promoted_at`
+  im decisions.json-Record (reine Feld-Erweiterung). Supersede-Pflege:
+  Status-Zeile im Wiki wird markiert, nie geloescht. Stalen Verweis
+  "context-keeper Step 4.5" in Step 4 korrigiert (real: Step 3.5).
+- **context-keeper (3.1), Step 3.5:** setzt beim Live-Writeback denselben
+  Marker, damit Batch- und Live-Pfad sich nicht doppeln; fehlgeschlagener
+  Wiki-Write setzt nie einen Marker.
+- **Tests:** neuer Contract-Test `test-obsidian-sync-decision-promotion.sh`
+  (beide Writer, Marker-Felder, Typ-Filter, Projektion-Richtung, Stale-Ref-Guard);
+  in run-all.sh registriert.
+
 ## [2026-07-15] Release v4.4.1 — Recovery-Falsch-Positiv nach Wrap-up-Tail-Writes behoben
 
 Organischer T-1-Befund (membrain): Nach einem sauberen wrap-up schrieben Session-Ende-

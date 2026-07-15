@@ -10,7 +10,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '1.1'
+  version: '1.2'
   part-of: agentic-os
   layer: core
 ---
@@ -120,7 +120,59 @@ Link to relevant wiki pages using `[[wiki/...]]` format.
 2. If entity exists: append status/decision update to the entity's relevant section
 3. If entity does not exist: skip (do NOT create entities in this step)
 
-**Do NOT update entity for:** architecture-decisions (those go to synthesis/topics via context-keeper Step 4.5).
+**Do NOT update entity for:** architecture-decisions — their live writeback is
+context-keeper Step 3.5; the batch projection is Step 4.5 below.
+
+## Step 4.5: Decision Promotion (conditional)
+
+Project decisions live in `context/decisions.json` — the **leading** store, owned
+by context-keeper. The wiki only ever receives a projection, never the other way
+around. This step batch-promotes architecture-relevant decisions that have no
+wiki projection yet.
+
+**Candidates:** every decision in `context/decisions.json` with ALL of:
+- `type` in {`architecture-decision`, `stack-change`}
+- `status: "active"`
+- no `wiki_ref` field (the promotion marker; records that context-keeper
+  Step 3.5 already wrote live carry it and are skipped here)
+
+No candidates → skip silently, continue with Step 5.
+
+**Target:** `$WIKI_ROOT/wiki/entities/{project_id}.md`, section
+`## Architecture Decisions`.
+- Entity exists → append to that section (create the section if missing).
+- Entity missing → create a **minimal** entity page: frontmatter (`type: entity`,
+  `status: active`, `created`/`updated`, `source_count: 0`,
+  `tags: [project, agent-generated]`, `aliases`), a one-line `What it is`, then
+  the decisions section. This is the single entity-creation exception to
+  Step 4's "do NOT create entities" — report it in the output.
+
+**Projection format** (compact; the full record with options_considered stays
+in decisions.json):
+
+```
+### {id}: {title}
+*{date} · {type} · Status: {status}*
+- **Entscheidung:** {decision, condensed to 1-2 sentences}
+- **Konsequenz:** {consequences, condensed to 1 sentence}
+- Quelle (fuehrend): `{project_root}/.agent-memory/context/decisions.json` → {id}
+```
+
+**Write-back marker (idempotency):** after each successful wiki write, extend
+the promoted record in decisions.json with:
+- `"wiki_ref": "wiki/entities/{project_id}.md"`
+- `"promoted_at": "YYYY-MM-DD"`
+
+Field extension only — never restructure the record. Consumers must tolerate
+records with and without these fields.
+
+**Supersede care:** if a candidate has `supersedes: "D{x}"` and D{x} carries a
+`wiki_ref`, append `— superseded by {id} ({date})` to D{x}'s status line in the
+wiki block instead of deleting it (wiki rule: mark, never silently delete).
+
+**Do NOT promote:** `scope-decision`, `constraint-update`, or runtime/status
+decisions — those follow Step 4 / context-keeper routing. Never write from a
+subagent; never edit wiki history.
 
 ## Step 5: Update Rolling Synthesis (conditional)
 
@@ -162,6 +214,7 @@ Append to `$WIKI_ROOT/log.md`:
 
 - Session-Note: wiki/queries/YYYY-MM-DD-session-{project_id}-summary.md
 - Entity updated: {yes/no}
+- Decisions promoted: {count} (entity created: {yes/no})
 - Learnings promoted: {count}
 - Patterns flagged: {count candidates, count ready}
 - Total pages touched: {n}
@@ -176,6 +229,7 @@ success:
 Wiki sync complete:
   Session-Note: wiki/queries/YYYY-MM-DD-session-...
   Entity updated: {yes/no}
+  Decisions promoted: {count}
   Learnings promoted: {count}
   Patterns: {count} candidates, {count} ready
   Pages touched: {total}

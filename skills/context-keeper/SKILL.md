@@ -10,7 +10,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '3.0'
+  version: '3.1'
   part-of: agentic-os
   layer: core
 ---
@@ -176,6 +176,13 @@ For `architecture-decision` type decisions, additionally write back to the Wiki:
 - Wiki write failures do NOT block the context-keeper flow (warn + continue)
 - Do NOT duplicate what `wrap-up` Step 7.5 / `obsidian-sync` already does — context-keeper writes the **decision itself**, wrap-up writes the **session summary**
 - Do NOT create new Wiki pages here — only update existing ones
+
+**Promotion marker (shared with obsidian-sync Step 4.5):** after a successful
+wiki write, extend the decision's record in `decisions.json` with
+`"wiki_ref": "{wiki-relative target path}"` and `"promoted_at": "YYYY-MM-DD"`.
+obsidian-sync's batch Decision Promotion skips records that carry `wiki_ref` —
+without the marker the same decision would be projected twice. Field extension
+only; a failed/skipped wiki write must NOT set the marker.
 
 ## Step 4: Consistency Checks
 

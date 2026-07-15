@@ -101,6 +101,17 @@ else
 fi
 
 echo ""
+
+# Run obsidian-sync decision promotion contract test (v4.5.0)
+echo ">>> Running obsidian-sync decision promotion contract test..."
+if bash "$SCRIPT_DIR/test-obsidian-sync-decision-promotion.sh"; then
+    echo ">>> Obsidian-sync decision promotion contract: ALL PASSED"
+else
+    echo ">>> Obsidian-sync decision promotion contract: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
 echo "========================================"
 if [ "$TOTAL_ERRORS" -eq 0 ]; then
     echo "  ALL TEST SUITES PASSED"
