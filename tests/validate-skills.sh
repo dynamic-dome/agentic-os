@@ -809,6 +809,34 @@ if [ -f "$WU_MR_FILE" ]; then
     fi
 fi
 
+# --- Model-Routing v4.7.0: session-bootstrap fast path + escalation + trace ---
+echo ""
+echo "-- session-bootstrap: fast path, escalation, cost trace --"
+SB_MR_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
+if [ -f "$SB_MR_FILE" ]; then
+    FP_BLOCK=$(grep -A16 "(bootstrap-fast-path)" "$SB_MR_FILE")
+    if echo "$FP_BLOCK" | grep -q "preprocess_state.py" \
+       && echo "$FP_BLOCK" | grep -q "previous_state_hash" \
+       && echo "$FP_BLOCK" | grep -qi "skip the full knowledge load" \
+       && echo "$FP_BLOCK" | grep -qi "health checks.*still run"; then
+        pass "session-bootstrap: (bootstrap-fast-path) — hash short-circuit skips full load, health checks kept"
+    else
+        fail "session-bootstrap: missing/incomplete (bootstrap-fast-path) — must run preprocess_state.py, compare previous_state_hash == current_state_hash, skip the full knowledge load on equality while health checks still run"
+    fi
+    SB_ER_BLOCK=$(grep -A12 "(escalation-rules)" "$SB_MR_FILE")
+    if echo "$SB_ER_BLOCK" | grep -q "escalations-" && echo "$SB_ER_BLOCK" | grep -q "ESKALATION:"; then
+        pass "session-bootstrap: (escalation-rules) — escalations log + visible marker"
+    else
+        fail "session-bootstrap: missing (escalation-rules) — conflicts/stale states found during bootstrap must be logged to working/escalations-<sid>.json and flagged with ESKALATION:, not resolved by this run"
+    fi
+    SB_CT_BLOCK=$(grep -A8 "(cost-trace)" "$SB_MR_FILE")
+    if echo "$SB_CT_BLOCK" | grep -q "cost-trace.sh" && echo "$SB_CT_BLOCK" | grep -q "session-bootstrap"; then
+        pass "session-bootstrap: (cost-trace) — run cost logged via cost-trace.sh"
+    else
+        fail "session-bootstrap: missing (cost-trace) — end of briefing must call scripts/cost-trace.sh append --task session-bootstrap"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

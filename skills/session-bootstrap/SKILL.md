@@ -85,6 +85,25 @@ Read `.agent-memory/session-summary.md`:
 
 All are valid. The briefing merges them (see Step 4).
 
+## Step 1.5: Deterministic Preflight + Fast Path (bootstrap-fast-path)
+
+Run the stage-0 preprocessor:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/preprocess_state.py" .agent-memory
+```
+
+FAST PATH: if `previous_state_hash == current_state_hash` (both non-empty)
+AND `changed_files` is empty, the memory store is unchanged since the last
+consolidated wrap-up. Then load ONLY `session-summary.md` and
+`context/open-tasks.json`, skip the full knowledge load of Step 2, and state
+in the briefing: "Memory unchanged since last session — briefing served from
+existing state." Health checks (Step 3) still run in both paths.
+
+Otherwise continue with Step 2 normally, preferring the files named in
+`changed_files` and surfacing `validation_errors` / `threshold_events` from
+the preprocess output instead of re-deriving them.
+
 ## Step 2: Load Knowledge Files
 
 Read files in this priority order. Skip any that don't exist:
@@ -381,6 +400,24 @@ Compare `max(last_seen)` across user-candidates.json with the local session-summ
 date. If the last identity observation is 2+ sessions old (or the file is empty while
 sessions exist), add to HEALTH:
 `Identity-Scan zuletzt {date} — Pipeline verhungert, wrap-up Step 6 prüfen`
+
+## Escalation Rules (escalation-rules)
+
+This skill runs on the cheap-write model class (SSoT:
+`scripts/model-routing.sh`). If the bootstrap surfaces contradicting active
+records, an unresolvable stale state, or anything from the wrap-up escalation
+list, do NOT resolve it in this run: append `{"ts", "task": "session-bootstrap",
+"reason", "detail"}` to `.agent-memory/working/escalations-<session-id>.json`,
+emit a visible `ESKALATION: <reason>` line in the briefing, and leave the
+decision to the next turn on the session model.
+
+(cost-trace) After the briefing is produced, log the run trace (fail-soft):
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/cost-trace.sh" append --mem .agent-memory \
+  --task session-bootstrap --class cheap-write \
+  --context-bytes <approx bytes of files read this run> --escalated <0|1>
+```
 
 ## Error Handling
 
