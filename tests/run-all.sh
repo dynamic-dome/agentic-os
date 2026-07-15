@@ -72,6 +72,22 @@ fi
 
 echo ""
 
+# Run learnings schema-fields contract test (v4.4.0: derived_from + review_after)
+echo ">>> Running learnings schema-fields contract test..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-learnings-schema-fields.py"; then
+    echo ">>> Learnings schema-fields contract: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Learnings schema-fields contract: SKIPPED (no python found)"
+else
+    echo ">>> Learnings schema-fields contract: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Python unit tests + quality-signal contract test removed in v4.0.0
 # (tools/ watermark pipeline and quality-gate skill deleted)
 

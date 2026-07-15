@@ -125,12 +125,26 @@ already exists across sessions/projects:
 {
   "id": "L{next_number}", "date": "{YYYY-MM-DD}", "text": "{insight with context}",
   "importance": 3, "tags": ["tag1", "tag2"], "layer": "short-term",
-  "superseded_by": null, "last_relevant": "{YYYY-MM-DD}"
+  "superseded_by": null, "last_relevant": "{YYYY-MM-DD}",
+  "derived_from": ["iteration-{n}", "E{id}"], "review_after": "{YYYY-MM-DD}"
 }
 ```
 
 importance: 5 = prevents data loss/security issue · 4 = prevents multi-attempt debugging ·
 3 = non-obvious behavior · 2 = workflow optimization · 1 = trivia.
+
+**`derived_from` (provenance, memideaspec §7.4):** IDs of THIS session's origins —
+iteration numbers from `iteration-log.md` (`iteration-{n}`), error IDs from
+`errors.json` (`E{n}`), decision IDs (`D{n}`). No traceable origin → `[]`. Never
+invent provenance; an honest empty list beats a guessed reference.
+
+**`review_after` (staleness contract):** date when the learning's validity should be
+re-checked; default = `date` + 90 days (matches the bootstrap STALE threshold). Set
+ONCE at creation — bootstrap and memory-maintenance read it, wrap-up never updates it
+on existing entries.
+
+Backward compatibility: entries created before v4.4.0 lack both fields — leave them
+as-is (consumers use `.get()`); do NOT backfill.
 
 ### 3c: Regenerate learnings.md
 
@@ -142,7 +156,8 @@ do not edit directly.*`; entries `- [{id}] ({'*' * importance}) {text}` grouped 
 - short-term older than 30 days: `last_relevant` within 30 days → promote to
   `"long-term"`; otherwise → `layer: "archive-candidate"`.
 - Consume `working/current-session.json`: dedup-check each `learnings_draft`, promote
-  worthy ones (short-term), discard trivia, reset the file.
+  worthy ones (short-term), discard trivia, reset the file. Promoted drafts get
+  `derived_from` pointing at their source iteration if the draft names one, else `[]`.
 - New learning contradicts an old one → set `superseded_by` on the old entry.
 
 ## Step 4: Pattern Extraction
