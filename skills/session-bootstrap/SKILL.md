@@ -234,11 +234,14 @@ wrap-up). Sources: `working/dirty-*.json` (PostToolUse dirty-tracker hook) and
    by a later session's wrap-up; the flag survived a crash between edit and marker).
 4b. **Tail-write downgrade (wrap-up's own late writes):** if the dirty file carries
    `last_consolidated_at` (hook preserves the consolidation fact on re-dirty) AND
-   `writes_since_consolidation <= 5` AND the `session_id` appears in the marker's
+   `writes_since_consolidation <= 5` AND `updated` is within **15 minutes** of
+   `last_consolidated_at` AND the `session_id` appears in the marker's
    `consolidated_sessions`, downgrade to a one-line note: the session WAS wrapped
    up; the flag was re-set by the wrap-up's own post-marker writes (native memory,
-   handoff files). More than 5 writes since consolidation = real work after wrap-up
-   → keep the full RECOVERY block.
+   handoff files). The note MUST still name the count and the tail-written files
+   (`{n} Writes nach Konsolidierung, z.B. {file}`) — downgraded, never silent.
+   More writes, or a larger gap between consolidation and last write (= real work
+   after wrap-up, possibly crashed), → keep the full RECOVERY block.
 5. Output a RECOVERY block in the briefing (Step 4) and recommend the fix:
 
 ```

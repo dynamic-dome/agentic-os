@@ -212,9 +212,15 @@ if [ -d "$MEMORY_DIR/working" ]; then
     grep -q '"dirty": true' "$df" 2>/dev/null || continue
     # Tail-write downgrade: writes_since_consolidation exists only after a
     # consolidation (hook preserves the fact on re-dirty). <=5 writes since
-    # = wrap-up's own post-marker writes, not a crashed session.
-    WSC=$(sed -n 's/.*"writes_since_consolidation": *\([0-9][0-9]*\).*/\1/p' "$df" 2>/dev/null | head -1)
-    if [ -n "$WSC" ] && [ "$WSC" -le 5 ]; then continue; fi
+    # = wrap-up's own post-marker writes, not a crashed session. Guard: only
+    # skip when the consolidation FACT (last_consolidated_at) is also present —
+    # a lone counter in a hand-edited/corrupt state must not swallow recovery.
+    # The model-side bootstrap (recovery-detect rule 4b) re-checks with full
+    # JSON semantics + marker membership and still surfaces a one-line note.
+    if grep -q '"last_consolidated_at": "' "$df" 2>/dev/null; then
+      WSC=$(sed -n 's/.*"writes_since_consolidation": *\([0-9][0-9]*\).*/\1/p' "$df" 2>/dev/null | head -1)
+      if [ -n "$WSC" ] && [ "$WSC" -le 5 ]; then continue; fi
+    fi
     DIRTY_COUNT=$((DIRTY_COUNT + 1))
   done < <(find "$MEMORY_DIR/working" -name 'dirty-*.json' -mmin +30 2>/dev/null)
 fi

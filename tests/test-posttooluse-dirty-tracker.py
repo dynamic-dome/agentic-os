@@ -151,6 +151,18 @@ def main():
     check("K tail-write counter", state.get("writes_since_consolidation") == 2
           and state.get("last_consolidated_at") == "2026-07-15T09:03:28+02:00")
 
+    # M: corrupt counter values must not stall the tracker (fail-soft = keep tracking)
+    state = json.load(open(dirty_file, encoding="utf-8"))
+    state["writes_since_consolidation"] = "kaputt"
+    state["write_count"] = ["auch", "kaputt"]
+    with open(dirty_file, "w", encoding="utf-8") as fh:
+        json.dump(state, fh)
+    p = run_hook(base, env_project=proj)
+    state = json.load(open(dirty_file, encoding="utf-8"))
+    check("M corrupt counters normalized", p.returncode == 0
+          and state.get("writes_since_consolidation") == 1
+          and state.get("write_count") == 1 and state.get("dirty") is True, str(state)[:300])
+
     # L: never-consolidated sessions carry no consolidation-history fields
     sid2 = "never-consolidated-1"
     payload = dict(base)
@@ -165,7 +177,7 @@ def main():
     if FAILURES:
         print(f"DIRTY-TRACKER TESTS FAILED: {len(FAILURES)} -> {FAILURES}")
         sys.exit(1)
-    print("ALL DIRTY-TRACKER TESTS PASSED (15 tests)")
+    print("ALL DIRTY-TRACKER TESTS PASSED (16 tests)")
 
 
 if __name__ == "__main__":

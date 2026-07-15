@@ -23,6 +23,18 @@ naechste Bootstrap meldete die laengst konsolidierte Session als RECOVERY-Kandid
   Konsolidierung).
 - **wrap-up Step 9.5:** Self-Healing-Regel dokumentiert die bewahrte Historie.
 
+**Codex-Verifier-Fixes (Review nach Erst-Commit, 2 Major + 2 Minor):**
+
+- Regel 4b verschaerft: Downgrade zusaetzlich nur bei `updated` <= 15 min nach
+  `last_consolidated_at` (echte Nacharbeit mit wenigen Writes + Crash bleibt
+  voller RECOVERY-Block); Downgrade-Notiz muss Zaehler + Tail-Dateien nennen.
+- session-start.sh: Skip verlangt jetzt auch `last_consolidated_at`-Praesenz —
+  ein einsamer Zaehler in korruptem State verschluckt keine Recovery mehr.
+- Hook: `_safe_count()` fuer writes_since_consolidation UND write_count — ein
+  korrupter Zaehlerwert ("kaputt", Liste) legte das Tracking sonst dauerhaft
+  still (int() warf, Fail-soft-Catch schluckte, jeder Folge-Aufruf scheiterte
+  erneut; gleiche Fehlerklasse wie E4/P3). Test M (jetzt 16).
+
 ---
 
 ## [2026-07-14] Release v4.3.0 — Crash-sichere Konsolidierung: Dirty-Tracker, Marker, Recovery

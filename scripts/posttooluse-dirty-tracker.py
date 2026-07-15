@@ -30,6 +30,19 @@ MAX_TOUCHED_FILES = 200
 SKIP_MARKERS = ("/.agent-memory/", "/appdata/local/temp/claude/", "/.git/")
 
 
+def _safe_count(value) -> int:
+    """Counter aus unvalidiertem State: nie werfen, nie negativ.
+
+    Ein korrupter Wert ("kaputt", Liste, ...) darf das Tracking nicht dauerhaft
+    stilllegen — int() wuerde werfen, der aeussere Fail-soft-Catch schluckt das,
+    und JEDER folgende Hook-Aufruf scheitert am selben Feld erneut.
+    """
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
 def main() -> None:
     data = json.loads(sys.stdin.read() or "{}")
     if (data.get("tool_name") or "") not in TRACKED_TOOLS:
@@ -86,7 +99,7 @@ def main() -> None:
         state["last_consolidated_by"] = state.get("consolidated_by")
         state["writes_since_consolidation"] = 0
     if state.get("last_consolidated_at"):
-        state["writes_since_consolidation"] = int(state.get("writes_since_consolidation") or 0) + 1
+        state["writes_since_consolidation"] = _safe_count(state.get("writes_since_consolidation")) + 1
 
     state.update(
         {
@@ -95,7 +108,7 @@ def main() -> None:
             "started": state.get("started") or now,
             "updated": now,
             "touched_files": touched,
-            "write_count": int(state.get("write_count") or 0) + 1,
+            "write_count": _safe_count(state.get("write_count")) + 1,
             "consolidated_at": None,
             "consolidated_by": None,
         }
