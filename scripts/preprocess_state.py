@@ -164,6 +164,13 @@ def open_tasks(mem):
 
 
 def main():
+    # Windows: piped stdout defaults to the legacy codepage (cp1252) — a single
+    # non-Latin-1 char in state would crash print(); force UTF-8 (fail-soft rule).
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, OSError):
+        pass
+
     parser = argparse.ArgumentParser()
     parser.add_argument("mem", nargs="?", default=".agent-memory")
     parser.add_argument("--session-id", default="")

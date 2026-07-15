@@ -93,6 +93,9 @@ Run the stage-0 preprocessor:
 python "${CLAUDE_PLUGIN_ROOT}/scripts/preprocess_state.py" .agent-memory
 ```
 
+*(No `--session-id` here on purpose: the fast path must see unconsolidated work from ANY
+session, while wrap-up scopes to its own session.)*
+
 FAST PATH: if `previous_state_hash == current_state_hash` (both non-empty)
 AND `changed_files` is empty, the memory store is unchanged since the last
 consolidated wrap-up. Then load ONLY `session-summary.md` and
@@ -406,8 +409,8 @@ sessions exist), add to HEALTH:
 This skill runs on the cheap-write model class (SSoT:
 `scripts/model-routing.sh`). If the bootstrap surfaces contradicting active
 records, an unresolvable stale state, or anything from the wrap-up escalation
-list, do NOT resolve it in this run: append `{"ts", "task": "session-bootstrap",
-"reason", "detail"}` to `.agent-memory/working/escalations-<session-id>.json`,
+list, do NOT resolve it in this run: append `{"ts": "...", "task": "session-bootstrap",
+"reason": "...", "detail": "..."}` to `.agent-memory/working/escalations-<session-id>.json`,
 emit a visible `ESKALATION: <reason>` line in the briefing, and leave the
 decision to the next turn on the session model.
 

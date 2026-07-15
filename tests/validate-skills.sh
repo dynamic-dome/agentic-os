@@ -765,6 +765,26 @@ if [ -f "$MR_SCRIPT" ]; then
             fail "model-routing: agent $mr_agent frontmatter (model='$got_model' effort='$got_effort') != SSoT (model='$want_model' effort='$want_effort')"
         fi
     done < <(bash "$MR_SCRIPT" list-agents)
+
+    # Reverse direction: every skill dir / agent file must have an SSoT row
+    MR_SKILL_LIST=$(bash "$MR_SCRIPT" list | cut -f1)
+    for mr_dir in "$SKILLS_DIR"/*/; do
+        mr_name=$(basename "$mr_dir")
+        if echo "$MR_SKILL_LIST" | grep -qx "$mr_name"; then
+            pass "model-routing: $mr_name covered by SSoT"
+        else
+            fail "model-routing: skill $mr_name has no row in scripts/model-routing.sh — every skill needs a class assignment"
+        fi
+    done
+    MR_AGENT_LIST=$(bash "$MR_SCRIPT" list-agents | cut -f1)
+    for mr_af in "$PLUGIN_ROOT"/agents/*.md; do
+        mr_aname=$(basename "$mr_af" .md)
+        if echo "$MR_AGENT_LIST" | grep -qx "$mr_aname"; then
+            pass "model-routing: agent $mr_aname covered by SSoT"
+        else
+            fail "model-routing: agent $mr_aname has no row in scripts/model-routing.sh list-agents"
+        fi
+    done
 else
     fail "model-routing: scripts/model-routing.sh missing — model-class SSoT required since v4.7.0"
 fi

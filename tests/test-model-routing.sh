@@ -66,6 +66,24 @@ while IFS=$'\t' read -r ag cls mdl eff; do
     fi
 done <<< "$AOUT"
 
+# 8. Reverse direction: every skill dir / agent file must appear in the SSoT
+for d in "$PLUGIN_ROOT"/skills/*/; do
+    sk=$(basename "$d")
+    if echo "$OUT" | cut -f1 | grep -qx "$sk"; then
+        pass "skill in SSoT: $sk"
+    else
+        fail "skill dir $sk missing from model-routing.sh list (SSoT must cover every skill)"
+    fi
+done
+for f in "$PLUGIN_ROOT"/agents/*.md; do
+    ag=$(basename "$f" .md)
+    if echo "$AOUT" | cut -f1 | grep -qx "$ag"; then
+        pass "agent in SSoT: $ag"
+    else
+        fail "agent $ag missing from model-routing.sh list-agents"
+    fi
+done
+
 # 7. Unknown command exits 2
 bash "$MR" bogus >/dev/null 2>&1
 if [ "$?" -eq 2 ]; then pass "unknown command exits 2"; else fail "unknown command must exit 2"; fi

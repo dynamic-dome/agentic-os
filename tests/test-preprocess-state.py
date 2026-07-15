@@ -142,6 +142,24 @@ def main():
               not any(ln.lstrip().startswith("{") for ln in p.stdout.splitlines()),
               p.stdout[-120:])
 
+        # 11. Non-ASCII state content must not crash on cp1252 stdout (fail-soft)
+        tasks_cjk = [{"id": "T3", "title": "emoji \U0001F600 and CJK 中文", "status": "open"}]
+        with open(os.path.join(mem, "context", "open-tasks.json"), "w", encoding="utf-8") as f:
+            json.dump(tasks_cjk, f, ensure_ascii=False)
+        env = dict(os.environ)
+        env.pop("PYTHONIOENCODING", None)
+        env.pop("PYTHONUTF8", None)
+        proc = subprocess.run(
+            [sys.executable, "-X", "utf8=0", SCRIPT, mem],
+            capture_output=True, cwd=tmp, env=env,
+        )  # bytes mode: no encoding arg, so nothing masks an encode crash
+        check("non-ascii content exits 0", proc.returncode == 0, f"rc={proc.returncode} err={proc.stderr[:200]}")
+        try:
+            state = json.loads(proc.stdout.decode("utf-8"))
+            check("non-ascii content emits utf-8 JSON", True)
+        except Exception as e:
+            check("non-ascii content emits utf-8 JSON", False, str(e))
+
     n = len(FAILURES)
     print(f"=== {('ALL PASSED' if n == 0 else str(n) + ' FAILURE(S)')} ===")
     return 0 if n == 0 else 1
