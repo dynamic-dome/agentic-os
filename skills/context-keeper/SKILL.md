@@ -10,7 +10,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '3.1'
+  version: '3.2'
   part-of: agentic-os
   layer: core
 ---
@@ -32,7 +32,7 @@ Maintain `.agent-memory/context/project-context.md` and `.agent-memory/context/d
 | File | Mode | Purpose |
 |------|------|---------|
 | `project-context.md` | Overwrite | **Cache** — a compact agent view distilled from the project docs |
-| `decisions.json` | Append-only | Decision log — never delete, only supersede |
+| `decisions.json` | Append + field-extend | Decision log — never delete records or rewrite their content; supersede via status flip. Existing records may only GAIN fields (`status`, `wiki_ref`, `promoted_at`) |
 
 ## Source-of-Truth Hierarchy (IMPORTANT)
 
@@ -225,5 +225,7 @@ Context updated: {type} — {title}
 - Do NOT delete entries from decisions.json (set status to "superseded" instead)
 - Do NOT make project-context.md longer than ~60 lines
 - Do NOT record trivial decisions (choosing a variable name is not an ADR)
-- Do NOT modify files outside of context/ directory
+- Do NOT modify files outside of context/ directory — sole exception: the Step 3.5
+  wiki writeback (existing wiki pages only, plus its wiki_ref/promoted_at marker
+  write-back into decisions.json)
 - Do NOT guess the tech stack — read actual config files or ask the user

@@ -4,6 +4,26 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-15] Release v4.5.1 — Verifier-Findings am Decision-Promotion-Release
+
+Codex-Verifier-Review von 9a3dbc3: FAIL, 2 Major + 2 Minor — alle eingearbeitet
+(P2 bestaetigt sich 5/5).
+
+- **context-keeper (3.2), Major 1:** zwei Regel-Widersprueche aufgeloest, die den
+  Marker-Writeback regelkonform verhinderbar machten — decisions.json-Modus ist
+  jetzt "Append + field-extend" (Records duerfen Felder nur GEWINNEN:
+  status/wiki_ref/promoted_at), und die "nur context/"-Verbotsregel nennt den
+  Step-3.5-Wiki-Writeback als dokumentierte Ausnahme.
+- **obsidian-sync (1.3), Major 2:** Idempotenz-Fehlerfenster geschlossen —
+  Duplicate guard vor jedem Append (existiert schon ein `### {id}:`-Block, wird
+  nicht erneut angehaengt, sondern nur der fehlende Marker nachgetragen;
+  self-healing fuer den Fall Wiki-Write ok / Marker-Write fail).
+- **Contract-Test, Minor 3+4:** Step-4.5-Checks auf die Sektion gescoped (awk),
+  promoted_at + "must NOT set the marker" + successful-Write-Bindung auch fuer
+  context-keeper geprueft, neue Tokens (Duplicate guard, self-healing,
+  status active, entity-creation exception), Stale-Ref-Negativ-Check
+  whitespace-normalisiert (tr) gegen Zeilenumbruch-Maskierung.
+
 ## [2026-07-15] Release v4.5.0 — Decision-Promotion (decisions.json → Wiki-Projektion)
 
 membrain Schnitt 5 (T-3): `context/decisions.json` bleibt der fuehrende

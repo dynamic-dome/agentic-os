@@ -10,7 +10,7 @@ description: >
 user_invocable: true
 metadata:
   author: agentic-os
-  version: '1.2'
+  version: '1.3'
   part-of: agentic-os
   layer: core
 ---
@@ -140,6 +140,12 @@ No candidates → skip silently, continue with Step 5.
 
 **Target:** `$WIKI_ROOT/wiki/entities/{project_id}.md`, section
 `## Architecture Decisions`.
+
+**Duplicate guard (before every append):** check the target section for an
+existing `### {id}:` heading. If present, the block was already written — e.g.
+by a prior run whose marker write-back failed. Do NOT append again; only set
+the missing marker in decisions.json (self-healing closes the
+wiki-written-but-unmarked window).
 - Entity exists → append to that section (create the section if missing).
 - Entity missing → create a **minimal** entity page: frontmatter (`type: entity`,
   `status: active`, `created`/`updated`, `source_count: 0`,
