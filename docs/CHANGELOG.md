@@ -4,6 +4,27 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-15] Release v4.4.1 — Recovery-Falsch-Positiv nach Wrap-up-Tail-Writes behoben
+
+Organischer T-1-Befund (membrain): Nach einem sauberen wrap-up schrieben Session-Ende-
+Writes AUSSERHALB von `.agent-memory/` (native Claude-Memory, Handoff-Dateien) das
+Dirty-File erneut — der Hook clobberte dabei `consolidated_at` auf `null`, und der
+naechste Bootstrap meldete die laengst konsolidierte Session als RECOVERY-Kandidat.
+
+- **Hook (`posttooluse-dirty-tracker.py`):** Re-Dirty bewahrt die Konsolidierungs-
+  Tatsache — `consolidated_at/by` wandern nach `last_consolidated_at/by`, neuer
+  Zaehler `writes_since_consolidation`. 3 neue Tests (J/K/L, jetzt 15).
+- **session-bootstrap (recovery-detect, neue Regel 4b):** Dirty-File mit
+  `last_consolidated_at`, `writes_since_consolidation <= 5` und session_id im
+  Marker → Downgrade auf Ein-Zeilen-Notiz statt RECOVERY-Block. >5 Writes seit
+  Konsolidierung = echte Arbeit nach wrap-up → weiterhin voller Block.
+- **session-start.sh:** mechanischer Check ueberspringt Dirty-Files mit
+  `writes_since_consolidation <= 5` (sed-Extraktion, Feld existiert nur nach
+  Konsolidierung).
+- **wrap-up Step 9.5:** Self-Healing-Regel dokumentiert die bewahrte Historie.
+
+---
+
 ## [2026-07-14] Release v4.3.0 — Crash-sichere Konsolidierung: Dirty-Tracker, Marker, Recovery
 
 Erster Schnitt aus der membrain-Gedaechtnis-Spezifikation (Realitaets-Abgleich

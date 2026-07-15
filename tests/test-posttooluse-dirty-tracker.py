@@ -132,12 +132,40 @@ def main():
     state = json.load(open(dirty_file, encoding="utf-8"))
     check("I scratchpad write ignored", state.get("write_count") == 2)  # H run counted one write
 
+    # J: re-dirty preserves consolidation history (tail-write vs. crash distinction)
+    state.update({"dirty": False, "consolidated_at": "2026-07-15T09:03:28+02:00", "consolidated_by": "wrap-up"})
+    state.pop("last_consolidated_at", None)
+    state.pop("writes_since_consolidation", None)
+    with open(dirty_file, "w", encoding="utf-8") as fh:
+        json.dump(state, fh)
+    run_hook(base, env_project=proj)
+    state = json.load(open(dirty_file, encoding="utf-8"))
+    check("J re-dirty keeps history", state.get("consolidated_at") is None
+          and state.get("last_consolidated_at") == "2026-07-15T09:03:28+02:00"
+          and state.get("last_consolidated_by") == "wrap-up"
+          and state.get("writes_since_consolidation") == 1, str(state)[:300])
+
+    # K: further writes increment writes_since_consolidation
+    run_hook(base, env_project=proj)
+    state = json.load(open(dirty_file, encoding="utf-8"))
+    check("K tail-write counter", state.get("writes_since_consolidation") == 2
+          and state.get("last_consolidated_at") == "2026-07-15T09:03:28+02:00")
+
+    # L: never-consolidated sessions carry no consolidation-history fields
+    sid2 = "never-consolidated-1"
+    payload = dict(base)
+    payload["session_id"] = sid2
+    run_hook(payload, env_project=proj)
+    state2 = json.load(open(os.path.join(proj, ".agent-memory", "working", f"dirty-{sid2}.json"), encoding="utf-8"))
+    check("L no phantom history", "last_consolidated_at" not in state2
+          and "writes_since_consolidation" not in state2, str(state2)[:300])
+
     shutil.rmtree(root, ignore_errors=True)
     print()
     if FAILURES:
         print(f"DIRTY-TRACKER TESTS FAILED: {len(FAILURES)} -> {FAILURES}")
         sys.exit(1)
-    print("ALL DIRTY-TRACKER TESTS PASSED (12 tests)")
+    print("ALL DIRTY-TRACKER TESTS PASSED (15 tests)")
 
 
 if __name__ == "__main__":

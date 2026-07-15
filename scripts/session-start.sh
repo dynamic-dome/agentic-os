@@ -209,7 +209,13 @@ DIRTY_COUNT=0
 if [ -d "$MEMORY_DIR/working" ]; then
   while IFS= read -r df; do
     [ -n "$df" ] || continue
-    grep -q '"dirty": true' "$df" 2>/dev/null && DIRTY_COUNT=$((DIRTY_COUNT + 1))
+    grep -q '"dirty": true' "$df" 2>/dev/null || continue
+    # Tail-write downgrade: writes_since_consolidation exists only after a
+    # consolidation (hook preserves the fact on re-dirty). <=5 writes since
+    # = wrap-up's own post-marker writes, not a crashed session.
+    WSC=$(sed -n 's/.*"writes_since_consolidation": *\([0-9][0-9]*\).*/\1/p' "$df" 2>/dev/null | head -1)
+    if [ -n "$WSC" ] && [ "$WSC" -le 5 ]; then continue; fi
+    DIRTY_COUNT=$((DIRTY_COUNT + 1))
   done < <(find "$MEMORY_DIR/working" -name 'dirty-*.json' -mmin +30 2>/dev/null)
 fi
 if [ "$DIRTY_COUNT" -gt 0 ]; then

@@ -391,7 +391,10 @@ and runs LAST — only after Steps 1–8 actually completed.
 4. **Self-healing rule (parallel sessions):** if a consumed dirty file belonged to a
    session that is still running in parallel, its next Write/Edit simply re-sets
    `dirty: true` via the hook — consolidating it here is harmless. Never try to guess
-   which sessions are "still alive".
+   which sessions are "still alive". Re-dirtying preserves the consolidation fact
+   (`last_consolidated_at/by` + `writes_since_consolidation`), so post-marker tail
+   writes of THIS wrap-up (native memory, handoff files) never masquerade as a
+   crashed session in the next bootstrap.
 5. On any failure in Steps 1–8: do NOT write the marker and do NOT reset dirty flags —
    an honest dirty state is exactly what recovery needs.
 

@@ -78,6 +78,16 @@ def main() -> None:
         touched.append(file_path)
         touched = touched[-MAX_TOUCHED_FILES:]
 
+    # Re-dirtying a consolidated file must not erase the consolidation fact:
+    # bootstrap needs "last_consolidated_at + few writes since" to tell wrap-up
+    # tail writes (false positive) apart from a genuinely crashed session.
+    if state.get("consolidated_at"):
+        state["last_consolidated_at"] = state["consolidated_at"]
+        state["last_consolidated_by"] = state.get("consolidated_by")
+        state["writes_since_consolidation"] = 0
+    if state.get("last_consolidated_at"):
+        state["writes_since_consolidation"] = int(state.get("writes_since_consolidation") or 0) + 1
+
     state.update(
         {
             "session_id": raw_sid,
