@@ -4,6 +4,20 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-16] Release v4.9.1 — T-24 Hotfix: Codex-Briefing-Ausgabeschema
+
+Rollout-Verifikation zeigte: Codex ingestiert bei SessionStart-Hooks NUR
+`hookSpecificOutput.additionalContext` (oder rohen stdout) — `systemMessage`
+wird ignoriert. codex-session-briefing.sh auf additionalContext umgestellt
+(Claude-kompatibel), Testsuite auf 21 Checks erweitert.
+
+S0-e-Korrektur aus dem 4.9.0-Deploy: der Trust-Hash wird ueber die
+UNAUFGELOESTE Hook-Definition gebildet — Plugin-Updates brechen den Trust nur,
+wenn sich hooks.json selbst aendert. codex-hook-trust.py bleibt trotzdem
+idempotenter Deploy-Check ("Nichts zu tun" kostet nichts).
+
+---
+
 ## [2026-07-16] Release v4.9.0 — T-24 Codex-Session-Lifecycle
 
 Interaktive (und headless) Codex-Sessions bekommen Bootstrap-Briefing +

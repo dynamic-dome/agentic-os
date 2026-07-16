@@ -48,9 +48,19 @@ OUT=$(cd "$PROJ3" && echo '{}' | CLAUDE_PROJECT_DIR="$PROJ3" bash "$CB" 2>"$TMP/
 echo "$OUT" | python -c "import sys,json; json.load(sys.stdin)" 2>/dev/null && pass "corrupt: valid JSON" || fail "corrupt: invalid JSON"
 [ -s "$TMP/err3" ] && fail "corrupt: stderr not empty" || pass "corrupt: stderr empty"
 
-# 4. Headless-Escape-Hatch: Env gesetzt -> kein systemMessage
+# 2b. Briefing nutzt das Codex-Schema (hookSpecificOutput.additionalContext)
+OUT=$(cd "$PROJ2" && echo '{}' | CLAUDE_PROJECT_DIR="$PROJ2" bash "$CB" 2>/dev/null)
+echo "$OUT" | python -c "
+import sys, json
+d = json.load(sys.stdin)
+h = d.get('hookSpecificOutput') or {}
+assert h.get('hookEventName') == 'SessionStart', 'hookEventName missing'
+assert 'T-99' in (h.get('additionalContext') or ''), 'additionalContext missing task'
+" 2>/dev/null && pass "schema: additionalContext carries briefing" || fail "schema: wrong hook output shape: $OUT"
+
+# 4. Headless-Escape-Hatch: Env gesetzt -> kein Briefing-Feld
 OUT=$(cd "$PROJ2" && echo '{}' | CLAUDE_PROJECT_DIR="$PROJ2" AGENTIC_OS_CODEX_HEADLESS=1 bash "$CB" 2>/dev/null)
-echo "$OUT" | grep -q "systemMessage" && fail "headless: must not brief" || pass "headless: no briefing"
+echo "$OUT" | grep -q "additionalContext" && fail "headless: must not brief" || pass "headless: no briefing"
 
 # 5. Routing: session-start.sh unter /.codex/-Pfad -> Codex-Zweig, KEIN Auto-Init
 FAKE="$TMP/fakehome/.codex/plugins/cache/m/agentic-os/9.9.9/scripts"; mkdir -p "$FAKE"

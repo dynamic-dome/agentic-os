@@ -50,12 +50,18 @@ ctx="$ctx\n$ATLAS_HINT"
 
 ctx="[AGENTIC OS — CODEX BRIEFING]$ctx"
 
+# Codex konsumiert bei SessionStart NUR hookSpecificOutput.additionalContext
+# (oder rohen stdout) — systemMessage wird ignoriert (S0-Nachbefund, Rollout-
+# Verifikation 2026-07-16). additionalContext versteht auch Claude Code.
 escaped=$(printf '%b' "$ctx" | "$PYBIN" -c "import sys,json; print(json.dumps(sys.stdin.read()))") || emit_minimal
 [ -n "$escaped" ] || emit_minimal
 cat << EOJSON
 {
   "continue": true,
-  "systemMessage": $escaped
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": $escaped
+  }
 }
 EOJSON
 exit 0
