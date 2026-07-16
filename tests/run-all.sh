@@ -183,6 +183,17 @@ fi
 
 echo ""
 
+# Run codex-session-briefing tests (v4.9.0: T-24 Codex-Session-Lifecycle)
+echo ">>> Running codex-session-briefing tests..."
+if bash "$SCRIPT_DIR/test-codex-session-briefing.sh"; then
+    echo ">>> Codex-session-briefing tests: ALL PASSED"
+else
+    echo ">>> Codex-session-briefing tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run pattern rueckfluss contract test (v4.6.0: implemented_by/validated_by + delta gate)
 echo ">>> Running pattern rueckfluss contract test..."
 if bash "$SCRIPT_DIR/test-pattern-rueckfluss-contract.sh"; then

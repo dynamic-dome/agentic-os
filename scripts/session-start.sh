@@ -6,6 +6,16 @@
 # No set -euo pipefail — we want to continue even if files are missing
 set +e
 
+# T-24: Unter Codex laeuft dieses Skript aus dem Codex-Plugin-Cache
+# (~/.codex/plugins/cache/...) — dann NICHT den Claude-Pfad (Auto-Init etc.)
+# fahren, sondern das schmale Codex-Briefing (kein Auto-Init, fail-soft).
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+case "$(printf '%s' "$SELF_DIR" | tr '\\' '/' | tr '[:upper:]' '[:lower:]')" in
+  *"/.codex/"*)
+    exec bash "$SELF_DIR/codex-session-briefing.sh"
+    ;;
+esac
+
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 MEMORY_DIR="$PROJECT_DIR/.agent-memory"
 
