@@ -129,6 +129,22 @@ fi
 
 echo ""
 
+# Run handoff write-guard tests (T-19)
+echo ">>> Running handoff write-guard tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-handoff-write-guard.py"; then
+    echo ">>> Handoff write-guard tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Handoff write-guard tests: SKIPPED (no python found)"
+else
+    echo ">>> Handoff write-guard tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run model-routing SSoT tests (v4.7.0)
 echo ">>> Running model-routing SSoT tests..."
 if bash "$SCRIPT_DIR/test-model-routing.sh"; then

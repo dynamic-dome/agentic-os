@@ -11,6 +11,11 @@ NOT flat in `~/AI\`). If that directory does not exist → skip silently, do not
 **PREPEND, never blank-overwrite** — the file may hold a DIFFERENT project's handoff chain;
 blind overwrite destroys another agent's work (incident 2026-06-01).
 
+**Guard the cycle (T-19):** snapshot with `scripts/handoff_write_guard.py` right after
+step 1 (the read), `check` immediately before step 4's write; exit 20 = a parallel
+session wrote in between → re-read, merge your block into the NEW content, re-snapshot,
+then write. Details in wrap-up Step 7.6.
+
 Deterministic prepend algorithm:
 
 1. Read the file FIRST. Structure: line 1 `# Letzte Session` (TOP block), below it zero or
@@ -73,7 +78,8 @@ Block template (German headings, do not invent a new format):
 Target: `C:\Users\domes\AI\cross-project-status.md`. NOT overwritten — touch ONLY this
 project's `## {project}` section (replace heading → next `---`), append a new section if
 missing. Never touch other projects' sections. Only add to `## Cross-Project Notes` on
-explicit user request.
+explicit user request. Same read-then-write guard as 7.6a (snapshot after read,
+check before write — see wrap-up Step 7.6).
 
 If the file does not exist, create it with:
 

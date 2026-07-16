@@ -356,6 +356,21 @@ Write BOTH cross-project files following **`references/handoff-template.md`** (S
 the prepend algorithm, dedup rules, hard cap, and both templates — read it before
 writing):
 
+**Read-then-write guard (T-19, mandatory for 7.6a/7.6b):** both files are shared
+with parallel sessions and other agents — guard every read-modify-write cycle with
+`scripts/handoff_write_guard.py` (plugin root):
+
+1. Right after READING a surface:
+   `python scripts/handoff_write_guard.py snapshot "<file>" --state .agent-memory/working/handoff-guard-<session-id>.json`
+   (session-id from Step 0 preprocess; both files may go in ONE snapshot call)
+2. Immediately BEFORE writing it: same command with `check`.
+   - Exit 0 → write.
+   - Exit 20 (DRIFT — someone wrote in between) → re-read the file, MERGE your block
+     into the new content (never overwrite the foreign change), re-snapshot, then write.
+   - Exit 21 (no snapshot) → you skipped the read; read + snapshot first.
+3. Guard failures are never silent: report one line per drift
+   (`Handoff-Guard: Drift auf {file} — re-read+merge ausgeführt`).
+
 - **7.6a Central handoff** `C:\Users\domes\AI\.agent-memory\session-summary.md`:
   PREPEND new block, demote old TOP. **Ownership-dedup (handoff-dedup):** delete older
   blocks of the SAME project — the file keeps at most one block per project; hard cap
