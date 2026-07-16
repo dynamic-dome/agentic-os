@@ -145,6 +145,22 @@ fi
 
 echo ""
 
+# Run bridge projection tests (T-14)
+echo ">>> Running bridge projection tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-bridge-projection.py"; then
+    echo ">>> Bridge projection tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Bridge projection tests: SKIPPED (no python found)"
+else
+    echo ">>> Bridge projection tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run model-routing SSoT tests (v4.7.0)
 echo ">>> Running model-routing SSoT tests..."
 if bash "$SCRIPT_DIR/test-model-routing.sh"; then
