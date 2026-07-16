@@ -173,6 +173,27 @@ as-is (consumers use `.get()`); do NOT backfill.
 Regenerate `learnings.md` from the JSON (header `*Auto-generated from learnings.json —
 do not edit directly.*`; entries `- [{id}] ({'*' * importance}) {text}` grouped by date).
 
+### 3d: Bridge candidates gate (bridge-gate, T-14)
+
+Curated Claude→Codex bridge (design: membrain/membridge.md). Canonical store is
+learnings.json (`bridge_status`); the AGENTS.md block is a projection.
+
+1. Every learning written this session with `importance >= 4` gets
+   `"bridge_status": "candidate"` (additive field; older entries without it are
+   untouched, never backfill).
+2. If ANY candidates exist store-wide (this session's or earlier declined ones),
+   emit ONE line: `BRIDGE CANDIDATES: {n} — nach AGENTS.md projizieren? [j/n]`
+   listing id + first ~10 words each.
+3. **Only on an explicit `j`** (all) or a listed subset (`j L26 L27`): set those
+   entries to `"bridge_status": "approved"`, then run the projection:
+   `python scripts/bridge_projection.py .agent-memory --agents-md <project-root>/AGENTS.md`
+   (workspace store `~/AI/.agent-memory` → `~/AI/AGENTS.md`). Report its one-line
+   output verbatim.
+4. On `n`/no answer: candidates stay queued — next wrap-up asks again. Never
+   promote silently; every line in AGENTS.md costs Codex context on EVERY start.
+5. Rollback: reset `bridge_status`, re-run the projection (block re-renders or
+   disappears).
+
 ### 3.5: Layer Lifecycle
 
 - short-term older than 30 days: `last_relevant` within 30 days → promote to
