@@ -18,11 +18,18 @@ Contract (must never break):
 """
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 
-TRACKED_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
+TRACKED_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit", "apply_patch"}
 MAX_TOUCHED_FILES = 200
+# T-24: Herkunft des Flags. Unter Codex laeuft dieses Skript aus dem
+# Codex-Plugin-Cache — der eigene Pfad ist das deterministische Signal.
+AGENT = "codex" if "/.codex/" in os.path.abspath(__file__).replace("\\", "/").lower() else "claude"
+# T-24: Codex' apply_patch traegt KEIN file_path — die Pfade stehen im
+# Patch-Text (S0-a, membrain/memcodexlifecycle.md §3.1).
+PATCH_FILE_RE = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$", re.MULTILINE)
 # Paths that are never "work": memory consolidation itself, the Claude
 # scratchpad (session-temporary by definition) and git internals.
 # Compared lowercase against an absolute, slash-normalized path (Windows
@@ -50,7 +57,8 @@ def main() -> None:
 
     tool_input = data.get("tool_input") or {}
     file_path = tool_input.get("file_path") or tool_input.get("notebook_path") or ""
-    if not file_path:
+    candidates = [file_path] if file_path else PATCH_FILE_RE.findall(str(tool_input.get("command") or ""))
+    if not candidates:
         return
 
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd()
@@ -58,9 +66,14 @@ def main() -> None:
     # Resolve relative paths against the project dir BEFORE the skip check —
     # a relative ".agent-memory/x" must be skipped exactly like its absolute
     # form. Lowercase both sides: Windows filesystems are case-insensitive.
-    abs_path = file_path if os.path.isabs(file_path) else os.path.join(project_dir, file_path)
-    norm = abs_path.replace("\\", "/").lower()
-    if any(marker in norm for marker in SKIP_MARKERS):
+    kept = []
+    for cand in candidates:
+        abs_path = cand if os.path.isabs(cand) else os.path.join(project_dir, cand)
+        norm = abs_path.replace("\\", "/").lower()
+        if any(marker in norm for marker in SKIP_MARKERS):
+            continue
+        kept.append(cand)
+    if not kept:
         return
     memory_dir = os.path.join(project_dir, ".agent-memory")
     if not os.path.isdir(memory_dir):
@@ -87,9 +100,10 @@ def main() -> None:
     touched = state.get("touched_files")
     if not isinstance(touched, list):
         touched = []
-    if file_path not in touched:
-        touched.append(file_path)
-        touched = touched[-MAX_TOUCHED_FILES:]
+    for cand in kept:
+        if cand not in touched:
+            touched.append(cand)
+    touched = touched[-MAX_TOUCHED_FILES:]
 
     # Re-dirtying a consolidated file must not erase the consolidation fact:
     # bootstrap needs "last_consolidated_at + few writes since" to tell wrap-up
@@ -104,6 +118,7 @@ def main() -> None:
     state.update(
         {
             "session_id": raw_sid,
+            "agent": AGENT,
             "dirty": True,
             "started": state.get("started") or now,
             "updated": now,

@@ -14,14 +14,14 @@ SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts
 FAILURES = []
 
 
-def run_hook(payload, env_project=None):
+def run_hook(payload, env_project=None, script=None):
     env = os.environ.copy()
     env.pop("CLAUDE_PROJECT_DIR", None)
     if env_project:
         env["CLAUDE_PROJECT_DIR"] = env_project
     data = payload if isinstance(payload, str) else json.dumps(payload)
     return subprocess.run(
-        [sys.executable, SCRIPT],
+        [sys.executable, script or SCRIPT],
         input=data.encode("utf-8"),
         capture_output=True,
         env=env,
@@ -172,12 +172,48 @@ def main():
     check("L no phantom history", "last_consolidated_at" not in state2
           and "writes_since_consolidation" not in state2, str(state2)[:300])
 
+    # N: agent field defaults to claude (script lives outside /.codex/)
+    state = json.load(open(dirty_file, encoding="utf-8"))
+    check("N agent claude", state.get("agent") == "claude", str(state.get("agent")))
+
+    # O: script copy under a /.codex/ path -> agent codex (T-24)
+    codex_scripts = os.path.join(root, ".codex", "plugins", "cache", "m", "agentic-os", "9.9.9", "scripts")
+    os.makedirs(codex_scripts)
+    script_copy = os.path.join(codex_scripts, "posttooluse-dirty-tracker.py")
+    shutil.copyfile(SCRIPT, script_copy)
+    sid3 = "codex-agent-test"
+    payload = dict(base)
+    payload["session_id"] = sid3
+    p = run_hook(payload, env_project=proj, script=script_copy)
+    f3 = os.path.join(proj, ".agent-memory", "working", f"dirty-{sid3}.json")
+    ok = p.returncode == 0 and os.path.isfile(f3)
+    state3 = json.load(open(f3, encoding="utf-8")) if ok else {}
+    check("O agent codex", ok and state3.get("agent") == "codex", str(state3)[:200])
+
+    # P: apply_patch payload (codex) -> paths parsed from patch text (no file_path field)
+    sid4 = "codex-applypatch"
+    patch = "*** Begin Patch\n*** Add File: src/new1.py\n+x\n*** Update File: src/old2.py\n+y\n*** End Patch"
+    payload = {"session_id": sid4, "cwd": proj, "tool_name": "apply_patch", "tool_input": {"command": patch}}
+    p = run_hook(payload, env_project=proj, script=script_copy)
+    f4 = os.path.join(proj, ".agent-memory", "working", f"dirty-{sid4}.json")
+    ok = p.returncode == 0 and os.path.isfile(f4)
+    state4 = json.load(open(f4, encoding="utf-8")) if ok else {}
+    check("P apply_patch paths", ok and "src/new1.py" in state4.get("touched_files", [])
+          and "src/old2.py" in state4.get("touched_files", []) and state4.get("write_count") == 1, str(state4)[:300])
+
+    # P2: apply_patch touching ONLY .agent-memory -> skipped like file_path writes
+    patch2 = "*** Begin Patch\n*** Update File: .agent-memory/session-summary.md\n+z\n*** End Patch"
+    payload = {"session_id": sid4, "cwd": proj, "tool_name": "apply_patch", "tool_input": {"command": patch2}}
+    run_hook(payload, env_project=proj, script=script_copy)
+    state4 = json.load(open(f4, encoding="utf-8"))
+    check("P2 apply_patch memory skip", state4.get("write_count") == 1)
+
     shutil.rmtree(root, ignore_errors=True)
     print()
     if FAILURES:
         print(f"DIRTY-TRACKER TESTS FAILED: {len(FAILURES)} -> {FAILURES}")
         sys.exit(1)
-    print("ALL DIRTY-TRACKER TESTS PASSED (16 tests)")
+    print("ALL DIRTY-TRACKER TESTS PASSED (20 tests)")
 
 
 if __name__ == "__main__":

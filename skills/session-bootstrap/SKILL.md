@@ -258,7 +258,8 @@ wrap-up). Sources: `working/dirty-*.json` (PostToolUse dirty-tracker hook) and
 2. Ignore files whose `updated` is younger than **30 minutes** — that is most likely a
    session running in parallel RIGHT NOW, not a crash. Never flag it.
 3. Every remaining dirty file is an **un-consolidated session**. For each, extract:
-   `session_id` (short), `updated`, `write_count`, up to 3 `touched_files`.
+   `session_id` (short), `updated`, `write_count`, up to 3 `touched_files`, and
+   `agent` if present (T-24: `"codex"` marks a standalone Codex session).
 4. Cross-check `consolidation-marker.json`: if its `last_wrapup` is NEWER than the
    dirty file's `updated`, downgrade to a one-line note (work probably consolidated
    by a later session's wrap-up; the flag survived a crash between edit and marker).
@@ -276,7 +277,8 @@ wrap-up). Sources: `working/dirty-*.json` (PostToolUse dirty-tracker hook) and
 
 ```
 RECOVERY
-  Unkonsolidierte Session {sid-8} vom {updated}: {write_count} Writes,
+  Unkonsolidierte {Codex-|}Session {sid-8} vom {updated}: {write_count} Writes,
+  (Praefix "Codex-" wenn das Dirty-Flag `agent: "codex"` traegt)
   z.B. {file1}, {file2}
   → Empfehlung: wrap-up ausführen (Step 1.5 harvestet aus touched_files + git)
 ```
