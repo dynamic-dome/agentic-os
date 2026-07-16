@@ -137,6 +137,12 @@ Apply identity settings from `soul.md` silently (communication style, guard rail
 3. Filter out entries where `superseded_by` is not null.
 4. Include the ≤5 results as KEY LEARNINGS. Prefix the section header with `(RAG)`.
 5. On any MCP error or empty result → fall through to heuristic fallback.
+6. **Codex gotchas (T-14 bridge, pull side):** run a SECOND query with the same
+   task-title query but `source_system: "codex-agents"`, `top_k: 3`. Non-empty →
+   add a `CODEX GOTCHAS (RAG)` section to the briefing (one line per hit:
+   source AGENTS.md path + snippet). Empty result or MCP error → omit the
+   section silently (fail-soft; no heuristic fallback for this query — the
+   fallback script only reads learnings.json).
 
 **Fallback path — heuristic rank (when MCP unavailable or empty):**
 
@@ -326,6 +332,10 @@ PROJECT STATUS
 KEY LEARNINGS (top 5 via RAG · fallback: top 10 heuristic)
   {(RAG) or (heuristic fallback) results — show [ID] importance text}
   {omit if no learnings available}
+
+CODEX GOTCHAS (RAG)
+  {up to 3 codex-agents hits: AGENTS.md path — snippet}
+  {omit entirely if empty or Atlas unavailable}
 
 ACTIVE WARNINGS
   {high-confidence patterns (confidence >= 0.7, occurrences >= 3)}
