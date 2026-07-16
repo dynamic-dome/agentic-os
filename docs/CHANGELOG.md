@@ -4,6 +4,32 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-16] Release v4.9.0 — T-24 Codex-Session-Lifecycle
+
+Interaktive (und headless) Codex-Sessions bekommen Bootstrap-Briefing +
+Dirty-Tracking ueber dieselben Plugin-Hooks wie Claude. Design + S0-Findings:
+membrain/memcodexlifecycle.md.
+
+- **scripts/codex-session-briefing.sh (neu):** schmales Codex-Briefing
+  (zentraler Handoff, open-tasks, Atlas-Hinweis); KEIN Auto-Init, exit immer 0,
+  stderr leer; Escape-Hatch `AGENTIC_OS_CODEX_HEADLESS=1`.
+- **session-start.sh:** Routing-Zweig — liegt das Skript unter `/.codex/`
+  (Codex-Plugin-Cache), wird nur das Codex-Briefing gefahren; Claude-Pfad
+  unveraendert (Testsuite).
+- **posttooluse-dirty-tracker.py:** `agent`-Feld (codex/claude via Skriptpfad);
+  `apply_patch` getrackt — Pfade aus dem Patch-Text geparst (Codex liefert kein
+  file_path); hooks.json-Matcher entsprechend erweitert.
+- **session-bootstrap SKILL.md:** RECOVERY-Zeile traegt Codex-Praefix bei
+  `agent: "codex"`.
+- **scripts/codex-hook-trust.py (neu, Deploy-Werkzeug):** trusted + enabled
+  die 2 agentic-os-Hooks in Codex via app-server (`hooks/list` +
+  `config/batchWrite`). NACH JEDEM PLUGIN-UPDATE AUSFUEHREN — der versionierte
+  Cache-Pfad im Hook-Command bricht den Trust bei jedem Update (S0-e).
+- Tests: test-codex-session-briefing.sh (20 Checks, in run-all.sh verdrahtet),
+  dirty-tracker-Suite auf 20 Checks erweitert.
+
+---
+
 ## [2026-07-15] Release v4.6.1 — Verifier-Findings an der Rueckfluss-Bruecke
 
 Codex-Verifier-Review von 3fa7751: FAIL, 5 Major + 1 Minor — alle eingearbeitet
