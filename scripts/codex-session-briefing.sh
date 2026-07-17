@@ -15,20 +15,29 @@ emit_minimal() { echo '{"continue": true}'; exit 0; }
 PYBIN="python3"; command -v python3 >/dev/null 2>&1 || PYBIN="python"
 command -v "$PYBIN" >/dev/null 2>&1 || emit_minimal
 
-# Projektpfad-Aufloesung. S0-a: der SessionStart-Payload traegt `cwd`. Interaktives
-# Codex startet den Hook NICHT zwingend im Projektverzeichnis und setzt
-# CLAUDE_PROJECT_DIR nicht -> $PWD ist dann falsch, der Store wird verfehlt und der
-# Hook faellt in emit_minimal (T-25-Befund: Codex bekam gar keinen Kontext).
-# Vorrang: CLAUDE_PROJECT_DIR (Claude) > payload.cwd (Codex) > $PWD.
-PAYLOAD=$(cat 2>/dev/null)
-PAYLOAD_CWD=$(printf '%s' "$PAYLOAD" | "$PYBIN" -c "import sys,json
-try: print(json.loads(sys.stdin.buffer.read().decode('utf-8','replace') or '{}').get('cwd') or '')
-except Exception: print('')" 2>/dev/null)
-PROJECT_DIR="${CLAUDE_PROJECT_DIR:-${PAYLOAD_CWD:-$PWD}}"
-# Windows: payload.cwd kommt mit Backslashes -> fuer Git-Bash-Pruefung normalisieren.
+# Projektpfad-Aufloesung. Normalfall (interaktive TUI, `codex exec`, Desktop im Projekt):
+# der Hook laeuft mit $PWD = Projekt -> KEIN stdin-Lesen noetig (schnell, kein Hang-Risiko,
+# wichtig gegen den 5 s SessionStart-Timeout unter Startup-Last).
+CENTRAL_HANDOFF="$HOME/AI/.agent-memory/session-summary.md"
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
 PROJECT_DIR=$(printf '%s' "$PROJECT_DIR" | tr '\\' '/')
 MEMORY_DIR="$PROJECT_DIR/.agent-memory"
-CENTRAL_HANDOFF="$HOME/AI/.agent-memory/session-summary.md"
+
+# Nur wenn dort kein Store liegt: Fallback auf payload.cwd (S0-a: der SessionStart-Payload
+# traegt `cwd`). stdin NICHT-blockierend lesen — `cat` wartet auf EOF und haengt, wenn der
+# Hook-Runner stdin offenhaelt (interaktives Codex) -> SessionStart-Timeout (4.9.3-Bug).
+# Der Payload ist eine JSON-Zeile; read -t holt sie und blockiert nie laenger als 1 s.
+if [ ! -d "$MEMORY_DIR" ]; then
+  PAYLOAD=""
+  IFS= read -r -t 1 PAYLOAD 2>/dev/null
+  PAYLOAD_CWD=$(printf '%s' "$PAYLOAD" | "$PYBIN" -c "import sys,json
+try: print(json.loads(sys.stdin.buffer.read().decode('utf-8','replace') or '{}').get('cwd') or '')
+except Exception: print('')" 2>/dev/null)
+  if [ -n "$PAYLOAD_CWD" ]; then
+    PROJECT_DIR=$(printf '%s' "$PAYLOAD_CWD" | tr '\\' '/')
+    MEMORY_DIR="$PROJECT_DIR/.agent-memory"
+  fi
+fi
 
 # Kein Store -> kein Briefing, NIE Auto-Init (Spec §3.2)
 [ -d "$MEMORY_DIR" ] || emit_minimal

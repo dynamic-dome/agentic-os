@@ -93,6 +93,14 @@ EOPY
 OUT=$(cd "$TMP" && env -u CLAUDE_PROJECT_DIR bash "$CB" < "$TMP/win-payload.json" 2>/dev/null)
 echo "$OUT" | grep -q "T-99" && pass "win-cwd: backslash payload cwd normalized" || fail "win-cwd: T-99 missing: $OUT"
 
+# 2h. Regression (4.9.3-Hang, statischer Guard — Timing ist auf Windows-Git-Bash
+#     unzuverlaessig): `PAYLOAD=$(cat)` wartete auf EOF und liess den SessionStart-Hook
+#     in interaktivem Codex (stdin bleibt offen) nach 5s timeouten. Das darf nie zurueck-
+#     kehren; stdin-Lesen muss timeout-begrenzt sein (read -t). Der funktionale Nachweis,
+#     dass payload.cwd trotzdem gelesen wird, liegt in Test 2d ("payload-cwd").
+grep -Eq '\$\(\s*cat' "$CB" && fail "no-hang: blocking \$(cat) on stdin reintroduced" || pass "no-hang: no blocking cat on stdin"
+grep -Eq 'read -r -t [0-9]' "$CB" && pass "no-hang: stdin read is timeout-bounded" || fail "no-hang: stdin read not timeout-bounded"
+
 # 4. Headless-Escape-Hatch: Env gesetzt -> kein Briefing-Feld
 OUT=$(cd "$PROJ2" && echo '{}' | CLAUDE_PROJECT_DIR="$PROJ2" AGENTIC_OS_CODEX_HEADLESS=1 bash "$CB" 2>/dev/null)
 echo "$OUT" | grep -q "additionalContext" && fail "headless: must not brief" || pass "headless: no briefing"

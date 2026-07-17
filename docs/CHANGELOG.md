@@ -4,6 +4,23 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-17] Release v4.9.4 — T-25 Fix: Codex-Briefing-Hook haengt nicht mehr (stdin)
+
+T-25-Retest (interaktive Codex-TUI in membrain) lieferte via Codex' eigenem
+Session-Transcript (~/.codex/sessions/) die harte Evidenz: der SessionStart-Hook
+FEUERT interaktiv, aber `SessionStart hook failed: timed out after 5s`. Root-Cause
+war eine Regression aus 4.9.3: `PAYLOAD=$(cat)` wartet auf stdin-EOF; interaktives
+Codex haelt stdin offen -> `cat` blockiert -> Hook wird nach 5s gekillt -> kein
+Briefing (reproduziert: exit 124 gegen offene Pipe). Fix: (a) Normalpfad nutzt
+`${CLAUDE_PROJECT_DIR:-$PWD}` (in TUI/`codex exec`/Desktop-im-Projekt ist $PWD =
+Projekt) und liest stdin GAR NICHT -> schneller (~2,8s statt Timeout), kein
+Hang-Risiko; (b) payload.cwd nur noch als Fallback, wenn dort kein Store liegt, und
+dann NICHT-blockierend (`read -r -t 1` statt `cat`). Testsuite 28 Checks (+no-hang
+statischer Guard gegen Reintroduktion von `$(cat` + timeout-begrenztes read).
+Befund am Rande: Codex Desktop im "neue Aufgabe"-Modus laeuft in einem ephemeren
+Pro-Prompt-cwd (Documents\Codex\<slug>) ohne Store — dort ist kein Briefing
+moeglich; nur TUI/`codex exec` im Projekt werden bedient.
+
 ## [2026-07-17] Release v4.9.3 — T-24/T-25 Fix: Codex-Briefing findet den Store (payload.cwd)
 
 T-25-Sichtpruefung (User, interaktive Codex-Session) falsifizierte die
