@@ -70,6 +70,29 @@ assert '—' in ac, 'em-dash lost (mojibake?)'
 assert 'â' not in ac, 'mojibake lead byte present'
 " 2>/dev/null && pass "utf8: additionalContext is clean UTF-8" || fail "utf8: mojibake in additionalContext"
 
+# 2d. Codex-Realfall: CLAUDE_PROJECT_DIR unset, $PWD != Projekt, aber payload.cwd
+#     zeigt auf den Store -> Briefing MUSS den Task tragen (S0-a: cwd im Payload).
+#     Ohne cwd-Auswertung landet der Hook in emit_minimal (kein additionalContext) —
+#     genau der interaktive Codex-Fehlerfall (T-25).
+OUT=$(cd "$TMP" && printf '{"cwd": "%s"}' "$PROJ2" | env -u CLAUDE_PROJECT_DIR bash "$CB" 2>/dev/null)
+echo "$OUT" | grep -q "T-99" && pass "payload-cwd: task resolved from payload cwd" || fail "payload-cwd: T-99 missing: $OUT"
+echo "$OUT" | grep -q "additionalContext" && pass "payload-cwd: additionalContext present" || fail "payload-cwd: no additionalContext: $OUT"
+
+# 2e. Vorrang: CLAUDE_PROJECT_DIR (Claude-Pfad) schlaegt payload.cwd. Payload zeigt
+#     auf einen Store-losen Ort, CLAUDE_PROJECT_DIR auf den echten Store -> Briefing.
+OUT=$(cd "$TMP" && printf '{"cwd": "%s"}' "$TMP" | CLAUDE_PROJECT_DIR="$PROJ2" bash "$CB" 2>/dev/null)
+echo "$OUT" | grep -q "T-99" && pass "precedence: CLAUDE_PROJECT_DIR wins over payload cwd" || fail "precedence: T-99 missing: $OUT"
+
+# 2f. Windows-Realfall: payload.cwd kommt mit Backslashes (echtes Codex auf Windows)
+#     -> tr-Normalisierung findet den Store. Payload valide via python erzeugt.
+WINCWD=$(cd "$PROJ2" && pwd -W 2>/dev/null || echo "$PROJ2")
+python - "$TMP/win-payload.json" "$WINCWD" << 'EOPY'
+import json, sys
+open(sys.argv[1], "w", encoding="utf-8").write(json.dumps({"cwd": sys.argv[2].replace("/", "\\")}))
+EOPY
+OUT=$(cd "$TMP" && env -u CLAUDE_PROJECT_DIR bash "$CB" < "$TMP/win-payload.json" 2>/dev/null)
+echo "$OUT" | grep -q "T-99" && pass "win-cwd: backslash payload cwd normalized" || fail "win-cwd: T-99 missing: $OUT"
+
 # 4. Headless-Escape-Hatch: Env gesetzt -> kein Briefing-Feld
 OUT=$(cd "$PROJ2" && echo '{}' | CLAUDE_PROJECT_DIR="$PROJ2" AGENTIC_OS_CODEX_HEADLESS=1 bash "$CB" 2>/dev/null)
 echo "$OUT" | grep -q "additionalContext" && fail "headless: must not brief" || pass "headless: no briefing"

@@ -12,15 +12,26 @@ emit_minimal() { echo '{"continue": true}'; exit 0; }
 
 [ -n "${AGENTIC_OS_CODEX_HEADLESS:-}" ] && emit_minimal
 
-PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
+PYBIN="python3"; command -v python3 >/dev/null 2>&1 || PYBIN="python"
+command -v "$PYBIN" >/dev/null 2>&1 || emit_minimal
+
+# Projektpfad-Aufloesung. S0-a: der SessionStart-Payload traegt `cwd`. Interaktives
+# Codex startet den Hook NICHT zwingend im Projektverzeichnis und setzt
+# CLAUDE_PROJECT_DIR nicht -> $PWD ist dann falsch, der Store wird verfehlt und der
+# Hook faellt in emit_minimal (T-25-Befund: Codex bekam gar keinen Kontext).
+# Vorrang: CLAUDE_PROJECT_DIR (Claude) > payload.cwd (Codex) > $PWD.
+PAYLOAD=$(cat 2>/dev/null)
+PAYLOAD_CWD=$(printf '%s' "$PAYLOAD" | "$PYBIN" -c "import sys,json
+try: print(json.loads(sys.stdin.buffer.read().decode('utf-8','replace') or '{}').get('cwd') or '')
+except Exception: print('')" 2>/dev/null)
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-${PAYLOAD_CWD:-$PWD}}"
+# Windows: payload.cwd kommt mit Backslashes -> fuer Git-Bash-Pruefung normalisieren.
+PROJECT_DIR=$(printf '%s' "$PROJECT_DIR" | tr '\\' '/')
 MEMORY_DIR="$PROJECT_DIR/.agent-memory"
 CENTRAL_HANDOFF="$HOME/AI/.agent-memory/session-summary.md"
 
 # Kein Store -> kein Briefing, NIE Auto-Init (Spec §3.2)
 [ -d "$MEMORY_DIR" ] || emit_minimal
-
-PYBIN="python3"; command -v python3 >/dev/null 2>&1 || PYBIN="python"
-command -v "$PYBIN" >/dev/null 2>&1 || emit_minimal
 
 ctx=""
 

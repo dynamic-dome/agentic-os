@@ -4,6 +4,22 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-17] Release v4.9.3 — T-24/T-25 Fix: Codex-Briefing findet den Store (payload.cwd)
+
+T-25-Sichtpruefung (User, interaktive Codex-Session) falsifizierte die
+Interaktiv-Annahme: Codex erhielt KEINEN Kontext (fiel auf globales Wissen
+zurueck). Root-Cause: `codex-session-briefing.sh` ermittelte das Projekt via
+`${CLAUDE_PROJECT_DIR:-$PWD}` — Codex setzt `CLAUDE_PROJECT_DIR` nicht, und
+interaktiv startet der Hook nicht zwingend im Projektverzeichnis, also war
+`$PWD` falsch, der Store wurde verfehlt und der Hook fiel in `emit_minimal`
+(Ausgabe nur `{"continue": true}`, kein additionalContext). Fix: den vom
+SessionStart-Payload getragenen `cwd` (S0-a) auswerten; Vorrang
+`CLAUDE_PROJECT_DIR > payload.cwd > $PWD`, Windows-Backslashes normalisiert.
+Testsuite 26 Checks (+payload-cwd, +precedence, +win-cwd Backslash-Realfall).
+Erklaert, warum headless (dort ist `$PWD` = Projekt) funktionierte, interaktiv
+nicht. NOTE: bestaetigt nur die Store-Aufloesung; ob interaktives Codex
+additionalContext ueberhaupt ingestiert, bleibt der offene T-25-Retest.
+
 ## [2026-07-17] Release v4.9.2 — T-24 Fix: Codex-Briefing UTF-8 (Windows-Mojibake)
 
 Pre-Flight zu T-25 (User-Sichtpruefung) deckte auf: `codex-session-briefing.sh`
