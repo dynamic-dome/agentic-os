@@ -44,6 +44,17 @@ def learning(lid, date, text, importance=4, bridge=None, superseded=None):
     return entry
 
 
+def task(tid, title, status="open"):
+    return {"id": tid, "title": title, "status": status, "created": "2026-07-17"}
+
+
+def write_tasks(mem, tasks):
+    os.makedirs(os.path.join(mem, "context"), exist_ok=True)
+    with open(os.path.join(mem, "context", "open-tasks.json"), "w",
+              encoding="utf-8") as f:
+        json.dump(tasks, f, ensure_ascii=False)
+
+
 def setup(tmp, learnings, agents_body=None):
     mem = os.path.join(tmp, ".agent-memory")
     os.makedirs(os.path.join(mem, "learnings"), exist_ok=True)
@@ -170,6 +181,82 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         p = run([], cwd=tmp)
         check("usage error: exit 2", p.returncode == 2, f"rc={p.returncode}")
+
+    # 11. Nur offene Tasks, keine approved Learnings -> Block mit Task-Sektion
+    with tempfile.TemporaryDirectory() as tmp:
+        mem, agents = setup(tmp, [learning("L1", "2026-07-16", "kein flag")],
+                            foreign)
+        write_tasks(mem, [task("T-25", "Sichtpruefung PK1/PK4"),
+                          task("T-9", "erledigt", "done")])
+        p = run([mem, "--agents-md", agents], cwd=tmp)
+        content = read(agents)
+        check("tasks-only: exit 0", p.returncode == 0,
+              f"rc={p.returncode} err={p.stderr[:200]}")
+        check("tasks-only: block present", BEGIN in content and END in content)
+        check("tasks-only: open task rendered",
+              "[T-25]" in content and "Sichtpruefung" in content)
+        check("tasks-only: done task filtered", "[T-9]" not in content)
+        check("tasks-only: foreign preserved", content.startswith(foreign))
+
+    # 12. Tasks + Learnings -> beide Sektionen, Tasks zuerst, ein Block
+    with tempfile.TemporaryDirectory() as tmp:
+        mem, agents = setup(tmp, [learning("L1", "2026-07-16", "lern",
+                                           bridge="approved")], foreign)
+        write_tasks(mem, [task("T-25", "offene sache")])
+        run([mem, "--agents-md", agents], cwd=tmp)
+        content = read(agents)
+        check("both: task section present", "Offene Tasks" in content)
+        check("both: learning section present", "Learnings von Claude" in content)
+        check("both: tasks before learnings",
+              content.index("[T-25]") < content.index("[L1]"))
+        check("both: single block", content.count(BEGIN) == 1)
+
+    # 13. Task-Cap 5 + sichtbarer Ueberhang
+    with tempfile.TemporaryDirectory() as tmp:
+        mem, agents = setup(tmp, [learning("L1", "2026-07-16", "x")], foreign)
+        write_tasks(mem, [task(f"T-{i}", f"task {i}") for i in range(1, 8)])
+        run([mem, "--agents-md", agents], cwd=tmp)
+        block = read(agents)
+        block = block[block.index(BEGIN):block.index(END)]
+        check("task-cap: 5 tasks", block.count("- [T-") == 5,
+              f"n={block.count('- [T-')}")
+        check("task-cap: overflow visible", "2 weitere" in block)
+
+    # 14. korrupte open-tasks.json -> fail-soft: Learnings trotzdem, exit 0
+    with tempfile.TemporaryDirectory() as tmp:
+        mem, agents = setup(tmp, [learning("L1", "2026-07-16", "lern",
+                                           bridge="approved")], foreign)
+        os.makedirs(os.path.join(mem, "context"))
+        with open(os.path.join(mem, "context", "open-tasks.json"), "w",
+                  encoding="utf-8") as f:
+            f.write("{ kaputt")
+        p = run([mem, "--agents-md", agents], cwd=tmp)
+        content = read(agents)
+        check("corrupt-tasks: exit 0", p.returncode == 0, f"rc={p.returncode}")
+        check("corrupt-tasks: learnings still rendered", "[L1]" in content)
+        check("corrupt-tasks: no task section", "Offene Tasks" not in content)
+
+    # 15. Idempotenz mit Tasks
+    with tempfile.TemporaryDirectory() as tmp:
+        mem, agents = setup(tmp, [learning("L1", "2026-07-16", "x",
+                                           bridge="approved")], foreign)
+        write_tasks(mem, [task("T-25", "sache")])
+        run([mem, "--agents-md", agents], cwd=tmp)
+        c1 = read(agents)
+        run([mem, "--agents-md", agents], cwd=tmp)
+        check("tasks idempotent", read(agents) == c1)
+
+    # 16. Tasks weg + keine Learnings -> Block entfernt, Fremdinhalt bleibt
+    with tempfile.TemporaryDirectory() as tmp:
+        mem, agents = setup(tmp, [learning("L1", "2026-07-16", "x")], foreign)
+        write_tasks(mem, [task("T-25", "sache")])
+        run([mem, "--agents-md", agents], cwd=tmp)
+        check("pre: block present", BEGIN in read(agents))
+        write_tasks(mem, [])
+        run([mem, "--agents-md", agents], cwd=tmp)
+        check("empty-tasks-no-learn: block removed", BEGIN not in read(agents))
+        check("empty-tasks-no-learn: foreign preserved",
+              read(agents).startswith(foreign))
 
     n = len(FAILURES)
     print(f"=== {n} failure(s) ===" if n else "=== all tests passed ===")

@@ -4,6 +4,24 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-17] Release v4.10.0 — T-25 Pivot: offene Tasks in AGENTS.md projizieren
+
+Kern-Erkenntnis aus T-25 (Codex-eigene Session-Transcripts): interaktives Codex
+(TUI/Desktop) injiziert SessionStart-Hook-`additionalContext` NICHT — der Marker
+fehlt in jedem interaktiven Transcript, waehrend AGENTS.md nachweislich als
+user-Message + world_state injiziert und genutzt wird (Codex zitierte L2/L19/L28).
+Der Hook-Kanal bedient nur headless `codex exec`. Konsequenz: die dynamische
+open-tasks-Info wandert vom Hook in die AGENTS.md-Projektion, den Kanal, den Codex
+interaktiv wirklich liest. `bridge_projection.py` rendert jetzt einen zweiten
+managed Abschnitt "## Bridge: Offene Tasks" (open/blocked, IDs+Titel, Cap 5) VOR
+den Learnings, im selben idempotenten Block; Tasks sind fail-soft (fehlende/korrupte
+open-tasks.json -> uebersprungen, nie exit 1; Learnings bleiben kanonisch/exit 1).
+Trigger unveraendert: das bestehende wrap-up-Bridge-Gate. Der volatile
+Cross-Project-Handoff bleibt bewusst Pointer (globale AGENTS.md), nicht projiziert.
+Bridge-Testsuite +6 Faelle (Tasks-only, Tasks+Learnings-Reihenfolge, Cap, korrupt
+fail-soft, Idempotenz, Widerruf). Der SessionStart-Hook (4.9.2-4.9.4-Fixes) bleibt
+fuer den headless-Pfad aktiv und korrekt.
+
 ## [2026-07-17] Release v4.9.4 — T-25 Fix: Codex-Briefing-Hook haengt nicht mehr (stdin)
 
 T-25-Retest (interaktive Codex-TUI in membrain) lieferte via Codex' eigenem
