@@ -53,7 +53,10 @@ ctx="[AGENTIC OS — CODEX BRIEFING]$ctx"
 # Codex konsumiert bei SessionStart NUR hookSpecificOutput.additionalContext
 # (oder rohen stdout) — systemMessage wird ignoriert (S0-Nachbefund, Rollout-
 # Verifikation 2026-07-16). additionalContext versteht auch Claude Code.
-escaped=$(printf '%b' "$ctx" | "$PYBIN" -c "import sys,json; print(json.dumps(sys.stdin.read()))") || emit_minimal
+# Windows-Falle (globale CLAUDE.md): sys.stdin.read() dekodiert cp1252 -> Mojibake
+# bei UTF-8-Quellen. Bytes explizit als utf-8 lesen. print() bleibt ASCII-safe,
+# weil json.dumps per Default ensure_ascii=True (\uXXXX) ausgibt.
+escaped=$(printf '%b' "$ctx" | "$PYBIN" -c "import sys,json; print(json.dumps(sys.stdin.buffer.read().decode('utf-8','replace')))") || emit_minimal
 [ -n "$escaped" ] || emit_minimal
 cat << EOJSON
 {

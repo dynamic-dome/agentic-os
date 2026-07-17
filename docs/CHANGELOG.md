@@ -4,6 +4,19 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-17] Release v4.9.2 — T-24 Fix: Codex-Briefing UTF-8 (Windows-Mojibake)
+
+Pre-Flight zu T-25 (User-Sichtpruefung) deckte auf: `codex-session-briefing.sh`
+lieferte auf Windows durchgaengig Mojibake — der JSON-Escaping-Schritt las stdin
+per `sys.stdin.read()` mit cp1252 statt utf-8, wodurch alle Umlaute/Sonderzeichen
+(ä/ö/ü/ß, Em-Dash, Pfeil) doppelt kodiert in `additionalContext` landeten
+(genau die Windows-Subprocess-Falle aus der globalen CLAUDE.md). Fix: Bytes
+explizit als utf-8 dekodieren (`sys.stdin.buffer.read().decode('utf-8','replace')`);
+`print()` bleibt ASCII-safe, weil `json.dumps` per Default ensure_ascii ausgibt.
+Testsuite auf 22 Checks erweitert (fixture-freier UTF-8-Integritaetstest gegen
+den statischen Em-Dash-Header). Betrifft nur den Codex-Briefing-Pfad;
+Claude-Verhalten unveraendert.
+
 ## [2026-07-16] Release v4.9.1 — T-24 Hotfix: Codex-Briefing-Ausgabeschema
 
 Rollout-Verifikation zeigte: Codex ingestiert bei SessionStart-Hooks NUR

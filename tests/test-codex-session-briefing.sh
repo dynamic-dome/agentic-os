@@ -58,6 +58,18 @@ assert h.get('hookEventName') == 'SessionStart', 'hookEventName missing'
 assert 'T-99' in (h.get('additionalContext') or ''), 'additionalContext missing task'
 " 2>/dev/null && pass "schema: additionalContext carries briefing" || fail "schema: wrong hook output shape: $OUT"
 
+# 2c. UTF-8-Integritaet: non-ASCII (Em-Dash im statischen Header) darf nicht als
+#     Mojibake (cp1252-Fehldekodierung der UTF-8-Bytes) in additionalContext landen.
+#     Windows-Falle: sys.stdin.read() liest cp1252 statt utf-8 (globale CLAUDE.md).
+OUT=$(cd "$PROJ2" && echo '{}' | CLAUDE_PROJECT_DIR="$PROJ2" bash "$CB" 2>/dev/null)
+echo "$OUT" | python -c "
+import sys, json
+d = json.load(sys.stdin)
+ac = (d.get('hookSpecificOutput') or {}).get('additionalContext') or ''
+assert '—' in ac, 'em-dash lost (mojibake?)'
+assert 'â' not in ac, 'mojibake lead byte present'
+" 2>/dev/null && pass "utf8: additionalContext is clean UTF-8" || fail "utf8: mojibake in additionalContext"
+
 # 4. Headless-Escape-Hatch: Env gesetzt -> kein Briefing-Feld
 OUT=$(cd "$PROJ2" && echo '{}' | CLAUDE_PROJECT_DIR="$PROJ2" AGENTIC_OS_CODEX_HEADLESS=1 bash "$CB" 2>/dev/null)
 echo "$OUT" | grep -q "additionalContext" && fail "headless: must not brief" || pass "headless: no briefing"
