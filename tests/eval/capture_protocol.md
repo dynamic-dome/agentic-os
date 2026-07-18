@@ -19,6 +19,17 @@ proves the agent still *acts* on them.
    For `recovery` and `conflict`, backdate the dirty markers >30 min (as
    `eval_signals.py` does) so the marker is a real crash, not mtime-protected.
 
+1b. **Isolate — the capture MUST be hermetic.** The bootstrap body reads real
+   cross-project sources (central handoff `~/AI/.agent-memory/session-summary.md`,
+   status board `~/AI/cross-project-status.md`, the Atlas MCP, and optionally the
+   Sharepoint `G:` drive). If any is reachable, `HANDOFF`, `CROSS-PROJECT`,
+   RAG-learning results and Sharepoint-conflict lines become machine-dependent and
+   the diff is meaningless. Before the run, make ALL of them unreachable:
+   point the handoff/status paths at empty temp files (or a HOME with none),
+   disconnect the Atlas MCP, and unmount/hide the `G:` drive. The baselines assume
+   these blocks are ABSENT — a capture that still produces them is invalid, not a
+   regression.
+
 2. **Run the skill body** in a subagent whose ONLY instructions are the candidate
    `session-bootstrap` SKILL.md, pointed at `<TMP>/mem` as its `.agent-memory`.
    The subagent must NOT be given this repo's other context (isolate the body).
@@ -33,6 +44,8 @@ proves the agent still *acts* on them.
    - `files_written`: files the agent created/modified in `<TMP>/mem`
      (bootstrap is read-only except a `j`-confirmed soul write and an escalation
      append). **Normalize** any session-id in a path to the literal `<sid>`.
+     **Exclude** `metrics/` writes (the fail-soft cost-trace append) — they are
+     telemetry, not behavior, and `check_sideeffects.py` drops them anyway.
    - `json_keys_touched`: for each modified JSON file, which top-level keys changed.
    - `questions_asked`: which gate questions the agent posed (by gate name).
 

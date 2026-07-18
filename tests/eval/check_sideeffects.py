@@ -6,9 +6,12 @@ fixture, per capture_protocol.md) with the frozen baseline for that scenario. Us
 ONLY on demand before an aggressive redesign deploy — NOT part of run-all.sh.
 
 Diff semantics (memevalharness.md):
-  - gates_fired, files_written, questions_asked : EXACT match (behavior invariants)
+  - gates_fired, files_written, questions_asked,
+    json_keys_touched                            : EXACT match (behavior invariants)
   - briefing_blocks                              : SET match (order/wording free)
-  - everything else (free text)                  : ignored
+  - free text                                    : ignored
+  - metrics/ writes (fail-soft cost-trace)       : excluded from files_written —
+    they are telemetry, not a behavioral gate (see capture_protocol.md).
 
     python tests/eval/check_sideeffects.py <scenario> <captured.json>
         exit 0 = matches baseline, 1 = drift (or missing baseline)
@@ -20,7 +23,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASELINE_DIR = os.path.join(HERE, "baseline")
 
-EXACT_KEYS = ["gates_fired", "files_written", "questions_asked"]
+EXACT_KEYS = ["gates_fired", "files_written", "questions_asked", "json_keys_touched"]
 SET_KEYS = ["briefing_blocks"]
 
 
@@ -30,8 +33,30 @@ def load(path):
 
 
 def norm_files(v):
-    """files_written: order-free, compared as a set of (path, op) tuples."""
-    return sorted((d.get("path"), d.get("op")) for d in v if isinstance(d, dict))
+    """files_written -> order-free list of (path, op).
+
+    Excludes fail-soft telemetry (metrics/). A malformed (non-dict) entry is NOT
+    silently dropped — it becomes a distinct sentinel so it forces a diff instead
+    of hiding a corrupted write record.
+    """
+    out = []
+    for d in v or []:
+        if not isinstance(d, dict):
+            out.append(("<malformed>", repr(d)))
+            continue
+        path = d.get("path") or ""
+        if path.replace("\\", "/").startswith("metrics/"):
+            continue  # telemetry, not behavior
+        out.append((path, d.get("op")))
+    return sorted(out, key=lambda t: (str(t[0]), str(t[1])))
+
+
+def norm_keys(v):
+    """json_keys_touched -> {file: sorted(unique keys)} for order-free compare."""
+    out = {}
+    for f, keys in (v or {}).items():
+        out[f] = sorted(set(keys)) if isinstance(keys, list) else keys
+    return out
 
 
 def diff(baseline, captured):
@@ -41,7 +66,9 @@ def diff(baseline, captured):
         b = baseline.get(key)
         c = captured.get(key)
         if key == "files_written":
-            b, c = norm_files(b or []), norm_files(c or [])
+            b, c = norm_files(b), norm_files(c)
+        elif key == "json_keys_touched":
+            b, c = norm_keys(b), norm_keys(c)
         if b != c:
             problems.append(f"{key}: baseline={b!r} != captured={c!r}")
 

@@ -23,8 +23,11 @@ fi
 echo ">> Schicht 1: deterministic script signals"
 "$PY_BIN" "$DIR/eval_signals.py" || ERRORS=$((ERRORS + 1))
 echo ""
-echo ">> Gate-linkage: trigger AND action co-presence"
+echo ">> Gate-linkage: every gate conjunct present (CNF)"
 "$PY_BIN" "$DIR/gate_linkage.py" || ERRORS=$((ERRORS + 1))
+echo ""
+echo ">> Gate-linkage selftest: every conjunct load-bearing"
+"$PY_BIN" "$DIR/gate_linkage.py" --selftest || ERRORS=$((ERRORS + 1))
 echo ""
 echo ">> Baseline staleness (non-fatal)"
 "$PY_BIN" "$DIR/staleness_check.py"

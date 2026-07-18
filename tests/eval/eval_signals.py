@@ -163,6 +163,42 @@ def test_recovery():
           "recovery: marker is an un-consolidated codex session")
 
 
+def test_hash_present_but_unequal():
+    """Negative case the fixtures otherwise miss: a prior hash EXISTS but differs
+    from the current content -> fast path must be FALSE. Guards a loosened '=='."""
+    print("-- hash present but unequal --")
+    mem = stage("fast-path")  # ships a matching state-hash
+    # mutate a STATE_FILE so current hash diverges from the recorded one
+    with open(os.path.join(mem, "session-summary.md"), "a", encoding="utf-8") as f:
+        f.write("\nmutated after hash was written.\n")
+    st = run_preprocess(mem)
+    check(st["previous_state_hash"] != "", "unequal: a prior hash is present")
+    check(st["previous_state_hash"] != st["current_state_hash"],
+          "unequal: prior hash differs from current")
+    check(fast_path(st) is False, "unequal: fast path is FALSE on hash mismatch")
+
+
+def test_empty_touched_marker():
+    """Characterization (Codex review): a dirty:true marker with EMPTY touched
+    yields no changed_files, so the fast-path signal alone would not flag it —
+    but the marker itself stays present, so recovery-detect (which keys off the
+    marker's existence, not its touched list) still surfaces it. Locks this
+    interaction so a future change to either path is noticed."""
+    print("-- empty-touched marker --")
+    mem = stage("fast-path")
+    with open(os.path.join(mem, "working", "dirty-empty-sess.json"),
+              "w", encoding="utf-8") as f:
+        json.dump({"session_id": "empty-sess", "agent": "codex", "dirty": True,
+                   "touched_files": [], "write_count": 2}, f)
+    st = run_preprocess(mem)
+    check(st["changed_files"] == [],
+          "empty-touched: no changed_files from an empty touched list")
+    markers = [n for n in os.listdir(os.path.join(mem, "working"))
+               if n.startswith("dirty-")]
+    check("dirty-empty-sess.json" in markers,
+          "empty-touched: marker still present for recovery-detect")
+
+
 def test_identity():
     print("-- identity --")
     mem = stage("identity")
@@ -203,8 +239,9 @@ def test_state_files_in_sync():
 
 def main():
     print("=== Eval Harness — Schicht 1 (deterministic script signals) ===")
-    for t in (test_state_files_in_sync, test_fresh, test_fast_path, test_recovery,
-              test_identity, test_conflict):
+    for t in (test_state_files_in_sync, test_fresh, test_fast_path,
+              test_hash_present_but_unequal, test_empty_touched_marker,
+              test_recovery, test_identity, test_conflict):
         t()
     print(f"\n{TESTS - FAILS}/{TESTS} checks passed.")
     sys.exit(1 if FAILS else 0)

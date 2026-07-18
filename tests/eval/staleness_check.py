@@ -25,9 +25,17 @@ PLUGIN_ROOT = os.path.dirname(os.path.dirname(HERE))
 BOOTSTRAP = os.path.join(PLUGIN_ROOT, "skills", "session-bootstrap", "SKILL.md")
 
 
+def body_sha(path):
+    """Hash the body with line endings normalized to LF, so a CRLF checkout of
+    the same git content does not produce a platform-dependent false-stale hash.
+    Capture must record _body_sha256 the same way (normalized)."""
+    with open(path, "r", encoding="utf-8", newline="") as f:
+        text = f.read().replace("\r\n", "\n").replace("\r", "\n")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 def main():
-    with open(BOOTSTRAP, "rb") as f:
-        current = hashlib.sha256(f.read()).hexdigest()
+    current = body_sha(BOOTSTRAP)
 
     notes, warns = [], []
     for p in sorted(glob.glob(os.path.join(HERE, "baseline", "*.json"))):

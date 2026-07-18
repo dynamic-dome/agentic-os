@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 """Gate-linkage check for the skill-redesign harness (T-35).
 
-The core protection against SILENT GATE LOSS during an aggressive body cut. For
-each known bootstrap gate it asserts the body carries BOTH a trigger token AND an
-action token — not just a bare anchor. If a redesign moves a gate's decision
-logic out of the body, either its trigger or its action token disappears and this
-fails, forcing the move back (the redesign rule: "no gate logic leaves the body").
+The core protection against SILENT GATE LOSS during an aggressive body cut. Each
+gate is expressed in CNF: a list of CLAUSES that must ALL hold; a clause is a list
+of alternative tokens of which at least ONE must be present. So every load-bearing
+conjunct of a gate (both trigger conditions AND the action) is mandatory, while a
+single clause may offer alternative spellings for legitimate rephrasing.
 
-This complements validate-skills.sh (bare string anchors) and eval_signals.py
-(script signals). Substring matching, not regex — tokens contain *, `, <> on
-purpose and must match literally.
+    single token  -> a required conjunct with one canonical spelling
+    [a, b] clause -> a required conjunct that may be phrased as a OR b
 
-    python tests/eval/gate_linkage.py          # exit 0 = all pass, 1 = failure
+If a redesign drops any conjunct of a gate, that gate's clause goes unsatisfied
+and this fails — forcing the move back (rule: "no gate logic leaves the body").
 
-Maintenance: this list IS the gate inventory. When a real gate is added to
-bootstrap, add it here; when one is intentionally removed, remove it here in the
-same commit (and say so in the message). Derived from the body on 2026-07-18.
+    python tests/eval/gate_linkage.py [body.md]   # check a body (default: bootstrap)
+    python tests/eval/gate_linkage.py --selftest   # prove every clause has teeth
+
+Substring matching, not regex — tokens contain *, `, <> and must match literally.
+
+Maintenance: this list IS the gate inventory. Add a real gate here when one is
+added to bootstrap; remove one here (same commit, stated in the message) when it
+is intentionally removed. Derived from the body on 2026-07-18; extended after the
+Codex verifier review (CNF + 6 previously-missing gates).
 
 Design: memevalharness.md (membrain).
 """
@@ -26,62 +32,80 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(HERE))
 BOOTSTRAP = os.path.join(PLUGIN_ROOT, "skills", "session-bootstrap", "SKILL.md")
 
-# Each gate: at least ONE trigger token AND at least ONE action token must be
-# present in the body. Tokens are load-bearing literals (file names, exit codes,
-# gate keywords) chosen to survive legitimate rephrasing but die if the gate's
-# mechanic is extracted.
+# gate = {"name", "clauses": [clause, ...]}; clause = [token, ...] (OR within).
+# ALL clauses of a gate must be satisfied (AND across clauses).
 GATES = [
-    {
-        "name": "fast-path",
-        "triggers": ["previous_state_hash == current_state_hash",
-                     "changed_files` is empty"],
-        "actions": ["Memory unchanged since last", "load ONLY"],
-    },
-    {
-        "name": "recovery-detect",
-        "triggers": ["dirty-*.json", "30 minutes"],
-        "actions": ["RECOVERY", "wrap-up ausführen"],
-    },
-    {
-        "name": "recovery-tail-downgrade",
-        "triggers": ["writes_since_consolidation <= 5", "15 minutes"],
-        "actions": ["downgrade"],
-    },
-    {
-        "name": "soul-candidate-gate",
-        "triggers": ["soul-candidates.md", "explicit `j`"],
-        "actions": ["user-changelog.json"],
-    },
-    {
-        "name": "user-candidate-gate",
-        "triggers": ["user-candidates.json"],
-        "actions": ["promotion"],
-    },
-    {
-        "name": "identity-starvation",
-        "triggers": ["2+ sessions old"],
-        "actions": ["Pipeline verhungert"],
-    },
-    {
-        "name": "thresholds",
-        "triggers": ["memory-thresholds.sh", "Exit 10"],
-        "actions": ["THRESHOLD:"],
-    },
-    {
-        "name": "escalation",
-        "triggers": ["escalations-<session-id>.json"],
-        "actions": ["ESKALATION:"],
-    },
-    {
-        "name": "rag-learnings",
-        "triggers": ["memory_search_tool"],
-        "actions": ["learnings_top.py"],
-    },
-    {
-        "name": "sharepoint-conflict",
-        "triggers": ["_conflicts/"],
-        "actions": ["STOP"],
-    },
+    {"name": "fast-path", "clauses": [
+        ["previous_state_hash == current_state_hash"],   # trigger: hashes equal
+        ["changed_files` is empty"],                     # trigger: no dirty work
+        ["Memory unchanged since last", "load ONLY"],    # action: slim load
+    ]},
+    {"name": "recovery-detect", "clauses": [
+        ["dirty-*.json"],                                # trigger: crash markers
+        ["30 minutes"],                                  # trigger: age grace
+        ["RECOVERY"],                                    # action: surface block
+        ["wrap-up ausführen"],                           # action: recommend fix
+    ]},
+    {"name": "recovery-tail-downgrade", "clauses": [
+        ["writes_since_consolidation <= 5"],             # trigger: few tail writes
+        ["15 minutes"],                                  # trigger: near consolidation
+        ["downgrade"],                                   # action: one-line note
+    ]},
+    {"name": "soul-candidate-gate", "clauses": [
+        ["soul-candidates.md"],                          # trigger: candidate queue
+        ["explicit `j`"],                                # trigger: user confirmation
+        ["user-changelog.json"],                         # action: audit trail
+    ]},
+    {"name": "user-candidate-gate", "clauses": [
+        ["user-candidates.json"],                        # trigger: candidate queue
+        ["promotion"],                                   # action: promote to user.md
+    ]},
+    {"name": "identity-starvation", "clauses": [
+        ["2+ sessions old"],                             # trigger: stale scan
+        ["Pipeline verhungert"],                         # action: HEALTH warning
+    ]},
+    {"name": "thresholds", "clauses": [
+        ["memory-thresholds.sh"],                        # trigger: SSoT script
+        ["Exit 10"],                                     # trigger: scaling signal
+        ["THRESHOLD:"],                                  # action: HEALTH lines
+    ]},
+    {"name": "escalation", "clauses": [
+        ["escalations-<session-id>.json"],               # action: append record
+        ["ESKALATION:"],                                 # action: visible line
+    ]},
+    {"name": "rag-learnings", "clauses": [
+        ["memory_search_tool"],                          # trigger: Atlas primary
+        ["learnings_top.py"],                            # action: heuristic fallback
+    ]},
+    {"name": "sharepoint-conflict", "clauses": [
+        ["_conflicts/"],                                 # trigger: conflict files
+        ["STOP"],                                        # action: halt, don't trust
+    ]},
+    # --- gates added after the Codex verifier review (were missing) ---
+    {"name": "missing-memory-stop", "clauses": [
+        ["should not happen"],                           # trigger: .agent-memory gone
+        ["Memory system not found"],                     # action: stop message
+    ]},
+    {"name": "staleness-wrap-90d", "clauses": [
+        ["90 days"],                                     # trigger: last_relevant age
+        ["STALE? last relevant"],                        # action: read-time mark
+    ]},
+    {"name": "wiki-sync-gate", "clauses": [
+        ["sync_enabled` is false"],                      # trigger: config off
+        ["skip this step silently"],                     # action: skip, no error
+    ]},
+    {"name": "json-repair", "clauses": [
+        ["rename to"],                                   # trigger: corrupt JSON
+        [".corrupt.bak"],                                # action: backup + recreate
+    ]},
+    {"name": "active-warning-thresholds", "clauses": [
+        ["confidence >= 0.7"],                           # trigger: pattern confidence
+        ["occurrences >= 3"],                            # trigger: pattern recurrence
+    ]},
+    {"name": "cost-trace", "clauses": [
+        ["cost-trace.sh"],                               # trigger: SSoT script
+        ["context-bytes"],                               # action: log run trace
+    ]},
 ]
 
 TESTS = 0
@@ -98,25 +122,68 @@ def check(cond, label):
         print(f"  FAIL: {label}")
 
 
-def main():
-    # Optional body-path override: lets the redesign flow point the check at a
-    # candidate SKILL.md before it replaces the live one.
-    body_path = sys.argv[1] if len(sys.argv) > 1 else BOOTSTRAP
-    print(f"=== Gate-Linkage — {os.path.basename(os.path.dirname(body_path))} "
-          f"(trigger AND action co-presence) ===")
-    with open(body_path, "r", encoding="utf-8") as f:
-        body = f.read()
+def clause_satisfied(clause, body):
+    return any(tok in body for tok in clause)
 
+
+def gate_ok(gate, body):
+    """True iff every clause of the gate is satisfied."""
+    return all(clause_satisfied(c, body) for c in gate["clauses"])
+
+
+def run_checks(body, label):
+    print(f"=== Gate-Linkage — {label} (CNF: every conjunct mandatory) ===")
     for gate in GATES:
-        name = gate["name"]
-        trig_hits = [t for t in gate["triggers"] if t in body]
-        act_hits = [a for a in gate["actions"] if a in body]
-        check(len(trig_hits) >= 1,
-              f"{name}: trigger present ({trig_hits or gate['triggers']})")
-        check(len(act_hits) >= 1,
-              f"{name}: action present ({act_hits or gate['actions']})")
+        for i, clause in enumerate(gate["clauses"]):
+            hit = [t for t in clause if t in body]
+            check(len(hit) >= 1,
+                  f"{gate['name']}: clause {i} present ({hit or clause})")
+    print(f"\n{TESTS - FAILS}/{TESTS} clause checks passed "
+          f"({len(GATES)} gates).")
 
-    print(f"\n{TESTS - FAILS}/{TESTS} checks passed ({len(GATES)} gates).")
+
+def selftest(body):
+    """Prove every clause is load-bearing: removing any single clause's tokens
+    must make its gate fail. Guards against the OR-within-gate hole the Codex
+    review found."""
+    print("=== Gate-Linkage SELFTEST (single-conjunct-loss must be caught) ===")
+    global TESTS, FAILS
+    for gate in GATES:
+        # sanity: gate must pass on the untouched body first
+        if not gate_ok(gate, body):
+            TESTS += 1
+            FAILS += 1
+            print(f"  FAIL: {gate['name']}: does not hold on current body")
+            continue
+        for i, clause in enumerate(gate["clauses"]):
+            mutated = body
+            for tok in clause:
+                mutated = mutated.replace(tok, "<<removed>>")
+            TESTS += 1
+            if gate_ok(gate, mutated):
+                FAILS += 1
+                print(f"  FAIL: {gate['name']} clause {i} NOT load-bearing "
+                      f"(gate still passes without {clause})")
+            else:
+                print(f"  PASS: {gate['name']} clause {i} load-bearing")
+    print(f"\n{TESTS - FAILS}/{TESTS} selftest checks passed.")
+
+
+def main():
+    args = sys.argv[1:]
+    with open(BOOTSTRAP, "r", encoding="utf-8") as f:
+        default_body = f.read()
+
+    if args and args[0] == "--selftest":
+        selftest(default_body)
+    elif args:
+        body_path = args[0]
+        with open(body_path, "r", encoding="utf-8") as f:
+            body = f.read()
+        run_checks(body, os.path.basename(os.path.dirname(body_path)))
+    else:
+        run_checks(default_body, "session-bootstrap")
+
     sys.exit(1 if FAILS else 0)
 
 
