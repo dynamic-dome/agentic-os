@@ -220,6 +220,17 @@ else
 fi
 
 echo ""
+
+# Run skill-redesign eval harness (T-35: Schicht 1 signals + gate-linkage)
+echo ">>> Running skill-redesign eval harness..."
+if bash "$SCRIPT_DIR/eval/run-eval.sh"; then
+    echo ">>> Skill-redesign eval harness: ALL PASSED"
+else
+    echo ">>> Skill-redesign eval harness: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
 echo "========================================"
 if [ "$TOTAL_ERRORS" -eq 0 ]; then
     echo "  ALL TEST SUITES PASSED"
