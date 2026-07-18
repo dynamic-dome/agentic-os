@@ -158,62 +158,26 @@ bootstrap is strictly read-only.
 
 Load relevant context from the Obsidian Wiki if configured.
 
-### Prerequisites
-Read `.agent-memory/config.json`. If it does not exist or `sync_enabled` is false → **skip this step silently**. No error, no warning.
+**Gate:** Read `.agent-memory/config.json`. If it does not exist or
+`sync_enabled` is false → **skip this step silently** (no error, no warning). This
+file is the only trigger; when it is off, the procedure below is never loaded.
 
-### Resolution Order
-1. Extract `wiki_root`, `project_id`, `project_aliases`, `default_entrypoints` from config.json
-2. Validate wiki: check if `$WIKI_ROOT/CLAUDE.md` exists. If not → skip silently.
-3. **Project Entity Resolution** — find the project's wiki page:
-   - Try `$WIKI_ROOT/wiki/entities/{project_id}.md`
-   - If not found: try each alias in `project_aliases` as filename
-   - If not found: try Grep for `project_id` in entity filenames
-   - If still not found: skip entity, continue with other steps
-   - **Read at most the first 80 lines** of the entity page (frontmatter + summary +
-     patterns) — entity pages are uncapped in length and can cost 2k+ tokens full-read
-4. **Entry Points** — load pages from `default_entrypoints`:
-   - For each path: check if file exists at `$WIKI_ROOT/{path}`
-   - **Skip non-existing entry points silently** (no error — they may be planned for later sprints)
-   - Read only existing entry points
-5. **Last 3 Session Notes** — find recent sessions for this project:
-   - Glob: `$WIKI_ROOT/wiki/queries/*session*{project_id}*.md` OR match `project_aliases`
-   - Sort by date (filename prefix), take last 3
-   - Read only frontmatter + first 10 lines of body (not full content)
-6. **Optional: Rolling Synthesis** — if `$WIKI_ROOT/wiki/synthesis/agent-learnings-aktuell.md` exists, read last 20 lines
+**Contract (when enabled):** resolve the project's wiki entity (via `project_id` /
+`project_aliases`) and load **at most 5 pages total** — entity (≤80 lines) + existing
+`default_entrypoints` + last 3 session notes + optional rolling synthesis. No
+brute-force vault search; complete in < 3 seconds. Add a `WIKI CONTEXT` block to the
+briefing (Step 4). If the wiki is unreachable, omit the block silently — never output
+"Wiki not found".
 
-### Limits
-- **Max 5 pages total** loaded in this step (entity + entry points + sessions + synthesis)
-- No brute-force search over the whole vault
-- No deep source pages unless explicitly listed as entry point
-- This step must complete in < 3 seconds
+**Cross-Vault-Enrichment (RAG, optional):** query Atlas
+`mcp__agent-memory-atlas__memory_search_tool` (`scope: "project:agent-lab"`,
+`top_k: 2`) with the Step-2 task-title query; on a hit append
+`Ideas: {t1}; {t2} (agent-lab)` to WIKI CONTEXT; on error/empty/Atlas-unavailable
+skip silently.
 
-### Briefing Extension
-Add a `WIKI CONTEXT` block to the briefing output (Step 4):
-
-```
-WIKI CONTEXT
-  Entity: [[wiki/entities/{slug}]] (updated: {date})
-  Sessions: {n} (last: {date} — {summary})
-  Patterns: {list of high-confidence patterns from entity page}
-  Docs: {count} Claude Code Sources available
-```
-
-If wiki is not configured or unreachable: omit this block entirely. Do NOT output "Wiki not found" — just skip.
-
-### Cross-Vault-Enrichment (RAG, optional)
-
-After loading the wiki pages above, query the Atlas MCP for cross-vault ideas relevant to today's tasks:
-
-1. Use the same task-title query built for Learnings Retrieval (Step 2).
-2. Call `mcp__agent-memory-atlas__memory_search_tool` with:
-   - `query`: task-title query
-   - `top_k`: 2
-   - `scope`: `"project:agent-lab"`
-3. On success: append to the WIKI CONTEXT block:
-   `  Ideas: {title1}; {title2} (agent-lab)`
-4. On error or empty result: skip silently.
-
-If Atlas MCP is unavailable: skip the entire Cross-Vault-Enrichment silently.
+Exact resolution order, per-source line limits, and the WIKI CONTEXT layout:
+`references/bootstrap-procedures.md` (§Wiki Context Loading). Load it only when this
+step actually runs.
 
 ## Step 3: Health Checks
 
