@@ -45,11 +45,6 @@ Restore full project context at the start of every coding session.
    from a different project — read it; older blocks are history, scan only if needed.
 2. Read `C:\Users\domes\AI\SESSION-WORKFLOW.md` **only if** the central handoff references it or if this is the first session in a new project
 
-It tells you:
-- Which project was worked on last (may differ from the current project)
-- What was accomplished and what's still open
-- Which agent wrote it (Claude, Codex, etc.)
-
 ### (b) Cross-project status board — section extract only
 
 3. From `C:\Users\domes\AI\cross-project-status.md` (the **status board**) load ONLY
@@ -78,12 +73,9 @@ Read `.agent-memory/session-summary.md`:
 - If `.agent-memory/` does not exist → this should not happen (SessionStart hook auto-creates it). If it does, output "Memory system not found. This is unexpected — the SessionStart hook should have created it. Try restarting the session." and stop.
 - If it exists but `session-summary.md` is missing → note "No previous session found", continue with other files.
 
-**Three cross-project/local sources may exist:**
-- **Central handoff** (`~/AI/.agent-memory/session-summary.md`, from Step 0.5a): the cross-project agent-to-agent handoff — authoritative for "what happened last"
-- **Status board** (`~/AI/cross-project-status.md`, from Step 0.5b): per-project current state of ALL touched projects — authoritative for "where does each project stand"
-- **Local `.agent-memory/session-summary.md`**: project-specific operational state — authoritative for "where THIS project stands"
-
-All are valid. The briefing merges them (see Step 4).
+**Authority** (detail in `references/bootstrap-wrapup-rationale.md`): central handoff =
+"what happened last"; status board = per-project state; local session-summary = "where
+THIS project stands". All three are valid and merge in the briefing (Step 4).
 
 ## Step 1.5: Deterministic Preflight + Fast Path (bootstrap-fast-path)
 
@@ -153,15 +145,14 @@ ranking script instead and use its ≤10 output lines directly:
 python "${CLAUDE_PLUGIN_ROOT}/scripts/learnings_top.py" .agent-memory/learnings/learnings.json --top 10 --tags {stack-keywords,comma-separated}
 ```
 
-(Formula inside the script: `importance*0.4 + recency*0.3 + tag_overlap*0.3`, skips
-superseded entries.) Prefix the briefing section header with `(heuristic fallback)`.
-If python is unavailable: read only the LAST 15 entries of learnings.json and pick by
-importance.
+Prefix the briefing section header with `(heuristic fallback)`. (Ranking formula:
+`references/bootstrap-wrapup-rationale.md`.) If python is unavailable: read only the LAST
+15 entries of learnings.json and pick by importance.
 
-**Staleness wrap (staleness-wrap) — display only, never a write.** Entries with
-`now − last_relevant > 90 days` are annotated `[STALE? last relevant {date}] {text}` —
-a read-time annotation that only marks, never mutates. Do NOT decay/write confidence
-or last_relevant — that is memory-maintenance's job; bootstrap is strictly read-only.
+**Staleness wrap (staleness-wrap) — display only, never a write.** Annotate entries with
+`now − last_relevant > 90 days` as `[STALE? last relevant {date}] {text}`.
+Do NOT decay/write confidence or last_relevant — that is memory-maintenance's job;
+bootstrap is strictly read-only.
 
 ## Step 2.5: Wiki Context Loading (optional)
 
@@ -383,9 +374,9 @@ RECOMMENDED NEXT STEPS
 
 ## Step 6.5: Identity Gates + Starvation Check
 
-`wrap-up` grows identity via queues (`working/user-candidates.json`,
-`identity/soul-candidates.md`) but never writes `soul.md` autonomously (Stufe B). This
-step surfaces both queues and detects a starving pipeline.
+This step surfaces the identity queues (`working/user-candidates.json`,
+`identity/soul-candidates.md`) and detects a starving pipeline. `soul.md` is never
+written autonomously (Stufe B). Rationale: `references/bootstrap-wrapup-rationale.md`.
 
 ### (a) Soul candidate gate (the single write exception)
 
