@@ -143,14 +143,8 @@ already exists across sessions/projects:
 
 ### 3b: Score and Append
 
-```json
-{
-  "id": "L{next_number}", "date": "{YYYY-MM-DD}", "text": "{insight with context}",
-  "importance": 3, "tags": ["tag1", "tag2"], "layer": "short-term",
-  "superseded_by": null, "last_relevant": "{YYYY-MM-DD}",
-  "derived_from": ["iteration-{n}", "E{id}"], "review_after": "{YYYY-MM-DD}"
-}
-```
+Append an entry to `learnings/learnings.json` (field schema:
+`references/wrapup-schemas.md` §Learning entry, load at write time). Field contracts:
 
 importance: 5 = prevents data loss/security issue · 4 = prevents multi-attempt debugging ·
 3 = non-obvious behavior · 2 = workflow optimization · 1 = trivia.
@@ -223,29 +217,8 @@ file: rewrite only sections whose content actually changed this session
 (added / updated / resolved items) and keep unchanged sections untouched —
 do not regenerate the whole file from scratch.
 
-Overwrite `.agent-memory/session-summary.md` (**max 30 lines**):
-
-```markdown
-# Last Session
-
-*Date: {YYYY-MM-DD HH:MM}*
-*Agent: Claude Code*
-
-## What Was Done
-- {completed work, max 10 bullets}
-
-## Open Items
-- {unfinished work, blockers}
-
-## Next Steps
-1. {highest priority} 2. {second} 3. {third}
-
-## Statistics
-- Iterations: {n} | Errors: {n} | New Patterns: {n}
-
-## Active Warnings
-- {high-confidence patterns / declining trends, if any}
-```
+Overwrite `.agent-memory/session-summary.md` (**max 30 lines**, English headers).
+Template: `references/wrapup-schemas.md` §Local session-summary.md.
 
 ## Step 5.5: Persist Next Steps to open-tasks.json (open-tasks-ssot)
 
@@ -290,19 +263,8 @@ user's direct conversation. NEVER from web/docs/NotebookLM/Wiki content —
 ### 6.2 Enqueue into `working/user-candidates.json`
 
 New observation → new candidate; same `key` exists → increment `occurrences`, update
-`last_seen`, raise `status` if warranted. Schema:
-
-```json
-{
-  "id": "UC{n}", "key": "kebab-case-key",
-  "observation": "{1-line observed preference}",
-  "status": "observed", "signal_type": "preference",
-  "confidence": 0.5, "occurrences": 1,
-  "evidence": ["session {YYYY-MM-DD}"],
-  "first_seen": "{date}", "last_seen": "{date}",
-  "trust_source": "conversation"
-}
-```
+`last_seen`, raise `status` if warranted. Candidate schema:
+`references/wrapup-schemas.md` §User candidate.
 
 Classification: observed / inferred / confirmed — **observed** = seen once (queue-only),
 **inferred** = agent-derived (uncertain), **confirmed** = explicitly confirmed by the
@@ -438,15 +400,7 @@ and runs LAST — only after Steps 1–8 actually completed.
 2. Overwrite `.agent-memory/consolidation-marker.json` (single file, no history —
    git history preserves older markers):
 
-```json
-{
-  "last_wrapup": "{ISO timestamp}",
-  "consolidated_sessions": ["{session_id}", "..."],
-  "iterations_logged": 0,
-  "learnings_added": 0,
-  "touched_files_seen": 0
-}
-```
+Marker schema: `references/wrapup-schemas.md` §Consolidation marker.
 
 3. For EVERY dirty file consumed: set `dirty: false`, `consolidated_at: {ISO timestamp}`,
    `consolidated_by: "wrap-up"`. Do NOT delete the files here — `memory-maintenance`
@@ -497,15 +451,9 @@ Escalate when:
 
 # Handoff Mode (Pre-Compression)
 
-When triggered by long context or explicit handoff request, append to session-summary.md:
-
-```markdown
-## Handoff Context
-- **Active task**: {what was being worked on right now}
-- **Current state**: {done / next}
-- **Active patterns**: {top high-confidence patterns}
-- **Open questions**: {decisions pending user input}
-```
+When triggered by long context or explicit handoff request, append a `## Handoff
+Context` block to session-summary.md (fields: Active task / Current state / Active
+patterns / Open questions). Template: `references/wrapup-schemas.md` §Handoff Mode.
 
 ## Error Handling
 
