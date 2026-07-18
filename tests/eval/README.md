@@ -25,7 +25,7 @@ so the expensive LLM layer (Schicht 2) is optional.
 | `make_fixtures.py` | Generates the 5 fixture stores (run on purpose after content drift; keeps the fast-path hash correct-by-construction). |
 | `fixtures/<scenario>/` | Committed `.agent-memory` stores that really trigger a gate. |
 | `eval_signals.py` | Stages each fixture to a temp dir, backdates crash markers, runs the REAL scripts, asserts the gate-triggering signals. |
-| `gate_linkage.py` | For each known bootstrap gate: asserts the body carries BOTH a trigger and an action token. The core anti-silent-loss check. Accepts an optional body path to check a candidate SKILL.md. |
+| `gate_linkage.py` | For each known gate of every covered skill (`session-bootstrap`: 16 gates, `wrap-up`: 27 gates): asserts the body carries BOTH a trigger and an action token (CNF, every conjunct mandatory). The core anti-silent-loss check. No-arg checks ALL covered skills; a body-path arg checks that one candidate SKILL.md (skill resolved from the parent dir). |
 | `run-eval.sh` | CI entry point: runs the above + the staleness notice. |
 
 ### Schicht 2 — behavioral, break-glass (on-demand, NOT in CI)
@@ -42,8 +42,11 @@ so the expensive LLM layer (Schicht 2) is optional.
 `fresh` · `fast-path` · `recovery` (stale un-consolidated codex marker) ·
 `identity` (promotable user + soul candidate) · `conflict` (contradictory records).
 
-Currently seeded for `session-bootstrap` only; `wrap-up` scenarios get added when
-wrap-up is redesigned.
+Fixture stores currently seeded for `session-bootstrap` only; `wrap-up` shares the
+same deterministic scripts (`preprocess_state.py --session-id`, `memory-thresholds.sh`,
+`gc_dirty_markers.py`), so its script-signals are covered by the existing fixtures.
+`wrap-up`'s body is guarded by its own 27-gate `gate_linkage` inventory. Dedicated
+`wrap-up` write-effect fixtures get added if/when a wrap-up cut needs Schicht-2 capture.
 
 ## Usage
 
@@ -57,7 +60,8 @@ python tests/eval/check_sideeffects.py <scenario> <captured.json>
 
 ## Maintenance
 
-- Add a real gate to bootstrap → add it to `GATES` in `gate_linkage.py` (same commit).
+- Add a real gate to a covered skill → add it to `BOOTSTRAP_GATES` / `WRAPUP_GATES`
+  in `gate_linkage.py` (same commit); the `SKILLS` registry wires it in.
 - Change `STATE_FILES` in `preprocess_state.py` → mirror it in `make_fixtures.py`
   (guarded by `eval_signals.py`) and regenerate fixtures.
 - Intentionally change bootstrap behavior → re-capture the affected baseline.
