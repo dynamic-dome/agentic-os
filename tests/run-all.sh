@@ -72,6 +72,22 @@ fi
 
 echo ""
 
+# Run dirty-marker GC tests (python; try python3 first, then python)
+echo ">>> Running dirty-marker GC tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-gc-dirty-markers.py"; then
+    echo ">>> Dirty-marker GC tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Dirty-marker GC tests: SKIPPED (no python found)"
+else
+    echo ">>> Dirty-marker GC tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run learnings schema-fields contract test (v4.4.0: derived_from + review_after)
 echo ">>> Running learnings schema-fields contract test..."
 PY_BIN=""

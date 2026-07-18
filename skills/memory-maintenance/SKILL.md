@@ -125,10 +125,21 @@ matching `*.py`, `*.tmp`, or `*.bak` that are older than the staleness window in
 **Exempt (never delete):** the living session artifacts `working/current-session.json`
 and `working/user-candidates.json`. Report the number of deleted files in Step 9.
 
-**Dirty-state files (`working/dirty-*.json`):** delete only files with
-`dirty: false` (consolidated by wrap-up Step 9.5) whose `consolidated_at` is older
-than 7 days. NEVER delete a file with `dirty: true` — that is recovery evidence for
-an un-consolidated session; session-bootstrap reports it, wrap-up consumes it.
+**Dirty-state files (`working/dirty-*.json`):** do NOT hand-pick these — run the
+deterministic collector, which encodes the full safety rule (mtime <30min protection,
+consolidated markers, and markers superseded by a later wrap-up). Preview first
+(dry-run, no deletion), then apply:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/gc_dirty_markers.py" .agent-memory           # preview
+python "${CLAUDE_PLUGIN_ROOT}/scripts/gc_dirty_markers.py" .agent-memory --apply    # delete
+```
+
+It removes a marker only when it is safe: `dirty: false`/`consolidated_at` set, OR
+`updated < consolidation-marker.last_wrapup` (a later wrap-up ran, so the work is in
+git/native memory). It NEVER deletes a file whose mtime is within 30 min (live/parallel
+session) or an un-consolidated session with no later wrap-up (real recovery evidence
+that session-bootstrap reports and wrap-up consumes). Report the removed count in Step 9.
 
 ## Step 4: Prune Stale Patterns
 

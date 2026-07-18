@@ -449,8 +449,9 @@ and runs LAST — only after Steps 1–8 actually completed.
 ```
 
 3. For EVERY dirty file consumed: set `dirty: false`, `consolidated_at: {ISO timestamp}`,
-   `consolidated_by: "wrap-up"`. Do NOT delete the files — `memory-maintenance` archives
-   consolidated dirty files older than 7 days.
+   `consolidated_by: "wrap-up"`. Do NOT delete the files here — `memory-maintenance`
+   garbage-collects them later via `scripts/gc_dirty_markers.py` (consolidated markers +
+   markers superseded by a later wrap-up; mtime <30min is protected).
 4. **Self-healing rule (parallel sessions):** if a consumed dirty file belonged to a
    session that is still running in parallel, its next Write/Edit simply re-sets
    `dirty: true` via the hook — consolidating it here is harmless. Never try to guess
@@ -524,4 +525,5 @@ When triggered by long context or explicit handoff request, append to session-su
 - Do NOT run memory maintenance during an active self-improve loop
   (`improvements/state.json` → `status: "running"`)
 - Do NOT delete `working/dirty-*.json` (Step 9.5 flips flags; memory-maintenance
-  archives) and do NOT write the consolidation marker when the wrap-up was incomplete
+  GCs them via gc_dirty_markers.py) and do NOT write the consolidation marker when the
+  wrap-up was incomplete

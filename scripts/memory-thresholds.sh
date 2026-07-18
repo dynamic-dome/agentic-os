@@ -53,6 +53,14 @@ fi
 if [ -d "$MEM/working" ]; then
   stale=$(find "$MEM/working" -maxdepth 1 -type f \( -name '*.py' -o -name '*.tmp' -o -name '*.bak' \) -mtime +7 2>/dev/null | wc -l | tr -d ' ')
   [ "$stale" -gt 0 ] && note "working/ has $stale stale scratch file(s) >7d — delete"
+
+  # dirty-*.json recovery markers accumulate: wrap-up only resets its own session, so
+  # consolidated (dirty:false) AND superseded (dirty:true, older than last_wrapup)
+  # markers pile up. Coarse total-count signal here (the exact eligibility rule +
+  # deletion live in scripts/gc_dirty_markers.py — a count of dirty:false alone would
+  # miss the superseded dirty:true markers).
+  n_dirty=$(find "$MEM/working" -maxdepth 1 -name 'dirty-*.json' 2>/dev/null | wc -l | tr -d ' ')
+  [ "$n_dirty" -gt 10 ] && note "working/ has $n_dirty dirty-marker(s) — run scripts/gc_dirty_markers.py --apply (GC consolidated + superseded)"
 fi
 
 [ "$EXCEEDED" -eq 1 ] && exit 10
