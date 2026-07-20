@@ -10,6 +10,11 @@ Classification:
   active   newest note <= 21 days old
   dormant  older than that
   frozen   dormant AND write span (newest - oldest) <= 7 days (write-once)
+  empty    store has no note files (MEMORY.md alone does not count)
+
+Known limit: markdown link targets containing parentheses are not parsed
+(harness note names are slug-based; worst case is a visible false-positive
+orphan, never a write).
 
 Injection level (MEMORY.md is fully injected at session start of its project):
   ok < 10 KB <= warn < 16 KB <= critical
@@ -50,7 +55,10 @@ def _index_links(index_path):
         target = target.strip().replace("\\", "/")
         if target.startswith(("http://", "https://", "/")):
             continue
-        out.append(target)
+        norm = os.path.normpath(target).replace("\\", "/")
+        if norm.startswith("../") or norm == "..":  # leaves the store: ignore
+            continue
+        out.append(norm)
     return out
 
 
@@ -69,14 +77,17 @@ def scan_store(store_dir, now):
         total_bytes += os.path.getsize(path)
         mtimes.append(os.path.getmtime(path))
 
-    newest = max(mtimes) if mtimes else (
-        os.path.getmtime(memory_md) if has_index else 0.0)
-    oldest = min(mtimes) if mtimes else newest
-    age_d = (now - newest) / DAY if newest else None
+    newest = max(mtimes) if mtimes else 0.0
+    oldest = min(mtimes) if mtimes else 0.0
+    age_d = (now - newest) / DAY if mtimes else None
     span_d = (newest - oldest) / DAY if mtimes else 0.0
 
-    classification = "active" if age_d is not None and age_d <= ACTIVE_MAX_AGE_D \
-        else "dormant"
+    if not mtimes:
+        classification = "empty"
+    elif age_d <= ACTIVE_MAX_AGE_D:
+        classification = "active"
+    else:
+        classification = "dormant"
     frozen = classification == "dormant" and span_d <= FROZEN_MAX_SPAN_D
 
     if memory_md_bytes >= CRITICAL_BYTES:
@@ -193,15 +204,27 @@ def main(argv):
               file=sys.stderr)
         return 2
 
+    root_abs = os.path.abspath(args.projects_root)
+    for out_path in (args.json_out, args.md_out):
+        if out_path and os.path.abspath(out_path).lower().startswith(
+                root_abs.lower() + os.sep):
+            print(f"audit: refusing output path inside projects root "
+                  f"(read-only contract): {out_path}", file=sys.stderr)
+            return 2
+
     now = time.time()
     result = audit(args.projects_root, now, exclude=args.exclude)
     md = render_markdown(result, now)
-    if args.json_out:
-        with open(args.json_out, "w", encoding="utf-8") as f:
-            json.dump(result, f, ensure_ascii=False, indent=1)
-    if args.md_out:
-        with open(args.md_out, "w", encoding="utf-8") as f:
-            f.write(md)
+    try:
+        if args.json_out:
+            with open(args.json_out, "w", encoding="utf-8") as f:
+                json.dump(result, f, ensure_ascii=False, indent=1)
+        if args.md_out:
+            with open(args.md_out, "w", encoding="utf-8") as f:
+                f.write(md)
+    except OSError as exc:
+        print(f"audit: cannot write report: {exc}", file=sys.stderr)
+        return 2
     print(md)
     return 0
 

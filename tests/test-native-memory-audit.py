@@ -136,6 +136,21 @@ def main():
         _check(r1["injection_level"] == "ok",
                "small MEMORY.md -> injection_level ok")
 
+        # --- empty store: no notes -> classification "empty", not active ---
+        s7 = _mk_store(root, "p-empty", {})
+        r7 = nma.scan_store(s7, now)
+        _check(r7["classification"] == "empty" and r7["frozen"] is False,
+               "store without notes -> classification empty (not active)")
+
+        # --- traversal links leave the store -> ignored, not linkage ---
+        s8 = _mk_store(root, "p-traversal", {"real.md": "x"},
+                       index_lines=["- [esc](../ghost-outside.md) — traversal",
+                                    "- [real](real.md) — ok"])
+        r8 = nma.scan_store(s8, now)
+        _check(all("ghost-outside" not in d for d in r8["dead_links"]),
+               "../-traversal link is ignored (not dead, not linkage)")
+        _check(r8["orphans"] == [], "real note stays linked despite traversal line")
+
         # --- audit(): scans only */memory, exclude honored ---
         os.makedirs(os.path.join(root, "no-memory-here"), exist_ok=True)
         result = nma.audit(root, now, exclude=["p-huge"])
@@ -157,8 +172,9 @@ def main():
             for fn in filenames:
                 p = os.path.join(dirpath, fn)
                 before[p] = (os.path.getmtime(p), os.path.getsize(p))
-        out_json = os.path.join(root, "audit.json")
-        out_md = os.path.join(root, "audit.md")
+        out_dir = tempfile.mkdtemp()  # OUTSIDE projects-root (CLI guard)
+        out_json = os.path.join(out_dir, "audit.json")
+        out_md = os.path.join(out_dir, "audit.md")
         env = dict(os.environ)
         env["PYTHONIOENCODING"] = ""  # force default console encoding path
         proc = subprocess.run(
@@ -179,6 +195,26 @@ def main():
             data = json.load(f)
         _check(any("uml" in s["slug"] for s in data["stores"]),
                "non-ascii store slug survives into JSON report")
+
+        # --- CLI guard: output path inside projects-root is rejected ---
+        evil = os.path.join(root, "p-active", "memory", "MEMORY.md")
+        with open(evil, encoding="utf-8") as f:
+            evil_before = f.read()
+        proc2 = subprocess.run(
+            [sys.executable, SCRIPT, "--projects-root", root, "--json", evil],
+            capture_output=True, text=True)
+        with open(evil, encoding="utf-8") as f:
+            evil_after = f.read()
+        _check(proc2.returncode == 2 and evil_before == evil_after,
+               "CLI rejects --json target inside projects-root (store intact)")
+
+        # --- CLI guard: missing parent dir -> clean error, exit 2 ---
+        proc3 = subprocess.run(
+            [sys.executable, SCRIPT, "--projects-root", root,
+             "--json", os.path.join(root, "no-such-dir", "x.json")],
+            capture_output=True, text=True)
+        _check(proc3.returncode == 2 and "Traceback" not in proc3.stderr,
+               "CLI reports missing output dir cleanly (exit 2, no traceback)")
 
     print()
     if FAILURES:
