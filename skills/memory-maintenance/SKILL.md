@@ -13,7 +13,7 @@ model: sonnet
 effort: low
 metadata:
   author: agentic-os
-  version: '1.2'
+  version: '1.3'
   part-of: agentic-os
   layer: core
   extracted-from: wrap-up
@@ -141,6 +141,24 @@ git/native memory). It NEVER deletes a file whose mtime is within 30 min (live/p
 session) or an un-consolidated session with no later wrap-up (real recovery evidence
 that session-bootstrap reports and wrap-up consumes). Report the removed count in Step 9.
 
+## Step 3c: Native Memory Stores Audit (read-only report)
+
+The native Claude-Code memory stores (`~/.claude/projects/*/memory/`) live outside
+`.agent-memory/` but feed every session start via MEMORY.md injection. Run the
+read-only auditor:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/native_memory_audit.py"
+```
+
+Exit 0 → carry the report's `**Summary:**` line (active/dormant/orphans/dead
+links/injection warnings) into the Step 9 report. Exit 2 → tool error; report one
+line and continue — a failed audit must never block the maintenance itself.
+
+This step is strictly a REPORTER: it NEVER rotates, deletes, or edits native
+stores. Rotation and orphan fixes stay owner decisions (membrain D16); `warn`/
+`critical` injection warnings are surfaced to the user, not auto-fixed.
+
 ## Step 4: Prune Stale Patterns
 
 Read `.agent-memory/patterns/patterns.json`:
@@ -215,6 +233,7 @@ Memory Maintenance:
   Patterns pruned: {n_stale} stale, {n_low_conf} low-confidence
   Session summary: {compacted|ok} ({n} lines)
   Learnings: {compacted|ok} ({n} lines)
+  Native stores: {n_active} active, {n_dormant} dormant, {n_warn} injection warnings
   Consistency: {n_issues} issues found, {n_fixed} fixed
 ```
 
@@ -227,6 +246,7 @@ Memory Maintenance:
   Patterns pruned: 0 stale, 0 low-confidence
   Session summary: ok (24 lines)
   Learnings: ok (87 lines)
+  Native stores: 17 active, 8 dormant, 1 injection warnings
   Consistency: 0 issues found, 0 fixed
 ```
 
