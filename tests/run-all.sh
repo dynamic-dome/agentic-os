@@ -88,6 +88,22 @@ fi
 
 echo ""
 
+# Run native-memory audit tests (T-36: read-only store audit)
+echo ">>> Running native-memory audit tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-native-memory-audit.py"; then
+    echo ">>> Native-memory audit tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Native-memory audit tests: SKIPPED (no python found)"
+else
+    echo ">>> Native-memory audit tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run learnings schema-fields contract test (v4.4.0: derived_from + review_after)
 echo ">>> Running learnings schema-fields contract test..."
 PY_BIN=""
