@@ -151,9 +151,10 @@ read-only auditor:
 python "${CLAUDE_PLUGIN_ROOT}/scripts/native_memory_audit.py"
 ```
 
-Exit 0 → carry the report's `**Summary:**` line (active/dormant/orphans/dead
-links/injection warnings) into the Step 9 report. Exit 2 → tool error; report one
-line and continue — a failed audit must never block the maintenance itself.
+Exit 0 → carry the report's `**Summary:**` line (active/dormant incl. frozen/
+orphans/dead links/injection warnings) verbatim into the Step 9 report. Any
+non-zero exit (2 = usage/path error, 1 = unexpected crash) → tool error; report
+one line and continue — a failed audit must never block the maintenance itself.
 
 This step is strictly a REPORTER: it NEVER rotates, deletes, or edits native
 stores. Rotation and orphan fixes stay owner decisions (membrain D16); `warn`/
@@ -233,7 +234,7 @@ Memory Maintenance:
   Patterns pruned: {n_stale} stale, {n_low_conf} low-confidence
   Session summary: {compacted|ok} ({n} lines)
   Learnings: {compacted|ok} ({n} lines)
-  Native stores: {n_active} active, {n_dormant} dormant, {n_warn} injection warnings
+  Native stores: {n_active} active, {n_dormant} dormant ({n_frozen} frozen), {n_orphans} orphans, {n_dead} dead links, {n_warn} injection warnings
   Consistency: {n_issues} issues found, {n_fixed} fixed
 ```
 
@@ -246,7 +247,7 @@ Memory Maintenance:
   Patterns pruned: 0 stale, 0 low-confidence
   Session summary: ok (24 lines)
   Learnings: ok (87 lines)
-  Native stores: 17 active, 8 dormant, 1 injection warnings
+  Native stores: 17 active, 8 dormant (6 frozen), 0 orphans, 0 dead links, 1 injection warnings
   Consistency: 0 issues found, 0 fixed
 ```
 
