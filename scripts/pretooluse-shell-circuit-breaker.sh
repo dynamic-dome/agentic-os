@@ -55,6 +55,14 @@ _EXECUTOR_FLAG_PREFIX = re.compile(
     r"(?:powershell|pwsh|cmd|bash|sh|zsh|python\d?|node)(?:\.exe)?\s+(?:\S+\s+)*(?:-command|-c|/c|/k|-e|-lc)\s*$",
     re.IGNORECASE,
 )
+# T-32: default/alternate parameter-expansion operators. ${var:-CMD}, ${var-CMD},
+# ${var:=CMD}, ${var=CMD}, ${var:+CMD}, ${var+CMD} run CMD as a command when the
+# expansion sits in command position; the punctuation (:- / - / := / =) otherwise
+# reads as a non-boundary for the anchored rules AND is swallowed by the disk-
+# format lookbehind class [\w.=-]. Matches the operator prefix (positional names
+# like ${1:-x} included); the ? error-message form and substring/pattern forms
+# (${v:1:2}, ${v#x}, ${v/x/y}) do NOT match and stay untouched.
+_PARAM_EXPANSION_OP = re.compile(r"\$\{[A-Za-z0-9_]+:?[-=+]")
 
 
 def has_balanced_quotes(command):
@@ -156,6 +164,22 @@ def mask_quoted_content(command):
     return _QUOTED_SPAN.sub(mask, command)
 
 
+def expose_param_expansion(command):
+    """T-32: expose a command smuggled as a parameter-expansion default/alternate
+    value so every destructive rule and the disk-format lookbehind see it.
+
+    Bash executes the default/alternate word of ${var:-CMD}, ${var-CMD},
+    ${var:=CMD}, ${var=CMD}, ${var:+CMD}, ${var+CMD} as a command when the
+    expansion sits in command position; before this pass ${x:-mkfs ...} (and the
+    same for rm/git-reset/shutdown/dd) slipped past every anchored rule. Rewriting
+    the operator prefix to a command separator feeds the existing boundary anchors
+    and defuses the lookbehind at once, including nested and positional forms.
+    Runs on the already quote-masked string, so quoted defaults stay masked
+    (T-19 known-open). The error-message form (:? / ?) is not command position and
+    is deliberately left intact."""
+    return _PARAM_EXPANSION_OP.sub("; ", command)
+
+
 RULES = [
     (
         "recursive forced deletion",
@@ -232,7 +256,7 @@ normalized = normalize(command)
 if is_readonly_command(normalized):
     sys.exit(0)
 
-checked_command = mask_quoted_content(normalized)
+checked_command = expose_param_expansion(mask_quoted_content(normalized))
 for label, pattern in RULES:
     if pattern.search(checked_command):
         print(

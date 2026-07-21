@@ -197,6 +197,51 @@ run_case "blocks destructive second segment after read-only echo" 2 \
 run_case "blocks unbalanced quoted diskpart grep fail-closed" 2 \
     '{"tool_name":"Bash","tool_input":{"command":"grep \"diskpart file.txt"}}'
 
+# T-32: parameter-expansion in command position must not smuggle a destructive
+# command past the anchored rules / disk-format lookbehind. Bash runs the
+# default/alternate word as a command when the ${...} sits in command position;
+# the ':-'/'-'/':=' punctuation must be canonicalized to a command boundary.
+run_case "blocks mkfs via \${x:-CMD} default" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x:-mkfs.ext4 /dev/sdb1}"}}'
+
+run_case "blocks diskpart via \${x:-CMD} default" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x:-diskpart /s evil.txt}"}}'
+
+run_case "blocks format via \${x:-CMD} default" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x:-format C: /Q}"}}'
+
+run_case "blocks mkfs via bare \${x-CMD} default" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x-mkfs.ext4 /dev/sdb1}"}}'
+
+run_case "blocks mkfs via \${x:=CMD} assign-default" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x:=mkfs.ext4 /dev/sdb1}"}}'
+
+run_case "blocks rm -rf via \${x:-CMD} (general class, not just disk)" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x:-rm -rf /home/user}"}}'
+
+run_case "blocks shutdown via \${x:-CMD}" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x:-shutdown now}"}}'
+
+run_case "blocks dd of=/dev via \${x:-CMD}" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x:-dd if=/dev/zero of=/dev/sda}"}}'
+
+run_case "blocks nested \${x:-\${y:-mkfs ...}} default" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${x:-${y:-mkfs.ext4 /dev/sdb1}}"}}'
+
+# T-32 FP guards: benign parameter expansion must stay ALLOW. Quoted defaults
+# are masked upstream; unquoted benign defaults expose only non-destructive text.
+run_case "allows benign quoted \${EDITOR:-vim}" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"echo \"${EDITOR:-vim}\""}}'
+
+run_case "allows benign positional \${1:-README.md}" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"cat \"${1:-README.md}\""}}'
+
+run_case "allows benign unquoted \${TMPDIR:-/tmp} path" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"echo ${TMPDIR:-/tmp}/build.log"}}'
+
+run_case "allows substring expansion \${path:0:5} (not a default op)" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"echo \"${path:0:5}\""}}'
+
 echo ""
 echo "========================================"
 if [ "$ERRORS" -eq 0 ]; then
