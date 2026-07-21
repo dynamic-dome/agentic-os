@@ -4,6 +4,47 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-21] Release v4.13.0 — T-41/T-42: Rueckfluss sichtbar, Autoritaets-Matrix messbar
+
+Zwei Rosinen aus der membrain-Ernte `memperfectflowharvest.md`. Beide schliessen
+keine Funktions-, sondern eine **Sichtbarkeitsluecke**: die Mechanik lief bereits,
+nur konnte niemand pruefen, ob sie laeuft.
+
+**T-41 — `memory-audit` Step 3.4 (rueckfluss-audit).** Die vier Rueckflussfelder
+werden von wrap-up (`derived_from`, `review_after`) und pattern-extractor
+(`implemented_by`, `validated_by`) geschrieben, aber von keinem Report geprueft.
+Neuer Step 3.4 meldet: Learnings ohne `derived_from` (mit Datum des juengsten
+Verstosses — alte Eintraege vor dem Provenienz-Kontrakt sind erwartbar, ein
+frischer ist das Signal), ueberfaellige `review_after`, Patterns mit
+`promotion_status: ready` ohne `implemented_by`, Patterns mit `implemented_by`
+ohne `validated_by`. **Immer mit Record-IDs**, Nullwerte explizit ("0 — clean"),
+weil ein leerer Block sonst wie "nicht geprueft" liest. Report bekommt einen
+BACKFLOW-Block; `feedback-loop-gap` ist die passende Gap-Klasse. Live-Beleg fuer
+den Wert (membrain-Store): 14/56 Learnings ohne `derived_from` waren unsichtbar.
+Absicherung: `test-pattern-rueckfluss-contract.sh` Abschnitt 7 (jedes Feld muss in
+Step 3.4 UND im Report stehen), mutationsgetestet. Korrektur gegenueber der
+Ernte-Notiz: der reale `promotion_status`-Wertebereich ist `candidate | ready`
+(obsidian-sync Step 6) — ein "promoted" gibt es nicht.
+
+**T-42 — Retrieval-Golden-Set (`tests/eval/retrieval_golden.{json,py}`).** Die
+Autoritaets-Matrix (welche Quelle FUEHRT bei welchem Fragetyp) war kanonische
+Prosa ohne Pruefpfad; semantische Aehnlichkeit konnte die zustaendige Quelle
+ueberstimmen, ohne dass etwas rot wird. 22 Faelle ueber 15 Fragetypen, je mit
+erwarteter Leitquelle, erlaubten Ergaenzungsquellen, typischem Fehlgriff und
+Begruendung — inklusive des kanonischen P1-Paars R11/R12 (Card waehlt aus, reale
+Skill-Datei belegt — und die Umkehrung, sonst kollabiert die Regel zu "immer
+Dateien lesen"). Schicht 1 validiert den Satz deterministisch und **verankert
+jede `kind: store`-Quelle in `DEPENDENCIES.md`**, damit ein Store-Rename CI rot
+faerbt statt den Satz still zu entwerten (Anker per Basename — ein reiner
+Verzeichnis-Move greift bewusst nicht, das Layout gehoert `mem-schema.sh`).
+`--selftest` beweist mit 11 Mutationen, dass jede Regel traegt. Schicht 2
+(`--score answers.json`) bewertet einen aufgezeichneten Lauf und meldet Treffer
+auf `typical_wrong_pick` getrennt als TRAP. Eingehaengt in `run-eval.sh`, damit in
+`run-all.sh`.
+
+Anmerkung: v4.11.x und v4.12.0 haben keine CHANGELOG-Eintraege (Bumps liefen in
+fix-Commits mit) — hier bewusst nicht rueckwirkend rekonstruiert.
+
 ## [2026-07-17] Release v4.10.0 — T-25 Pivot: offene Tasks in AGENTS.md projizieren
 
 Kern-Erkenntnis aus T-25 (Codex-eigene Session-Transcripts): interaktives Codex

@@ -10,6 +10,9 @@
 #   3. memory-audit: findings labeled with the gap taxonomy (7 classes)
 #      + the late-filter diagnosis rule + gap class visible in the report.
 #   4. DEPENDENCIES.md names every authorized patterns.json field-writer.
+#   5. memory-audit Step 3.4: backflow completeness — all four rueckfluss fields
+#      audited AND surfaced in the report, by record ID, zeros stated explicitly
+#      (membrain T-41 / memperfectflowharvest.md Rosine R1).
 # v4.6.1: greps section-scoped + coupling/negative checks (Verifier Minor 1).
 
 set -e
@@ -29,6 +32,7 @@ fail() {
 extractor_step5()  { awk '/^## Step 5: Write Pattern Entry/,/^## Step 6: Update/'      "$EXTRACTOR"; }
 extractor_step66() { awk '/^## Step 6.6: Feedback Loop/,/^## Step 7: Flag/'            "$EXTRACTOR"; }
 obsidian_step6()   { awk '/^## Step 6: Update Pattern Promotion/,/^## Step 7: Update/' "$OBSIDIAN"; }
+audit_step34()     { awk '/^## Step 3.4: Backflow/,/^## Step 3.5: Classify/'           "$AUDIT"; }
 audit_step35()     { awk '/^## Step 3.5: Classify/,/^## Step 4: Report/'               "$AUDIT"; }
 audit_step4()      { awk '/^## Step 4: Report/,0'                                      "$AUDIT"; }
 
@@ -154,4 +158,37 @@ audit_step35 | grep -qi "late filter" \
 audit_step4 | grep -q "GAP CLASS" \
     || fail "report template must carry a GAP CLASS column for findings"
 
-echo "PASS: pattern rueckfluss contract (schema+dates, delta gate w/ idempotency+ownership, scope gate, deps matrix, gap taxonomy in report)"
+# --- 7. memory-audit: backflow completeness (membrain T-41) -----------------
+# The four rueckfluss fields are written by wrap-up / pattern-extractor. Without
+# an audit that NAMES the offenders, a formally complete loop can sit idle. Each
+# field must be checked in Step 3.4 AND surface in the Step 4 report.
+
+audit_step34 | grep -q 'rueckfluss-audit' \
+    || fail "memory-audit must carry the rueckfluss-audit anchor (Step 3.4)"
+
+for field in derived_from review_after implemented_by validated_by; do
+    audit_step34 | grep -q "$field" \
+        || fail "backflow audit must check field: $field"
+    audit_step4 | grep -q "$field" \
+        || fail "backflow field must reach the report template: $field"
+done
+
+audit_step4 | grep -q "BACKFLOW" \
+    || fail "report template must carry a BACKFLOW block"
+
+# IDs, not bare counts — the whole point of T-41 (a count cannot be acted on)
+audit_step34 | grep -qi "record ID" \
+    || fail "backflow audit must demand record IDs, not aggregate counts"
+
+# Zero must be stated, else an empty block reads as "not checked"
+audit_step34 | grep -q "zero counts explicitly" \
+    || fail "backflow audit must require explicit zero counts"
+
+# Live value set, not the invented one: obsidian-sync writes candidate|ready
+audit_step34 | grep -q 'promotion_status: ready' \
+    || fail "backflow audit must key on the real promotion_status value (ready)"
+
+audit_step34 | grep -q 'candidate` | `ready' \
+    || fail "backflow audit must name the full promotion_status value set"
+
+echo "PASS: pattern rueckfluss contract (schema+dates, delta gate w/ idempotency+ownership, scope gate, deps matrix, gap taxonomy in report, backflow audit w/ IDs)"

@@ -65,6 +65,34 @@ Report age-based risks (the dimension the manual audit got wrong from old data):
    - Count entries with `confidence <= 0.3` AND `lifecycle != archived` older than 365d →
      "decay-due" (heals via `memory-maintenance` Step 4b).
 
+## Step 3.4: Backflow Completeness (rueckfluss-audit)
+
+The fields that close the experience→behavior loop exist and are written by
+`wrap-up` (`derived_from`, `review_after`) and `pattern-extractor`
+(`implemented_by`, `validated_by`). Nothing reports whether they are actually
+being filled — so a formally complete loop can sit idle unnoticed (source:
+membrain `memperfectflowharvest.md`, Rosine R1 / T-41). Report all four,
+**always by record ID**, never as a bare count:
+
+1. **learnings without provenance** — entries in `learnings/learnings.json` whose
+   `derived_from` is missing or an empty list. List the IDs. Early-store entries
+   predating the provenance contract are expected; a *recent* entry without
+   `derived_from` is the real signal, so report the newest offender's `date`.
+2. **overdue reviews** — entries in `learnings/learnings.json` (and patterns, if
+   they carry the field) whose `review_after` is earlier than today. List the IDs
+   with their dates. Heals via `wrap-up` (re-confirm and push the date out) or by
+   setting `superseded_by`.
+3. **ready but not implemented** — patterns with `promotion_status: ready` (the
+   value set is `candidate` | `ready`, set by `obsidian-sync` Step 6) whose
+   `implemented_by` is missing or empty. These claim maturity without a landing
+   site. List the IDs — this is the `feedback-loop-gap` class made visible.
+4. **implemented but not validated** — patterns with a non-empty `implemented_by`
+   but missing/empty `validated_by`. The change landed; nothing shows it improved
+   behavior. List the IDs.
+
+Report **zero counts explicitly** (`0 — clean`). A silent block reads as
+"not checked" and re-creates exactly the uncertainty this step exists to remove.
+
 ## Step 3.5: Classify Every Finding (gap-taxonomy)
 
 Label each finding from Steps 1–3 with exactly one gap class, so the reader knows WHERE
@@ -108,6 +136,12 @@ PROVENANCE
   dangling supersessions: {n}
   JSON validity:         {all ok | corrupt: <file>}
 
+BACKFLOW (Step 3.4 — always by ID, "0 — clean" when empty)
+  learnings w/o derived_from: {n} — {L1,L2,...} (newest {date})
+  review_after overdue:       {n} — {L7 2026-05-01, ...}
+  ready w/o implemented_by:   {n} — {P3,...}
+  implemented w/o validated_by: {n} — {P5,...}
+
 GLOBAL (~/.claude-memory/global/ — omit block if absent)
   entries w/o provenance: {n} (un-migrated → migrate-global-schema-4A.sh)
   promotion-gate violations: {n} (active but |source_projects| < 2)
@@ -117,10 +151,11 @@ FINDINGS (one line per flagged item — GAP CLASS from Step 3.5)
   {finding}            | {GAP CLASS}        | heals via {skill}
   e.g. legacy P003     | index-gap          | heals via pattern-extractor normalization
   e.g. P7 no evidence  | link-gap           | heals via wrap-up backfill
+  e.g. P3 ready, no impl | feedback-loop-gap | heals via pattern-extractor delta gate
 
-VERDICT: {clean | N drift items, M staleness items — see above}
-Heals via: {memory-maintenance | wrap-up | migrate-global-schema-4A.sh | none needed}
+VERDICT: {clean | N drift items, M staleness items, K backflow items — see above}
+Heals via: {memory-maintenance | wrap-up | pattern-extractor | migrate-global-schema-4A.sh | none needed}
 ```
 
-Keep it under 20 lines. Report only — never mutate. End by naming which skill heals any
-flagged item, so the user can act deliberately.
+Keep the blocks terse — one line per metric, IDs inline. Report only — never mutate. End by
+naming which skill heals any flagged item, so the user can act deliberately.

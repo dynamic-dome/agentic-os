@@ -29,6 +29,12 @@ echo ""
 echo ">> Gate-linkage selftest: every conjunct load-bearing"
 "$PY_BIN" "$DIR/gate_linkage.py" --selftest || ERRORS=$((ERRORS + 1))
 echo ""
+echo ">> Retrieval golden set: authority matrix well-formed + store anchors live"
+"$PY_BIN" "$DIR/retrieval_golden.py" || ERRORS=$((ERRORS + 1))
+echo ""
+echo ">> Retrieval golden selftest: every validation rule load-bearing"
+"$PY_BIN" "$DIR/retrieval_golden.py" --selftest || ERRORS=$((ERRORS + 1))
+echo ""
 echo ">> Baseline staleness (non-fatal)"
 "$PY_BIN" "$DIR/staleness_check.py"
 

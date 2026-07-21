@@ -26,6 +26,8 @@ so the expensive LLM layer (Schicht 2) is optional.
 | `fixtures/<scenario>/` | Committed `.agent-memory` stores that really trigger a gate. |
 | `eval_signals.py` | Stages each fixture to a temp dir, backdates crash markers, runs the REAL scripts, asserts the gate-triggering signals. |
 | `gate_linkage.py` | For each known gate of every covered skill (`session-bootstrap`: 16 gates, `wrap-up`: 27 gates): asserts the body carries BOTH a trigger and an action token (CNF, every conjunct mandatory). The core anti-silent-loss check. No-arg checks ALL covered skills; a body-path arg checks that one candidate SKILL.md (skill resolved from the parent dir). |
+| `retrieval_golden.json` | 22 typical questions → expected **leading** source, allowed supporting sources, the typical wrong pick, and why. Makes the authority matrix testable instead of merely canonical (membrain T-42). |
+| `retrieval_golden.py` | Validates that set: completeness, unknown/dead sources, leading≠supporting, wrong-pick≠expected, required question types — and anchors every `kind: store` source in `skills/DEPENDENCIES.md`, so a store rename turns CI red. `--selftest` proves each rule has teeth. |
 | `run-eval.sh` | CI entry point: runs the above + the staleness notice. |
 
 ### Schicht 2 — behavioral, break-glass (on-demand, NOT in CI)
@@ -36,6 +38,7 @@ so the expensive LLM layer (Schicht 2) is optional.
 | `check_sideeffects.py` | Diffs a captured signature against `baseline/<scenario>.json` (exact match on gates/files/questions, set match on briefing blocks). |
 | `baseline/<scenario>.json` | Frozen golden signatures. Currently hand-authored (`_provenance`); replace with a real capture when first needed. |
 | `staleness_check.py` | Non-fatal notice when a baseline no longer matches the current body (`_body_sha256`). |
+| `retrieval_golden.py --score` | Scores a recorded retrieval run (`{"answers": {"R01": "open-tasks", ...}}`) against the golden set. Hits on a `typical_wrong_pick` are reported as TRAP — those are the failure modes the set exists for. |
 
 ## Scenarios
 
@@ -65,3 +68,8 @@ python tests/eval/check_sideeffects.py <scenario> <captured.json>
 - Change `STATE_FILES` in `preprocess_state.py` → mirror it in `make_fixtures.py`
   (guarded by `eval_signals.py`) and regenerate fixtures.
 - Intentionally change bootstrap behavior → re-capture the affected baseline.
+- Rename or retire a store → update `sources` in `retrieval_golden.json` (the
+  `anchor` is matched against `DEPENDENCIES.md` by basename, so a rename fails CI;
+  a pure directory move does not — layout is owned by `scripts/mem-schema.sh`).
+- Change which source leads for a question type → the golden case is the place
+  that decision becomes visible; edit it in the same commit as the canon change.
