@@ -242,6 +242,21 @@ run_case "allows benign unquoted \${TMPDIR:-/tmp} path" 0 \
 run_case "allows substring expansion \${path:0:5} (not a default op)" 0 \
     '{"tool_name":"Bash","tool_input":{"command":"echo \"${path:0:5}\""}}'
 
+# T-32 Codex-review round 2: special-param and indirect defaults are executable
+# in the tool's argument-less shell ($@/$* empty) and must also be canonicalized.
+run_case "blocks mkfs via \${@:-CMD} (empty positional set)" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${@:-mkfs.ext4 /dev/sdb1}"}}'
+
+run_case "blocks mkfs via \${*:-CMD}" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${*:-mkfs.ext4 /dev/sdb1}"}}'
+
+run_case "blocks mkfs via indirect \${!ref:-CMD}" 2 \
+    '{"tool_name":"Bash","tool_input":{"command":"${!ref:-mkfs.ext4 /dev/sdb1}"}}'
+
+# Always-set specials never run their default -> ALLOW is correct (documented).
+run_case "allows \${#:-CMD} (always-set special, default never runs)" 0 \
+    '{"tool_name":"Bash","tool_input":{"command":"${#:-mkfs.ext4 /dev/sdb1}"}}'
+
 echo ""
 echo "========================================"
 if [ "$ERRORS" -eq 0 ]; then

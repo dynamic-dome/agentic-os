@@ -59,10 +59,15 @@ _EXECUTOR_FLAG_PREFIX = re.compile(
 # ${var:=CMD}, ${var=CMD}, ${var:+CMD}, ${var+CMD} run CMD as a command when the
 # expansion sits in command position; the punctuation (:- / - / := / =) otherwise
 # reads as a non-boundary for the anchored rules AND is swallowed by the disk-
-# format lookbehind class [\w.=-]. Matches the operator prefix (positional names
-# like ${1:-x} included); the ? error-message form and substring/pattern forms
-# (${v:1:2}, ${v#x}, ${v/x/y}) do NOT match and stay untouched.
-_PARAM_EXPANSION_OP = re.compile(r"\$\{[A-Za-z0-9_]+:?[-=+]")
+# format lookbehind class [\w.=-]. The parameter part covers normal + positional
+# names, the optional !-indirection (${!ref:-CMD}), and the special params @ / *
+# (${@:-CMD}, ${*:-CMD}) — in the argument-less shell of the Bash tool, $@/$* are
+# empty, so their default DOES execute (Codex T-32 review). Always-set specials
+# (${#:-} / ${?:-} / ${$:-}) never run their default and are left as ALLOW; the
+# ? error-message form and substring/pattern forms (${v:1:2}, ${v#x}, ${v/x/y})
+# do not match either. Residual known-open (exotic): array-subscript defaults
+# ${arr[@]:-CMD}.
+_PARAM_EXPANSION_OP = re.compile(r"\$\{!?[A-Za-z0-9_@*]*:?[-=+]")
 
 
 def has_balanced_quotes(command):
@@ -174,9 +179,11 @@ def expose_param_expansion(command):
     same for rm/git-reset/shutdown/dd) slipped past every anchored rule. Rewriting
     the operator prefix to a command separator feeds the existing boundary anchors
     and defuses the lookbehind at once, including nested and positional forms.
-    Runs on the already quote-masked string, so quoted defaults stay masked
-    (T-19 known-open). The error-message form (:? / ?) is not command position and
-    is deliberately left intact."""
+    Covers normal/positional names, !-indirection and the empty-able specials
+    @/* (all executable in the argument-less shell of the tool). Runs on the already
+    quote-masked string, so quoted defaults stay masked (T-19 known-open). The
+    error-message form (:? / ?) is not command position and is left intact;
+    always-set specials (${#:-} etc.) never run their default (ALLOW)."""
     return _PARAM_EXPANSION_OP.sub("; ", command)
 
 
