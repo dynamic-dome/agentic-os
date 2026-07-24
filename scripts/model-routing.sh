@@ -36,8 +36,6 @@ case "$cmd" in
     ;;
   list-agents)
     printf 'context-detective\tcheap-write\tsonnet\tmedium\n'
-    printf 'improvement-agent\tcheap-write\tsonnet\t-\n'
-    printf 'research-agent\tcheap-write\tsonnet\tmedium\n'
     ;;
   *)
     echo "usage: model-routing.sh [list|list-agents]" >&2

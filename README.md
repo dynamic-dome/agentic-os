@@ -44,10 +44,8 @@ pattern-extractor). See `skills/DEPENDENCIES.md` for the dependency graph.
 | Agent | Model | Role |
 |-------|-------|------|
 | `context-detective` | sonnet | Auto-detect project context from repo analysis |
-| `improvement-agent` | sonnet | Executes a single self-improvement iteration end-to-end |
-| `research-agent` | sonnet | Combines NotebookLM + web search for skill-improvement research |
 
-## Hooks (7)
+## Hooks (6)
 
 | Event | Timeout | Type | Action |
 |-------|---------|------|--------|
@@ -57,7 +55,6 @@ pattern-extractor). See `skills/DEPENDENCIES.md` for the dependency graph.
 | `UserPromptSubmit` | 10s | prompt | Advisory-only context hint (short) |
 | `PreCompact` | 15s | prompt | Emit survival summary before context compaction |
 | `SessionEnd` | 15s | prompt | Task guard, delegate to wrap-up, identity + wiki-note verify |
-| `SubagentStop` | 10s | prompt | Suggest commit after `improvement-agent` runs |
 
 ## Memory Structure
 

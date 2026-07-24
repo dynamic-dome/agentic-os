@@ -57,7 +57,7 @@ fi
 # 6. list-agents: 3 rows, each agent file exists
 AOUT=$(bash "$MR" list-agents)
 an=$(echo "$AOUT" | grep -c .)
-if [ "$an" -eq 3 ]; then pass "list-agents has 3 rows"; else fail "list-agents has $an rows (expected 3)"; fi
+if [ "$an" -eq 1 ]; then pass "list-agents has 1 row"; else fail "list-agents has $an rows (expected 1 — improvement-agent/research-agent removed in 4.15.0, self-improve runs inline)"; fi
 while IFS=$'\t' read -r ag cls mdl eff; do
     if [ -f "$PLUGIN_ROOT/agents/$ag.md" ]; then
         pass "agent file exists: $ag"

@@ -257,19 +257,20 @@ else
     fail "context-detective: agent file not found"
 fi
 
-# 12. improvement-agent can handle plugin audit (not just .agent-memory/)
+# 12. Dead loop agents stay deleted (removed 4.15.0)
+#     self-improve v4.0 runs all phases inline ("no external skill delegation") —
+#     improvement-agent and research-agent were never spawned anymore, but their
+#     descriptions still loaded into every session's agent list. Contract: the
+#     files must NOT exist; context-detective is the only remaining agent.
 echo ""
-echo "-- improvement-agent plugin audit scope --"
-IS_AGENT="$PLUGIN_ROOT/agents/improvement-agent.md"
-if [ -f "$IS_AGENT" ]; then
-    if grep -qi "plugin\|skills/\|hooks.json\|SKILL.md" "$IS_AGENT"; then
-        pass "improvement-agent: supports plugin structure audit"
+echo "-- dead loop agents removed (self-improve runs inline) --"
+for DEAD_AGENT in improvement-agent research-agent; do
+    if [ -f "$PLUGIN_ROOT/agents/$DEAD_AGENT.md" ]; then
+        fail "agents/$DEAD_AGENT.md exists but self-improve runs inline — dead agent burns context in every session; delete it (and re-check scripts/model-routing.sh list-agents)"
     else
-        fail "improvement-agent: only scans .agent-memory/ — cannot audit plugin structure when called by self-improve"
+        pass "agents/$DEAD_AGENT.md: stays deleted (self-improve is inline-only)"
     fi
-else
-    fail "improvement-agent: agent file not found"
-fi
+done
 
 # 13. auto-commit command should not contain hardcoded model-specific co-author
 echo ""
@@ -1288,20 +1289,8 @@ for CALLED_SKILL in iteration-logger context-keeper pattern-extractor obsidian-s
     fi
 done
 
-# 78. research-agent must not reference the old research-phase skill
-#     research-phase was merged into self-improve in v3. The research-agent.md
-#     still says "Spawned by research-phase skill" — a stale reference that
-#     misleads users about which skill spawns this agent.
-echo ""
-echo "-- research-agent: no stale research-phase skill reference --"
-RA_FILE="$PLUGIN_ROOT/agents/research-agent.md"
-if [ -f "$RA_FILE" ]; then
-    if grep -q "research-phase skill" "$RA_FILE"; then
-        fail "research-agent: references 'research-phase skill' which no longer exists — research-phase was merged into self-improve in v3; update to reference self-improve"
-    else
-        pass "research-agent: no stale research-phase skill reference"
-    fi
-fi
+# 78. research-agent removed in 4.15.0 (self-improve Phase 1 researches inline) —
+#     its absence is enforced by test 12; the old stale-reference check is obsolete.
 
 # quality-gate agent removed in v4.0.0 — WARN threshold + pytest collection gate tests removed
 

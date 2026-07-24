@@ -72,18 +72,6 @@
           }
         ]
       }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "improvement-agent",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "An agent completed a task. If it made meaningful CODE changes (not just .agent-memory/): suggest a conventional commit message and ask the user to confirm before committing. Otherwise skip silently. Return 'approve'.",
-            "timeout": 10
-          }
-        ]
-      }
     ]
   }
 }
