@@ -263,7 +263,7 @@ generate a reusable skill from it (this replaces the former `skill-generator` sk
 
 Step 6.5 covers NEW skills. This step covers the other half of the feedback loop:
 patterns whose `recommendation` targets an **existing** skill, hook, prompt rule, or
-other agentic-os component. Source: membrain Loop-8 harvest (Rosine 1, T-15).
+other agentic-os component.
 
 **Trigger:** a pattern with `confidence >= 0.7` whose recommendation explicitly names an
 existing component (skill, hook, rule file — e.g. "wrap-up should…", "the lint must…").

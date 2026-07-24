@@ -197,7 +197,7 @@ For each pattern in patterns.json:
 - If confidence >= 0.85 AND (occurrences >= 2 OR source_projects >= 2) → set `"promotion_status": "ready"`
 - If confidence >= 0.85 BUT single project/single occurrence → set `"promotion_status": "candidate"`
 
-**Scope gate (since 4.6.0, membrain Loop-8 Rosine 4):** whenever `promotion_status` is set
+**Scope gate:** whenever `promotion_status` is set
 to `"ready"`, also record how far the pattern is allowed to travel — frequency alone does
 not prove transferability:
 - If source_projects >= 2 → set `"promotion_scope": "global"` (evidence spans projects)

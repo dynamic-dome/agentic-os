@@ -125,7 +125,7 @@ Apply identity settings from `soul.md` silently (communication style, guard rail
 3. Filter out entries where `superseded_by` is not null.
 4. Include the ≤5 results as KEY LEARNINGS. Prefix the section header with `(RAG)`.
 5. On any MCP error or empty result → fall through to heuristic fallback.
-6. **Codex gotchas (T-14 bridge, pull side):** run a SECOND query with the same
+6. **Codex gotchas (bridge pull side):** run a SECOND query with the same
    task-title query but `source_system: "codex-agents"`, `top_k: 3`. Non-empty →
    add a `CODEX GOTCHAS (RAG)` section to the briefing (one line per hit:
    source AGENTS.md path + snippet). Empty result or MCP error → omit the
@@ -161,7 +161,7 @@ file is the only trigger; when it is off, the procedure below is never loaded.
 **Contract (when enabled):** resolve the project's wiki entity (via `project_id` /
 `project_aliases`) and load **at most 5 pages total** — entity (≤80 lines) + existing
 `default_entrypoints` + last 3 session notes + optional rolling synthesis. No
-brute-force vault search; complete in < 3 seconds. Add a `WIKI CONTEXT` block to the
+brute-force vault search. Add a `WIKI CONTEXT` block to the
 briefing (Step 4). If the wiki is unreachable, omit the block silently — never output
 "Wiki not found".
 
@@ -210,7 +210,7 @@ wrap-up). Sources: `working/dirty-*.json` (PostToolUse dirty-tracker hook) and
    session running in parallel RIGHT NOW, not a crash. Never flag it.
 3. Every remaining dirty file is an **un-consolidated session**. For each, extract:
    `session_id` (short), `updated`, `write_count`, up to 3 `touched_files`, and
-   `agent` if present (T-24: `"codex"` marks a standalone Codex session).
+   `agent` if present (`"codex"` marks a standalone Codex session).
 4. Cross-check `consolidation-marker.json`: if its `last_wrapup` is NEWER than the
    dirty file's `updated`, downgrade to a one-line note (work probably consolidated
    by a later session's wrap-up; the flag survived a crash between edit and marker).
@@ -400,4 +400,3 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/cost-trace.sh" append --mem .agent-memory \
 - Do NOT scan skill registries or build context matrices (Claude already knows available skills)
 - Do NOT estimate token budgets (unreliable, leads to false warnings)
 - Do NOT call sync-context (removed — no auto-sync on start)
-- Do NOT take more than 15 seconds for the entire bootstrap

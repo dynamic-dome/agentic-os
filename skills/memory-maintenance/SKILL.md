@@ -137,8 +137,8 @@ non-zero exit (2 = usage/path error, 1 = unexpected crash) → tool error; repor
 one line and continue — a failed audit must never block the maintenance itself.
 
 This step is strictly a REPORTER: it NEVER rotates, deletes, or edits native
-stores. Rotation and orphan fixes stay owner decisions (membrain D16); `warn`/
-`critical` injection warnings are surfaced to the user, not auto-fixed.
+stores. Rotation and orphan fixes stay owner decisions; `warn`/`critical`
+injection warnings are surfaced to the user, not auto-fixed.
 
 ## Step 4: Prune Stale Patterns
 

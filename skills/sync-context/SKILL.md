@@ -156,7 +156,7 @@ Source the helpers once: `. scripts/global-schema.sh` and `. scripts/mem-schema.
    - Increment `occurrences` on merge
    - Merge `source_projects` arrays
    - Patterns with `occurrences >= 3` across projects get confidence boost (+0.1)
-   - Conflict resolution is the v3.3.1 recency-supersession (Step 4) — do NOT duplicate it here.
+   - Conflict resolution is the recency-supersession from Step 4 — do NOT duplicate it here.
 6. Push generalizable learnings from `.agent-memory/learnings/learnings.md` to global,
    under the same privacy pre-filter and provenance schema.
 

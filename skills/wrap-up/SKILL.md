@@ -144,7 +144,7 @@ Append an entry to `learnings/learnings.json` (field schema:
 importance: 5 = prevents data loss/security issue · 4 = prevents multi-attempt debugging ·
 3 = non-obvious behavior · 2 = workflow optimization · 1 = trivia.
 
-**`derived_from` (provenance, memideaspec §7.4):** IDs of THIS session's origins —
+**`derived_from` (provenance):** IDs of THIS session's origins —
 iteration numbers from `iteration-log.md` (`iteration-{n}`), error IDs from
 `errors.json` (`E{n}`), decision IDs (`D{n}`). No traceable origin → `[]`. Never
 invent provenance; an honest empty list beats a guessed reference.
@@ -162,7 +162,7 @@ as-is (consumers use `.get()`); do NOT backfill.
 Regenerate `learnings.md` from the JSON (header `*Auto-generated from learnings.json —
 do not edit directly.*`; entries `- [{id}] ({'*' * importance}) {text}` grouped by date).
 
-### 3d: Bridge candidates gate (bridge-gate, T-14)
+### 3d: Bridge candidates gate (bridge-gate)
 
 Curated Claude→Codex bridge (design: membrain/membridge.md). Canonical store is
 learnings.json (`bridge_status`); the AGENTS.md block is a projection.
@@ -331,7 +331,7 @@ Write BOTH cross-project files following **`references/handoff-template.md`** (S
 the prepend algorithm, dedup rules, hard cap, and both templates — read it before
 writing):
 
-**Read-then-write guard (T-19, mandatory for 7.6a/7.6b):** both files are shared
+**Read-then-write guard (mandatory for 7.6a/7.6b):** both files are shared
 with parallel sessions and other agents — guard every read-modify-write cycle with
 `scripts/handoff_write_guard.py` (plugin root):
 
