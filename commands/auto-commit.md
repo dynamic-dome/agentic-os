@@ -1,7 +1,6 @@
 ---
 name: auto-commit
 description: "Stages all changed files (excluding .agent-memory/) and creates a descriptive commit. Push is optional and requires explicit user confirmation. Used by the self-improvement loop for automated commits."
-user_invocable: true
 arguments:
   - name: message
     description: "Commit message (optional, auto-generated if omitted)"

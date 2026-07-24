@@ -1,16 +1,14 @@
 ---
 name: self-improve
 description: >
-  Orchestrates autonomous self-improvement loops: up to 4 iterations of
-  research, analysis, TDD-based improvement, and validation, with circuit
-  breaker, eval-driven acceptance gate, and git-safe rollback.
-  Trigger: "self improve", "improve yourself", "run improvement loop",
-  "iterate on plugin", "find and fix weaknesses", "improve skills",
-  "start improvement cycle", "improve the plugin".
-user_invocable: false
+  Self-improvement loop over the plugin: up to 4 iterations of research,
+  analysis, TDD-based improvement, and validation, with circuit breaker,
+  eval-driven acceptance gate, and git-safe rollback.
+  Invoke via /agentic-os:self-improve.
+disable-model-invocation: true
 metadata:
   author: agentic-os
-  version: '4.0'
+  version: '4.1'
   part-of: agentic-os
   layer: orchestration
   depends-on:
@@ -26,8 +24,12 @@ Historical evidence and the rationale behind every hardening rule ("lever"): `im
 
 ## When to Use
 
-- Scheduled self-improvement task triggers
-- User says: "self improve", "improve yourself", "run improvement loop", "find and fix weaknesses", "improve skills", "start improvement cycle"
+- Explicit user invocation via `/agentic-os:self-improve` (the skill carries
+  `disable-model-invocation: true` — runs never start from conversation phrasing)
+- Scheduled runs: note that `disable-model-invocation` also blocks scheduled tasks
+  that fire with this skill as their prompt (Claude Code v2.1.196+). A scheduler
+  must be set up to run the slash command as a user prompt; if that proves
+  unreliable, flip the flag back and accept the context cost.
 
 ## Prerequisites
 

@@ -1250,20 +1250,41 @@ if [ -f "$WU_VER_SKILL" ]; then
     fi
 fi
 
-# 77. All skills must declare user_invocable field (true or false)
-#     The skill-generator template enforces user_invocable in generated skills,
-#     but 5 existing skills (context-keeper, iteration-logger, pattern-extractor,
-#     session-bootstrap, research-pipeline) are missing this field entirely.
-#     Missing the field means the plugin framework cannot determine invocability.
+# 77. Invocation contract (migrated 2026-07-24)
+#     user_invocable is NOT a Claude Code frontmatter field (the real fields are
+#     user-invocable / disable-model-invocation, docs: code.claude.com/docs/en/skills)
+#     — it was silently ignored by the harness. Contract now:
+#     (a) no skill or command may declare the dead user_invocable field;
+#     (b) manual-only skills (sync-context, self-improve) MUST declare
+#         disable-model-invocation: true — keeps their descriptions out of context
+#         and blocks autonomous invocation mechanically instead of via prose;
+#     (c) skills invoked by other skills via the Skill tool MUST stay
+#         model-invocable (disable-model-invocation blocks Skill-tool access).
 echo ""
-echo "-- all skills declare user_invocable field --"
-for SKILL_FILE in "$PLUGIN_ROOT"/skills/*/SKILL.md; do
-    SKILL_NAME=$(basename "$(dirname "$SKILL_FILE")")
+echo "-- invocation contract (no dead user_invocable; manual-only skills disabled) --"
+for SKILL_FILE in "$PLUGIN_ROOT"/skills/*/SKILL.md "$PLUGIN_ROOT"/commands/*.md; do
+    SKILL_NAME=$(basename "$(dirname "$SKILL_FILE")")/$(basename "$SKILL_FILE")
     FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$SKILL_FILE")
     if echo "$FM" | grep -q "user_invocable:"; then
-        pass "skill $SKILL_NAME: declares user_invocable field"
+        fail "$SKILL_NAME: declares dead user_invocable field — harness ignores it; use disable-model-invocation (or drop the line for model-invoked default)"
     else
-        fail "skill $SKILL_NAME: missing user_invocable field — plugin framework cannot determine if skill is exposed as slash command"
+        pass "$SKILL_NAME: no dead user_invocable field"
+    fi
+done
+for MANUAL_SKILL in sync-context self-improve; do
+    FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$PLUGIN_ROOT/skills/$MANUAL_SKILL/SKILL.md")
+    if echo "$FM" | grep -q "^disable-model-invocation: true"; then
+        pass "skill $MANUAL_SKILL: manual-only via disable-model-invocation: true"
+    else
+        fail "skill $MANUAL_SKILL: manual-only skill missing disable-model-invocation: true — description burns context every turn and prose alone cannot prevent auto-invocation"
+    fi
+done
+for CALLED_SKILL in iteration-logger context-keeper pattern-extractor obsidian-sync memory-maintenance; do
+    FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$PLUGIN_ROOT/skills/$CALLED_SKILL/SKILL.md")
+    if echo "$FM" | grep -q "^disable-model-invocation: true"; then
+        fail "skill $CALLED_SKILL: has disable-model-invocation but is invoked by wrap-up/self-improve via the Skill tool — the flag would break that delegation"
+    else
+        pass "skill $CALLED_SKILL: stays model-invocable (required for skill-to-skill delegation)"
     fi
 done
 

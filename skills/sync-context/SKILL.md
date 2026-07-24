@@ -1,18 +1,15 @@
 ---
 name: sync-context
 description: >
-  Manual cross-project sync between local .agent-memory/ and global
-  ~/.claude-memory/global/. Pulls relevant patterns from other projects,
-  pushes local learnings for reuse (privacy filter + promotion gate).
-  NOT auto-triggered — use only when explicitly requested.
-  Trigger phrases: "sync memory", "pull patterns", "push learnings",
-  "cross-project sync", "global memory", "share knowledge".
-user_invocable: true
+  Manual cross-project sync between local .agent-memory/ and the global
+  ~/.claude-memory/global/ store (privacy filter + promotion gate).
+  Invoke via /agentic-os:sync-context.
+disable-model-invocation: true
 model: sonnet
 effort: low
 metadata:
   author: agentic-os
-  version: '3.0'
+  version: '3.1'
   part-of: agentic-os
   layer: utility
 ---
@@ -21,7 +18,9 @@ metadata:
 
 Bidirectional sync between local `.agent-memory/` and `~/.claude-memory/global/`.
 
-**This skill is never auto-triggered.** It runs only when the user explicitly requests it.
+**This skill is never auto-triggered** — `disable-model-invocation: true` enforces it
+mechanically: the model cannot invoke it and its description never loads into context.
+It runs only via `/agentic-os:sync-context`.
 
 ## Prerequisites (Auto-Setup)
 

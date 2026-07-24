@@ -1,20 +1,15 @@
 ---
 name: wrap-up
-description: |
-  Wraps up a coding session — summarizes work, extracts learnings, grows the
-  identity files (user.md/soul-candidates) via gated candidate queues, updates
-  session summary + cross-project handoff, suggests a git commit. Use at the end
-  of a session, before a context handoff, or when switching projects.
-
-  Trigger phrases (session-specific only):
-  "wrap up", "end session", "save session", "session handoff",
-  "finish for today", "I'm done for today", "close session".
-user_invocable: true
+description: >
+  Wraps up a coding session: summarizes work, extracts learnings, grows the
+  gated identity queues, updates session summary + cross-project handoff,
+  suggests commits. Use when the user ends a session ("wrap up", "finish for
+  today") or before a handoff / project switch.
 model: sonnet
 effort: medium
 metadata:
   author: agentic-os
-  version: '4.1'
+  version: '4.2'
   part-of: agentic-os
   layer: core
 ---

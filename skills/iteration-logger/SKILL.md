@@ -1,17 +1,15 @@
 ---
 name: iteration-logger
 description: >
-  Logs every coding iteration (feature, bugfix, refactor) to the memory system.
-  Captures what was done, what errors occurred, and what was learned. Includes
-  duplicate detection, recurrence tracking, and structured tagging.
-  Trigger phrases: "log iteration", "log this fix", "iteration done",
-  "document what I did", "record progress", "what did I do".
-user_invocable: true
+  Logs a coding iteration (feature, bugfix, refactor) with errors, tags, and
+  learnings to .agent-memory/iterations/; tracks recurrences. Use after
+  completing a unit of work ("log iteration", "log this fix"), or when
+  wrap-up harvests unlogged work at session end.
 model: sonnet
 effort: low
 metadata:
   author: agentic-os
-  version: '3.0'
+  version: '3.1'
   part-of: agentic-os
   layer: core
 ---

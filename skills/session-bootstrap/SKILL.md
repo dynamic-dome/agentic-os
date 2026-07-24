@@ -1,19 +1,15 @@
 ---
 name: session-bootstrap
 description: >
-  Bootstraps full project context at session start. Reads session-summary,
-  identity files, patterns, and quality scores. Performs health checks on
-  the memory system. Produces a compact briefing with warnings and next steps.
-  Use at the beginning of every coding session.
-  Trigger phrases: "start session", "session bootstrap", "session start",
-  "begin work", "what was I working on", "context restore", "new session",
-  "project status", "where were we", "what do we know".
-user_invocable: true
+  Bootstraps project context at session start: central handoff, identity,
+  patterns, open tasks, and health checks, condensed into a compact briefing.
+  Use at the start of a coding session ("start session", "new session") or
+  when the user asks where things stand ("where were we", "project status").
 model: sonnet
 effort: low
 metadata:
   author: agentic-os
-  version: '3.1'
+  version: '3.2'
   part-of: agentic-os
   layer: core
 ---

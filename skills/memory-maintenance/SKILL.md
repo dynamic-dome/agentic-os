@@ -1,27 +1,19 @@
 ---
 name: memory-maintenance
 description: >
-  Compacts, archives, and integrity-checks the `.agent-memory/` store —
-  JSON validation, threshold-based archiving (thresholds live in
-  scripts/memory-thresholds.sh), stale-pattern pruning, working/ scratch
-  cleanup, and consistency checks. Runs on demand or when wrap-up detects
-  exceeded thresholds; never part of the normal end-of-session flow.
-  Trigger phrases: "clean memory", "memory cleanup", "memory maintenance",
-  "prune patterns", "memory health", "archive old data".
-user_invocable: true
+  Compacts, archives, and integrity-checks the .agent-memory/ store
+  (thresholds live in scripts/memory-thresholds.sh). Use when the user asks
+  for cleanup ("clean memory", "prune patterns", "memory health") or when
+  wrap-up reports exceeded thresholds; never part of the normal
+  end-of-session flow.
 model: sonnet
 effort: low
 metadata:
   author: agentic-os
-  version: '1.3'
+  version: '1.4'
   part-of: agentic-os
   layer: core
   extracted-from: wrap-up
-  trigger-audit-2026-04-30:
-    removed:
-      - "Speicher aufraeumen (German — violates Globale CLAUDE.md: trigger phrases MUST be English)"
-      - "Memory-Wartung (German — violates language policy)"
-      - "Memory pruning (lowercased duplicate of 'prune patterns')"
 ---
 
 # Memory Maintenance

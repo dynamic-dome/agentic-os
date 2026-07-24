@@ -1,7 +1,6 @@
 ---
 name: rollback
 description: Rollback the last self-improvement iteration by reverting the most recent self-improve commit.
-user_invocable: true
 ---
 
 # Self-Improve Rollback

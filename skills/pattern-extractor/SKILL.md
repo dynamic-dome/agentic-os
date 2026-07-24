@@ -1,17 +1,14 @@
 ---
 name: pattern-extractor
 description: >
-  Analyzes iteration history and error logs to extract recurring patterns,
-  anti-patterns, and best practices into a searchable pattern catalog
-  (deterministic clustering on category, tags, file paths). Also generates
-  reusable skills from confirmed skill candidates. Run every ~5 iterations,
-  at session end, or on explicit request.
-  Trigger phrases: "extract patterns", "find patterns", "analyze iterations",
-  "lessons learned", "refresh patterns".
-user_invocable: true
+  Extracts recurring patterns, anti-patterns, and best practices from
+  iteration and error history into the pattern catalog; generates skills
+  from confirmed candidates. Use every ~5 iterations, at session end
+  (invoked by wrap-up or self-improve), or on "extract patterns" /
+  "refresh patterns".
 metadata:
   author: agentic-os
-  version: '3.2'
+  version: '3.3'
   part-of: agentic-os
   layer: analysis
 ---

@@ -1,16 +1,13 @@
 ---
 name: context-keeper
 description: >
-  Maintains the living project context: tech stack, architecture decisions,
-  dependencies, constraints, and project status. Called whenever an important
-  decision is made or the architecture changes; enables full context
-  restoration across sessions.
-  Trigger phrases: "update context", "record decision", "why did we choose X",
-  "create ADR", "stack change", "new dependency".
-user_invocable: true
+  Maintains the living project context and decision log (ADRs) in
+  .agent-memory/context/. Use when an architecture decision, stack change,
+  or constraint lands ("record decision", "new dependency"), or to answer
+  "why did we choose X".
 metadata:
   author: agentic-os
-  version: '3.2'
+  version: '3.3'
   part-of: agentic-os
   layer: core
 ---

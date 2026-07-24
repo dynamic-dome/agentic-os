@@ -1,18 +1,15 @@
 ---
 name: obsidian-sync
 description: >
-  Syncs session results from .agent-memory/ into the Obsidian Wiki (~/wiki/):
-  creates session notes, updates project entities, promotes high-confidence
-  patterns, consolidates learnings into rolling syntheses. The write-path from
-  Agent Memory (RAM) to Obsidian (Brain); main agent only.
-  Trigger phrases: "sync to wiki", "obsidian sync", "wiki sync",
-  "wiki update", "push to obsidian".
-user_invocable: true
+  Syncs session results from .agent-memory/ (RAM) into the Obsidian wiki
+  (Brain): session note, project-entity updates, decision promotion, rolling
+  synthesis. Main agent only. Use at session end (invoked by wrap-up) or on
+  "sync to wiki" / "obsidian sync".
 model: sonnet
 effort: medium
 metadata:
   author: agentic-os
-  version: '1.4'
+  version: '1.5'
   part-of: agentic-os
   layer: core
 ---
