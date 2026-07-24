@@ -38,15 +38,10 @@ Sync session results from .agent-memory/ (RAM) into ~/wiki/ (Brain).
 
 ## Step 0: Pre-Run Commit (backup light)
 
-Sync consolidates syntheses and updates sync-state in the store. If the project
-versions its `.agent-memory/`, snapshot it before writing:
-
-1. `git -C {project_root} rev-parse --is-inside-work-tree` fails → skip silently.
-2. `git -C {project_root} status --porcelain -- .agent-memory` empty → skip.
-3. Otherwise `git add .agent-memory` (NEVER `-A` — foreign project files stay
-   untouched) + commit: `chore(memory): pre-run snapshot vor obsidian-sync`.
-4. Failures are non-blocking (one report line, continue). The wiki side needs no
-   extra snapshot here — it is its own git repo; never commit foreign wiki drift.
+Sync consolidates syntheses and updates sync-state in the store. Snapshot it before
+writing: run the shared procedure `${CLAUDE_PLUGIN_ROOT}/references/pre-run-commit.md`
+with commit message `chore(memory): pre-run snapshot vor obsidian-sync`. The wiki side
+needs no extra snapshot — it is its own git repo; never commit foreign wiki drift.
 
 ## Step 1: Read Config and Validate
 
@@ -70,10 +65,10 @@ Read from .agent-memory/:
 
 **Substantiality gate (wiki-sync-gate):** the session must be substantial — ANY of:
 >= 1 iteration logged today, OR today's commits exist (`git log --oneline --since=midnight`),
-OR a meaningful learning (importance >= 4). This is aligned with wrap-up Step 7.5's looser
-gate (a single real iteration or any commit already warrants a note); the old
-`< session_note_threshold (2)` cutoff dropped real single-iteration sessions. If none hold
-→ output "Wiki-Sync: übersprungen — Session nicht substanziell." and stop.
+OR a meaningful learning (importance >= 4), OR a new decision landed. A single real
+iteration or any commit already warrants a note. This gate is OWNED here — wrap-up
+Step 7.5 delegates the substantiality decision to this step and never restates the rule.
+If none hold → output "Wiki-Sync: übersprungen — Session nicht substanziell." and stop.
 
 ## Step 3: Create Session Note
 

@@ -191,22 +191,24 @@ if [ -f "$WU_WS_FILE" ]; then
         fail "wrap-up: missing (wiki-sync-visible) — Step 7.5 must emit a visible status line in every case (synced / skipped+reason / failed), not skip silently"
     fi
 
-    # (wiki-sync-gate): wrap-up Step 7.5 substantiality gate is loosened to >=1 iteration / any commit today
+    # (wiki-sync-gate): single-sourced in obsidian-sync Step 2 since 4.15.0 —
+    # wrap-up Step 7.5 keeps only the hard gate (config + sync_enabled) and delegates
+    # the substantiality decision. It must NOT restate the rule (duplicate gates drift).
     WSG_BLOCK=$(grep -A8 "Trigger Conditions (wiki-sync-gate)" "$WU_WS_FILE")
-    if echo "$WSG_BLOCK" | grep -qi "substantial" && echo "$WSG_BLOCK" | grep -q "since=midnight"; then
-        pass "wrap-up: (wiki-sync-gate) — substantiality gate triggers on >=1 iteration or any commit today"
+    if echo "$WSG_BLOCK" | grep -qi "obsidian-sync" && ! echo "$WSG_BLOCK" | grep -q "since=midnight"; then
+        pass "wrap-up: (wiki-sync-gate) — delegates substantiality to obsidian-sync (single source, no restated rule)"
     else
-        fail "wrap-up: missing/weakened (wiki-sync-gate) — Step 7.5 must treat a single iteration or any today's commit as substantial (looser than old threshold=2)"
+        fail "wrap-up: Step 7.5 must delegate the substantiality decision to obsidian-sync and not restate the since=midnight rule — the gate is single-sourced in obsidian-sync Step 2"
     fi
 fi
 
-# (wiki-sync-gate) + (wiki-sync-visible) must also be anchored in obsidian-sync (the write-path skill)
+# (wiki-sync-gate) + (wiki-sync-visible): obsidian-sync is the OWNER of the substantiality rule
 if [ -f "$OS_WS_FILE" ]; then
-    OSG_BLOCK=$(grep -A4 "(wiki-sync-gate)" "$OS_WS_FILE")
+    OSG_BLOCK=$(grep -A6 "(wiki-sync-gate)" "$OS_WS_FILE")
     if echo "$OSG_BLOCK" | grep -qi "substantial" && echo "$OSG_BLOCK" | grep -q "since=midnight"; then
-        pass "obsidian-sync: (wiki-sync-gate) — write-path gate aligned with wrap-up (>=1 iteration / any commit)"
+        pass "obsidian-sync: (wiki-sync-gate) — owns the substantiality rule (>=1 iteration / any commit / learning / decision)"
     else
-        fail "obsidian-sync: missing/weakened (wiki-sync-gate) — Step 2 gate must align with wrap-up's looser substantiality rule"
+        fail "obsidian-sync: missing/weakened (wiki-sync-gate) — Step 2 is the single source of the substantiality rule and must keep the since=midnight check"
     fi
 
     OSV_BLOCK=$(grep -A4 "(wiki-sync-visible)" "$OS_WS_FILE")

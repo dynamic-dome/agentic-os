@@ -73,17 +73,11 @@ From user intent:
 - "push" / "share" / "export" → push only
 - "sync" / "both" / no direction → bidirectional (pull then push)
 
-## Step 3: Ensure Global Memory Exists (with Error Handling)
+## Step 3: Ensure Global Memory Exists
 
-Run the auto-setup from Prerequisites:
-1. Create `~/.claude-memory/global/` if missing
-2. For each of `patterns.json`, `learnings.json`, `projects.json`:
-   - If missing → create with default (`[]`, `[]`, `{"projects": []}`)
-   - If exists → validate JSON parse
-   - If corrupt → backup as `<file>.corrupt.bak`, reinitialize, warn user:
-     `"WARNING: ~/.claude-memory/global/<file> was corrupt. Backed up as <file>.corrupt.bak and reinitialized."`
-3. If `mkdir` or `write` fails → print error, abort:
-   `"ERROR: Cannot create global memory dir: <error>. Sync aborted. Check permissions on ~/.claude-memory/."`
+Run the auto-setup from Prerequisites (single source of that procedure — idempotent:
+creates only what is missing, quarantines corrupt files as `<file>.corrupt.bak`, and
+aborts with the exact error if the directory cannot be created).
 
 ## Step 4: Pull (if applicable)
 

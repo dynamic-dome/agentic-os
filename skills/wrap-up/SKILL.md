@@ -312,13 +312,10 @@ learnings were extracted: offer sync via the `notebooklm` user-skill. Otherwise 
 Delegates to the `obsidian-sync` skill — do NOT duplicate its logic.
 
 ### Trigger Conditions (wiki-sync-gate)
-1. **Hard gate:** `.agent-memory/config.json` exists AND `sync_enabled: true`.
-2. **Substantial:** ANY of — 1+ iteration logged/harvested today, OR today's commits
-   exist (`git log --oneline --since=midnight` non-empty), OR a learning with
-   importance >= 4, OR a new decision landed. A single real iteration or any commit
-   today already warrants a note; pure lookup/discussion sessions are not substantial.
-
-Both hold → invoke `obsidian-sync` (it owns all wiki writes).
+**Hard gate:** `.agent-memory/config.json` exists AND `sync_enabled: true`.
+Holds → invoke `obsidian-sync` unconditionally: the substantiality rule is OWNED by
+obsidian-sync Step 2 (single source — do not restate or re-check it here); it decides
+substantial vs. skip itself and reports the outcome visibly.
 
 **Always report (wiki-sync-visible)** — wiki sync never skips silently; emit exactly
 ONE status line in every case:
