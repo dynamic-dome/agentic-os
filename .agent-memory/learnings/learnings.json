@@ -688,7 +688,7 @@
       "err-012"
     ],
     "review_after": "2026-10-25",
-    "bridge_status": "candidate"
+    "bridge_status": "approved"
   },
   {
     "id": "L39",
@@ -708,7 +708,7 @@
       "err-013"
     ],
     "review_after": "2026-10-25",
-    "bridge_status": "candidate"
+    "bridge_status": "approved"
   },
   {
     "id": "L40",
