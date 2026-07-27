@@ -16,10 +16,23 @@
 > Eskalationsregeln (sie definieren, welche Entscheidungen das Session-Modell
 > brauchen — unabhängig vom tatsächlich laufenden Modell) und der
 > Kosten-Trace. Die reale Kostenursache ist nicht die Modellklasse, sondern
-> Kontextgröße × Turn-Anzahl: ein gemessener wrap-up lag bei 70 Turns,
-> 28,8 Mio Cache-Read- und 4,1 Mio Cache-Write-Tokens (~94 % der Kosten),
-> bei nur 108 k Output-Tokens. Der passende Hebel ist die in §1 bewusst
+> Kontextgröße × Anzahl API-Calls: ein gemessener wrap-up lag bei 28 Calls,
+> 11,8 Mio Cache-Read- und 1,38 Mio Cache-Write-Tokens (~94 % der Kosten),
+> bei nur 39 k Output-Tokens. Das Modell ist zustandslos — jeder Call sendet
+> die ganze Konversation erneut, die Kosten sind also die **Summe** der
+> Kontextlänge über alle Calls. Der passende Hebel ist die in §1 bewusst
 > zurückgestellte Batch-Verarbeitung (Spec-P5/P6), nicht die Modellklasse.
+>
+> Gegenprobe, die das Argument trägt: eine Session komplett auf
+> `claude-sonnet-5` kostete für den wrap-up-Teil $15,16 bei 66 Calls — also
+> praktisch gleich viel wie der Opus-Lauf auf einem 1,67× billigeren Modell,
+> weil sie 2,4× mehr Calls brauchte.
+>
+> **Zähl-Falle (am 2026-07-27 zunächst selbst hineingetappt):** `usage` gilt
+> pro API-Antwort, das Transcript schreibt aber einen Record pro Content-Block
+> (Text / Thinking / Tool-Use) mit jeweils identischem `usage`. Summiert man
+> über Records statt über `message.id`, überzählt man um ~2,8×. Die ersten
+> Zahlen dieses Nachtrags waren entsprechend zu hoch.
 **Quellen:** `C:\Users\domes\AI\membrain\memospartoken.md` (GPT-5.6-Spec), eigene Recherche (Claude-Code-Doku-Verifikation Skill-`model:`-Frontmatter, Pricing Stand 2026-06), Atlas-Records `cost-aware-distillation`, `session-end-memory-distillation`.
 
 ## 1. Zweck & Scope

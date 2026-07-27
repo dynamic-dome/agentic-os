@@ -61,10 +61,11 @@ Do NOT write `learnings.json`/`learnings.md`, `session-summary.md`,
 with individual Write/Edit calls. Collect the results of Steps 3–7 into ONE
 write plan and hand it to the batch writer in Step 8.5.
 
-Why: a measured run cost $42.87 for 70 assistant turns — 28.8M cache-read and
-4.1M cache-write tokens against only 108k output tokens. Almost all of it was
-one file mutation per turn, each re-reading the full session context. The plan
-collapses that write phase to ~2 turns.
+Why: a measured run cost $15.50 for 28 API calls — 11.8M cache-read and 1.38M
+cache-write tokens against only 39k output tokens. That is 94% context
+transport and 6% thinking. The model is stateless: every call resends the
+whole conversation, so each additional turn costs another full context. The
+plan collapses the write phase to ~2 calls.
 
 Keep judgment in your head (what is a learning, what is an identity signal, how
 important); leave every mechanical rule to the script — ids, `review_after`,

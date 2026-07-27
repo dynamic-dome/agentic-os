@@ -3,10 +3,21 @@
 
 WHY THIS EXISTS
 ---------------
-A measured wrap-up run (2026-07-20) cost $42.87: 70 assistant turns, 28.8M
-cache-read + 4.1M cache-write tokens, but only 108k output tokens. 94% of the
-cost was context handling, not thinking. Every individual Write/Edit turn
-re-reads the whole session context.
+A measured wrap-up run (2026-07-20) cost $15.50: 28 API calls, 11.8M
+cache-read + 1.38M cache-write tokens, but only 39k output tokens. 94% of the
+cost was context transport, 6% was thinking.
+
+The model is stateless, so every call resends the entire conversation. Cost is
+therefore the SUM of context length over calls, not context length once - each
+extra turn buys another full resend. The prompt cache makes a resend ~10x
+cheaper, which is why the number is $15 and not ~$60; it dampens the problem
+rather than removing it.
+
+COUNTING CAVEAT (this was measured wrong on the first pass, 2026-07-27):
+`usage` is reported per API response, but the transcript writes one record per
+content block (text / thinking / tool_use), each carrying the same usage
+object. Summing over assistant RECORDS overcounts by ~2.8x. Deduplicate by
+`message.id` before adding anything up.
 
 This script collapses all of wrap-up's file mutations into ONE call: the model
 emits a single write plan, this script applies it and returns the resulting

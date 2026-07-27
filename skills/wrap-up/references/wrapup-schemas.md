@@ -15,7 +15,8 @@ body, never here.
 `scripts/apply_wrapup.py` applies every mutation below in ONE pass. Emit this
 object once, pipe it into the script, read the returned tally — do not write
 these files with individual Write/Edit calls (that is what made wrap-up cost
-$42 per run: 70 turns, each re-reading the full session context).
+$15.50 per run: 28 API calls, each resending the full session context — the
+model is stateless, so cost is the sum of context length over calls).
 
 ```json
 {
