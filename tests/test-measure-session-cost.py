@@ -231,6 +231,24 @@ class TestMeasureSessionCost(unittest.TestCase):
         d = json.loads(p.stdout)
         self.assertFalse(d["ok"])
 
+    def test_locate_rejects_glob_syntax(self):
+        """Codex review 2026-07-27: --locate '*' resolved an arbitrary
+        transcript successfully instead of failing."""
+        root = self._projects(("sid-abc", 1000))
+        for sneaky in ("*", "sid-*", "..", "../sid-abc", "a/b"):
+            p = run("--locate", sneaky, "--projects-root", root)
+            self.assertEqual(p.returncode, 0)
+            d = json.loads(p.stdout)
+            self.assertFalse(d["ok"], f"glob/traversal id {sneaky!r} must not resolve")
+
+    def test_bom_transcript_still_parses(self):
+        """utf-8-sig: a BOM before the first record must not eat the whole file."""
+        with open(self.transcript, "w", encoding="utf-8-sig") as f:
+            f.write(json.dumps(rec("m1", cache_read=100, out=5)) + "\n")
+        d = json.loads(run(self.transcript).stdout)
+        self.assertEqual(d["api_calls"], 1)
+        self.assertEqual(d["malformed_lines"], 0)
+
     def test_cost_breakdown_present(self):
         write_jsonl(self.transcript, [rec("m1", cache_read=1000000, out=1000)])
         d = json.loads(run(self.transcript).stdout)

@@ -185,6 +185,20 @@ rc, out = run(mem, {"date": "2026-07-27", "learnings": [
 ]})
 check(out["tally"]["bridge_candidates"] == ["L2"],
       "tally lists store-wide candidates for Step 3d.2")
+
+# Codex review 2026-07-27: importance:"high" raised an uncaught ValueError
+# mid-run (traceback instead of the fail-soft JSON contract).
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "learnings": [
+    {"text": "Kaputte Importance", "importance": "high"},
+]})
+check(rc == 2 and out.get("ok") is False and "importance" in out.get("error", ""),
+      "non-numeric importance rejects the plan as JSON, not a traceback")
+check(load(mem, "learnings/learnings.json") == [
+    {"id": "L1", "date": "2026-01-01", "text": "Bestehendes Learning",
+     "importance": 4, "tags": ["x"], "layer": "short-term",
+     "superseded_by": None, "last_relevant": "2026-01-01"}],
+      "rejected importance plan writes nothing")
 rows = load(mem, "learnings/learnings.json")
 old = [r for r in rows if r["id"] == "L1"][0]
 check("bridge_status" not in old,

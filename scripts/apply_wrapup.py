@@ -230,6 +230,13 @@ def validate_plan(mem, plan):
     for lrn in (plan.get("learnings") or []):
         if not (lrn.get("text") or "").strip():
             raise PlanError("learning without 'text'")
+        try:
+            int(lrn.get("importance", 3))
+        except (TypeError, ValueError):
+            # Uncaught, this ValueError surfaced as a traceback mid-run
+            # instead of the fail-soft JSON (Codex review 2026-07-27).
+            raise PlanError(f"learning with non-numeric importance "
+                            f"{lrn.get('importance')!r}")
     for cand in (plan.get("user_candidates") or []):
         if not (cand.get("key") or "").strip():
             raise PlanError("user candidate without 'key'")

@@ -40,10 +40,14 @@ MODES
         file at all - which is right for the routine path and wrong for an
         explicit refresh request.
 
-The plan supplies language only. evidence, occurrences, confidence, tags and
-the dates are taken from the freshly recomputed measurement and CANNOT be
-overridden by the plan - a caller can misjudge what a pattern means, but it can
-never inflate the numbers that justify it (verify-subagent-tallies).
+The plan supplies judgment only: description, recommendation, and the
+classification fields type/severity (deliberately settable - deciding WHAT a
+cluster is, e.g. relabeling a neutral hotspot as an anti-pattern, is exactly
+the judgment call; the match_existing type gate keeps mislabels from merging
+into foreign entries). evidence, occurrences, confidence, tags and the dates
+are taken from the freshly recomputed measurement and CANNOT be overridden by
+the plan - a caller can misjudge what a pattern means, but it can never
+inflate the numbers that justify it (verify-subagent-tallies).
 
 Most runs need one call: with no new clusters, --update is the whole job.
 
@@ -295,6 +299,12 @@ def parse_iteration_log(mem):
                        "tests": "", "confidence": None, "has_errors": False}
             iterations.append(current)
             continue
+        if line.startswith("## "):
+            # A heading that is NOT a canonical iteration ends attribution -
+            # otherwise a legacy block's field lines overwrite the preceding
+            # canonical block (Codex review 2026-07-27).
+            current = None
+            continue
         if current is None:
             continue
         fm = ITER_FIELD_RE.match(line)
@@ -302,9 +312,9 @@ def parse_iteration_log(mem):
             continue
         field, value = fm.group(1).strip().lower(), fm.group(2).strip()
         if field == "tags":
-            current["tags"] = [t.strip() for t in value.split(",") if t.strip()]
+            current["tags"] = _split_unique(value)
         elif field in ("files changed", "files created"):
-            current["files"] = [f.strip() for f in value.split(",") if f.strip()]
+            current["files"] = _split_unique(value)
         elif field == "tests":
             current["tests"] = value
         elif field == "confidence":
@@ -317,13 +327,31 @@ def parse_iteration_log(mem):
     return [it for it in iterations if it["tags"] or it["files"]]
 
 
+def _split_unique(value):
+    """Comma-split, order-preserving dedup: 'a.py, a.py, a.py' in ONE iteration
+    must count once, or a single entry fakes a 3-iteration hotspot."""
+    out = []
+    for part in value.split(","):
+        part = part.strip()
+        if part and part not in out:
+            out.append(part)
+    return out
+
+
 def iter_ref(it) -> str:
     return f"it:{it['date']}:{it['title'][:40]}"
 
 
 def _tests_failed(it) -> bool:
     t = it.get("tests", "").lower()
-    return "fail" in t or "flak" in t
+    if "flak" in t:
+        return True
+    # '10 passed, 0 failed' is a pass - only a nonzero count (or a bare
+    # 'failed' without one) marks a failure (Codex review 2026-07-27).
+    m = re.search(r"(\d+)\s*(?:tests?\s+)?fail", t)
+    if m:
+        return int(m.group(1)) > 0
+    return "fail" in t
 
 
 def _tests_passed(it) -> bool:
@@ -403,6 +431,10 @@ def _tag_groups(candidates, min_members, prefix, ctype, severity):
         shared = set(members[0]["tags"])
         for m in members[1:]:
             shared &= set(m["tags"])
+        if len(shared) < 2:
+            # Pairwise anchor overlap without a global >=2-tag core is a
+            # chain, not a cluster - and would produce an empty key.
+            continue
         for m in members:
             used.add(iter_ref(m))
         out.append(make_iteration_cluster(

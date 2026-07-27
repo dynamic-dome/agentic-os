@@ -30,6 +30,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 
@@ -79,7 +80,9 @@ def parse_transcript(path, rewrite_threshold):
     seen = set()
     malformed = 0
 
-    with open(path, "r", encoding="utf-8", errors="replace") as fh:
+    # utf-8-sig: a BOM would otherwise glue itself to the first record's JSON
+    # and silently drop that line as malformed (Codex review 2026-07-27).
+    with open(path, "r", encoding="utf-8-sig", errors="replace") as fh:
         for line in fh:
             line = line.strip()
             if not line:
@@ -245,6 +248,11 @@ def main(argv):
     if args.transcript and args.locate:
         return _fail("give either a transcript path or --locate, not both")
     if args.locate:
+        # Session ids are UUID-shaped. Anything else (glob syntax, path
+        # separators, traversal) must fail instead of resolving an arbitrary
+        # transcript (Codex review 2026-07-27).
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]*", args.locate):
+            return _fail("invalid session id for --locate", session_id=args.locate)
         # One-level glob only - a recursive walk over ~/.claude/projects is
         # exactly the scandir-vs-rglob trap on Windows. The sid is unique in
         # practice; on a collision the newest mtime is the running session.

@@ -553,5 +553,55 @@ check(p001["occurrences"] == 2 and not any(e.startswith("it:") for e in p001["ev
 check(any(p["cluster_key"].startswith("approach:") for p in out.get("proposals", [])),
       "the mismatched cluster stays a proposal instead")
 
+# --- 25. Codex-Verifier regressions (Review 2026-07-27) ----------------------
+# 25a. a legacy block after a canonical one must not pollute its fields
+log = make_log(
+    it_block("2026-07-01", "feature", "Echt", tags=["a", "b"], files=["x.py", "y.py", "z.py"]),
+    "## Prosa-Block ohne Datum\n- **Tags:** GIFT1, GIFT2\n",
+    it_block("2026-07-02", "bugfix", "B", files=["x.py"]),
+    it_block("2026-07-03", "refactor", "C", files=["x.py"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+hot = [p for p in out["proposals"] if p["cluster_key"] == "hotspot:x.py"]
+check(len(hot) == 1 and not any("GIFT" in t for t in hot[0]["tags"]),
+      "legacy block fields never leak into the preceding canonical iteration")
+
+# 25b. duplicated file names inside ONE iteration are not a hotspot
+log = make_log(it_block("2026-07-01", "feature", "A", files=["dup.py", "dup.py", "dup.py"]))
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+check(not any(p["cluster_key"] == "hotspot:dup.py" for p in out.get("proposals", [])),
+      "a single iteration cannot make a hotspot via duplicated file entries")
+
+# 25c. pairwise-anchor chains without a global >=2-tag core form no cluster
+log = make_log(
+    it_block("2026-07-01", "feature", "A", tags=["t1", "t2", "t3", "t4"]),
+    it_block("2026-07-02", "feature", "B", tags=["t1", "t2"]),
+    it_block("2026-07-03", "feature", "C", tags=["t3", "t4"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+bad = [p for p in out.get("proposals", []) if p["cluster_key"].startswith("approach:")]
+check(bad == [] or all(len(p["cluster_key"].split(":", 1)[1].split("+")) >= 2
+                       and p["cluster_key"] != "approach:" for p in bad),
+      "no cluster without a global >=2 shared-tag core (empty 'approach:' key)")
+
+# 25d. '0 failed' is a pass, not a failure
+log = make_log(
+    it_block("2026-07-01", "feature", "A", tags=["ok", "run", "m1"],
+             tests="10 passed, 0 failed"),
+    it_block("2026-07-02", "feature", "B", tags=["ok", "run", "m2"],
+             tests="12 passed, 0 failed"),
+    it_block("2026-07-03", "feature", "C", tags=["ok", "run", "m3"],
+             tests="9 passed, 0 failed"),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+check(not any(p["cluster_key"].startswith("fragile:") for p in out.get("proposals", [])),
+      "'0 failed' does not mark a fragile area")
+check(any(p["cluster_key"].startswith("approach:") for p in out.get("proposals", [])),
+      "'0 failed' counts as passing for the approach heuristic")
+
 print(f"=== Results: {PASSED}/{TESTS} passed, {ERRORS} failures ===")
 sys.exit(1 if ERRORS else 0)
