@@ -190,6 +190,7 @@
     "implemented_by": [],
     "implemented_at": null,
     "validated_by": [],
-    "validated_at": null
+    "validated_at": null,
+    "promotion_status": "candidate"
   }
 ]
