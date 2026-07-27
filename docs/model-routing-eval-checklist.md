@@ -1,9 +1,40 @@
 # Model-Routing v4.7.0 — Manual Eval Checklist
 
+> **Status 2026-07-27: E0 FAILS.** The `model:` frontmatter does not switch
+> the main-loop model (CC 2.1.215 + 2.1.220). Run E0 first — while it fails,
+> E1–E5 test the *behaviour* of the skills but say nothing about which model
+> executed them. Details: header of `scripts/model-routing.sh`.
+
 The spec's model-dependent test cases (memospartoken.md section 24) cannot be
 asserted by bash tests without faking model behavior. They are checked
 manually after release, one real session each. Record results as an
 iteration-log entry.
+
+## E0 — Does the routing fire at all? (transcript probe)
+
+The `validate-skills.sh` routing test only proves frontmatter and SSoT table
+agree. It cannot prove the runtime honours either. This probe can:
+
+1. Create `~/.claude/skills/model-routing-probe/SKILL.md` with frontmatter
+   `model: sonnet`, `effort: low` and a body that says "do nothing, return
+   immediately".
+2. In a session running on a NON-sonnet model, invoke the probe via the
+   Skill tool.
+3. Make one more tool call (the transcript is flushed one message behind),
+   then read
+   `~/.claude/projects/<project-slug>/<session-id>.jsonl` and compare the
+   `message.model` field of the assistant messages before and after the
+   Skill result.
+4. Delete the probe skill afterwards.
+
+Pass: messages after the Skill result carry `claude-sonnet-*`.
+Fail: they keep the session model — the frontmatter is inert.
+
+The same probe works for agents; their transcripts live under
+`~/.claude/projects/<project-slug>/<session-id>/subagents/*.jsonl`. Prefer
+passing `model` explicitly at the Agent call site over trusting frontmatter.
+
+## E1–E5 — Behavioural cases
 
 | # | Spec case | Procedure | Pass criterion |
 |---|---|---|---|

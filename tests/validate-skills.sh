@@ -725,6 +725,13 @@ fi
 # The frontmatter `model:`/`effort:` of every skill must match the routing
 # table in scripts/model-routing.sh ("-" in the table = field must be ABSENT).
 # Only top-level fields count (^model:), so metadata sub-keys never match.
+#
+# SCOPE WARNING: this asserts frontmatter and SSoT table agree. It does NOT
+# assert the runtime honours either — and as of 2026-07-27 it does not (the
+# `model:` frontmatter is a measured no-op; see the header of
+# scripts/model-routing.sh). A green run here means "declared consistently",
+# never "ran on the cheap class". The effect test is the E0 transcript probe
+# in docs/model-routing-eval-checklist.md and cannot run in CI.
 echo ""
 echo "-- model routing: skill frontmatter matches scripts/model-routing.sh --"
 MR_SCRIPT="$PLUGIN_ROOT/scripts/model-routing.sh"

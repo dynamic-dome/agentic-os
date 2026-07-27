@@ -1,7 +1,25 @@
 # Design: Kosten- und tokenbewusstes Modell-Routing (v4.7.0)
 
 **Datum:** 2026-07-15
-**Status:** Freigegeben (Brainstorming-Dialog, 3 Design-Abschnitte einzeln bestätigt)
+**Status:** Freigegeben — **Kernannahme am 2026-07-27 widerlegt.**
+
+> **Nachtrag 2026-07-27.** Die tragende Annahme dieses Designs — dass das
+> `model:`-Frontmatter eines Skills das Hauptloop-Modell umschaltet — ist
+> falsch. Gemessen an echten Transcripts (CC 2.1.215) und per Probe-Skill
+> (CC 2.1.220): das Session-Modell bleibt bestehen. Die Annahme stammt laut
+> Quellenzeile unten aus einer **Doku-Verifikation**, nicht aus einer
+> Laufzeitmessung — genau die Lücke, die der E0-Probe-Test in
+> `docs/model-routing-eval-checklist.md` jetzt schließt.
+>
+> Damit trägt dieses Release seinen Kostennutzen **nicht**. Was gültig
+> bleibt: die deterministische Vorverarbeitung (`preprocess_state.py`), die
+> Eskalationsregeln (sie definieren, welche Entscheidungen das Session-Modell
+> brauchen — unabhängig vom tatsächlich laufenden Modell) und der
+> Kosten-Trace. Die reale Kostenursache ist nicht die Modellklasse, sondern
+> Kontextgröße × Turn-Anzahl: ein gemessener wrap-up lag bei 70 Turns,
+> 28,8 Mio Cache-Read- und 4,1 Mio Cache-Write-Tokens (~94 % der Kosten),
+> bei nur 108 k Output-Tokens. Der passende Hebel ist die in §1 bewusst
+> zurückgestellte Batch-Verarbeitung (Spec-P5/P6), nicht die Modellklasse.
 **Quellen:** `C:\Users\domes\AI\membrain\memospartoken.md` (GPT-5.6-Spec), eigene Recherche (Claude-Code-Doku-Verifikation Skill-`model:`-Frontmatter, Pricing Stand 2026-06), Atlas-Records `cost-aware-distillation`, `session-end-memory-distillation`.
 
 ## 1. Zweck & Scope
