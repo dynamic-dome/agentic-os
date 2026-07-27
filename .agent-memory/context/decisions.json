@@ -91,7 +91,7 @@
     "date": "2026-07-15",
     "type": "architecture-decision",
     "title": "Deklaratives Modell-Routing via Frontmatter statt programmatischem Router",
-    "status": "active",
+    "status": "superseded",
     "context": "GPT-Spec memospartoken.md §8 forderte eine Router-Komponente mit Confidence-Scores und Provider-Adaptern.",
     "options_considered": [
       {
@@ -127,7 +127,9 @@
       "frontmatter"
     ],
     "wiki_ref": "wiki/entities/agentic-os-plugin.md",
-    "promoted_at": "2026-07-15"
+    "promoted_at": "2026-07-15",
+    "superseded_by": "D-010",
+    "superseded_at": "2026-07-27"
   },
   {
     "id": "D-006",
@@ -288,6 +290,47 @@
       "constraint",
       "measurement",
       "cost"
+    ]
+  },
+  {
+    "id": "D-010",
+    "date": "2026-07-27",
+    "type": "architecture-decision",
+    "title": "Modellklasse als Kostenhebel verworfen — der Hebel sind Skill-Delegationsketten (Cache-Invalidierung)",
+    "status": "active",
+    "context": "D-005 fuehrte deklaratives Modell-Routing ein, um Routine-Skills auf eine billigere Klasse zu legen. D-009 zeigte, dass das Frontmatter ein No-Op ist. Die Messung dieser Session (scripts/measure_session_cost.py gegen das eigene Transkript) zeigt zusaetzlich, dass die Klasse ohnehin nicht der Kostentreiber waere: 99,1% des Token-Volumens ist Kontext-Transport, und 6 Prefix-Rewrites (cache_creation, 12,5x der Read-Preis) machten 38-52% der Gesamtkosten aus. 5 der 6 Rewrites folgten unmittelbar auf eine Skill-Body-Injektion.",
+    "options_considered": [
+      {
+        "option": "Modell-Routing per Fork/Subagent nachbauen (T-010)",
+        "pros": [
+          "haelt an D-005 fest"
+        ],
+        "cons": [
+          "gemessen wirkungslos: opus $15.50/28 Calls vs sonnet $15.16/66 Calls",
+          "ein Fork sieht die Konversation nicht -> Identity-Harvest (wrap-up Step 6) wuerde erblinden, genau der Fix der heute 3 Promotions brachte"
+        ]
+      },
+      {
+        "option": "Delegationsketten reduzieren (D-008 konsequent fortsetzen)",
+        "pros": [
+          "trifft den gemessenen Haupttreiber",
+          "iteration-logger/context-keeper/pattern-extractor sind zu >80% deterministisch -> Skript statt Skill-Injektion",
+          "Identity-Harvest bleibt im Hauptkontext"
+        ],
+        "cons": [
+          "Umbau von 4 Skill-Schnittstellen",
+          "Hypothese ist N=1 und hat einen TTL-Confound"
+        ]
+      }
+    ],
+    "decision": "D-005 wird supersediert: die Modellklasse ist kein Kostenhebel und wird nicht weiter verfolgt (T-010 geschlossen). Verfolgt wird stattdessen die Reduktion der Skill-Delegationsketten im wrap-up nach dem Muster von D-008 (Batch-Writer). Die Eskalations-Disziplin aus D-005 (escalations-<sid>.json + ESKALATION:-Marker) bleibt bestehen — sie war nie eine Kostenmassnahme, sondern eine Sicherheitsmassnahme.",
+    "consequences": "Kein Fork-Umbau. Vor dem Delegations-Umbau ist ein Messvergleich Pflicht (Baseline: 54 Calls, $25.10, 6 Rewrites, 6,6M Kontext-Tokens). Bestaetigt sich die Halbierung der Rewrite-Zahl nicht, ist die Hypothese widerlegt und der TTL-Confound die Erklaerung — dann wird NICHT umgebaut.",
+    "supersedes": "D-005",
+    "tags": [
+      "cost",
+      "model-routing",
+      "architecture",
+      "measurement"
     ]
   }
 ]

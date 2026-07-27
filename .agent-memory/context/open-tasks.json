@@ -89,19 +89,20 @@
   {
     "id": "T-010",
     "title": "Phase 2 Modell-Routing: session-bootstrap-Lesepfad als cheap-read-Fork (haiku, context: fork) mit Umbau des Step-6.5-Gates",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-15",
-    "updated": "2026-07-15",
+    "updated": "2026-07-27",
     "source": "wrap-up",
-    "cross_project": false
+    "cross_project": false,
+    "resolution": "resolved in wrap-up"
   },
   {
     "id": "T-011",
     "title": "ESKALATION entscheiden: D-005 (deklaratives Modell-Routing via Frontmatter) supersedieren ODER Routing per Fork/Subagent implementieren — die Wirksamkeitsannahme ist durch D-009 widerlegt",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "wrap-up",
     "cross_project": false
   },
@@ -128,6 +129,26 @@
   {
     "id": "T-014",
     "title": "Bug: bridge_projection.py schreibt die Ueberschrift 'Bridge: Offene Tasks (membrain)' hart kodiert (Zeile 75) â€” jedes Projekt bekommt das falsche Label; Projektnamen aus config.json project_id ableiten",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-015",
+    "title": "Experiment Delegations-Umbau: wrap-up-Lauf OHNE Skill-Delegation (iteration-logger/context-keeper/pattern-extractor ins Skript) messen und gegen die Baseline halten â€” Baseline 2026-07-27: 54 API-Calls, $25.10, 6 Prefix-Rewrites, 6,6M Kontext-Tokens. DoD: Rewrite-Zahl halbiert, sonst Hypothese verworfen (TTL-Confound)",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-016",
+    "title": "measure_session_cost.py in den wrap-up-Ablauf haengen: am Ende jedes Laufs --append-trace auf das eigene Transkript, damit cost-trace.jsonl gemessene statt geschaetzter Records bekommt",
     "status": "open",
     "created": "2026-07-27",
     "updated": "2026-07-27",
