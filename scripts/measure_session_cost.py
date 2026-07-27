@@ -27,6 +27,7 @@ Usage:
 Transcripts live in ~/.claude/projects/<project-slug>/<session-id>.jsonl
 """
 import argparse
+import glob
 import json
 import os
 import sys
@@ -221,6 +222,11 @@ def main(argv):
                         help="cache_creation tokens that count as a prefix rewrite")
     parser.add_argument("--top", type=int, default=0, help="also list the N most expensive calls")
     parser.add_argument("--human", action="store_true", help="human-readable report on stdout")
+    parser.add_argument("--locate", metavar="SESSION_ID", default=None,
+                        help="find the transcript as <projects-root>/*/<SESSION_ID>.jsonl "
+                             "instead of passing a path (wrap-up knows only its id, T-016)")
+    parser.add_argument("--projects-root", default=None,
+                        help="transcript root for --locate (default: ~/.claude/projects)")
     parser.add_argument("--append-trace", metavar="MEM_DIR", default=None,
                         help="append a measured record to <MEM_DIR>/metrics/cost-trace.jsonl")
     parser.add_argument("--task", default="session", help="task label for --append-trace")
@@ -236,6 +242,19 @@ def main(argv):
             return 0
         return _fail("argument parsing failed")
 
+    if args.transcript and args.locate:
+        return _fail("give either a transcript path or --locate, not both")
+    if args.locate:
+        # One-level glob only - a recursive walk over ~/.claude/projects is
+        # exactly the scandir-vs-rglob trap on Windows. The sid is unique in
+        # practice; on a collision the newest mtime is the running session.
+        root = args.projects_root or os.path.join(
+            os.path.expanduser("~"), ".claude", "projects")
+        matches = glob.glob(os.path.join(root, "*", args.locate + ".jsonl"))
+        if not matches:
+            return _fail("no transcript for session id", session_id=args.locate,
+                         projects_root=root)
+        args.transcript = max(matches, key=os.path.getmtime)
     if not args.transcript:
         return _fail("no transcript given")
 

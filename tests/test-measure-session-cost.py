@@ -189,6 +189,48 @@ class TestMeasureSessionCost(unittest.TestCase):
         self.assertTrue(d["ok"])
         self.assertIn("trace_warning", d)
 
+    # --- 8. --locate: find own transcript from a session id -----------------
+    def _projects(self, *sids_mtimes):
+        """Build <tmp>/projects/<proj-i>/<sid>.jsonl fixtures; returns root."""
+        root = os.path.join(self.tmp, "projects")
+        for i, (sid, mtime) in enumerate(sids_mtimes):
+            d = os.path.join(root, f"proj-{i}")
+            os.makedirs(d, exist_ok=True)
+            path = os.path.join(d, f"{sid}.jsonl")
+            write_jsonl(path, [rec(f"m-{sid}", cache_read=100, out=5)])
+            os.utime(path, (mtime, mtime))
+        return root
+
+    def test_locate_finds_transcript_by_session_id(self):
+        """wrap-up knows only its session id, never its transcript path (T-016)."""
+        root = self._projects(("sid-abc", 1000))
+        p = run("--locate", "sid-abc", "--projects-root", root)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        d = json.loads(p.stdout)
+        self.assertTrue(d["ok"])
+        self.assertEqual(d["api_calls"], 1)
+        self.assertIn("sid-abc.jsonl", d["transcript"])
+
+    def test_locate_newest_mtime_wins_on_duplicate_sid(self):
+        root = self._projects(("sid-dup", 1000), ("sid-dup", 2000))
+        d = json.loads(run("--locate", "sid-dup", "--projects-root", root).stdout)
+        self.assertIn(os.path.join("proj-1", "sid-dup.jsonl"), d["transcript"])
+
+    def test_locate_missing_sid_is_fail_soft(self):
+        root = self._projects(("sid-abc", 1000))
+        p = run("--locate", "sid-nope", "--projects-root", root)
+        self.assertEqual(p.returncode, 0)
+        d = json.loads(p.stdout)
+        self.assertFalse(d["ok"])
+
+    def test_locate_and_positional_transcript_conflict(self):
+        """Two sources of truth for the same input -> reject, don't guess."""
+        root = self._projects(("sid-abc", 1000))
+        p = run(self.transcript, "--locate", "sid-abc", "--projects-root", root)
+        self.assertEqual(p.returncode, 0)
+        d = json.loads(p.stdout)
+        self.assertFalse(d["ok"])
+
     def test_cost_breakdown_present(self):
         write_jsonl(self.transcript, [rec("m1", cache_read=1000000, out=1000)])
         d = json.loads(run(self.transcript).stdout)

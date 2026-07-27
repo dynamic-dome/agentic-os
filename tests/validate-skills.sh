@@ -830,11 +830,14 @@ if [ -f "$WU_MR_FILE" ]; then
     else
         fail "wrap-up: missing/incomplete (escalation-rules) — must log to working/escalations-<sid>.json, emit ESKALATION: line, and name the conditions (contradiction, identity, decision replacement, pattern promotion, hard-to-reverse, missing sources)"
     fi
-    CT_BLOCK=$(grep -A8 "(cost-trace)" "$WU_MR_FILE")
-    if echo "$CT_BLOCK" | grep -q "cost-trace.sh" && echo "$CT_BLOCK" | grep -q "cheap-write"; then
-        pass "wrap-up: (cost-trace) — run cost logged via cost-trace.sh"
+    CT_BLOCK=$(grep -A24 "(cost-trace)" "$WU_MR_FILE")
+    if echo "$CT_BLOCK" | grep -q "measure_session_cost.py" \
+       && echo "$CT_BLOCK" | grep -q -- "--locate" \
+       && echo "$CT_BLOCK" | grep -q "cost-trace.sh" \
+       && echo "$CT_BLOCK" | grep -q "cheap-write"; then
+        pass "wrap-up: (cost-trace) — measured via measure_session_cost.py --locate, estimate fallback via cost-trace.sh"
     else
-        fail "wrap-up: missing (cost-trace) — end of run must call scripts/cost-trace.sh append with class cheap-write"
+        fail "wrap-up: missing/incomplete (cost-trace) — end of run must measure via measure_session_cost.py --locate <session-id> --append-trace and keep the cost-trace.sh cheap-write estimate as fallback (T-016)"
     fi
 fi
 

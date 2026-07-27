@@ -538,13 +538,24 @@ Marker schema: `references/wrapup-schemas.md` §Consolidation marker.
    an honest dirty state is exactly what recovery needs.
 
 (cost-trace) Finally, log the run trace and refresh the state hash (both
-fail-soft, never blocking):
+fail-soft, never blocking). Measured beats estimated (T-016): the script finds
+this session's own transcript from the session id and appends an
+`"estimate": false` record — covering the session up to this point, which is
+the whole run except these final lines:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/measure_session_cost.py" --locate <session-id> \
+  --append-trace .agent-memory --task wrap-up
+python "${CLAUDE_PLUGIN_ROOT}/scripts/preprocess_state.py" .agent-memory --write-hash > /dev/null
+```
+
+ONLY if the first line reports `"ok": false` (no transcript — headless run or
+foreign harness), fall back to the old estimate so the trace never has a hole:
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/cost-trace.sh" append --mem .agent-memory \
   --task wrap-up --class cheap-write \
   --context-bytes <approx bytes of files read this run> --escalated <0|1>
-python "${CLAUDE_PLUGIN_ROOT}/scripts/preprocess_state.py" .agent-memory --write-hash > /dev/null
 ```
 
 ---
