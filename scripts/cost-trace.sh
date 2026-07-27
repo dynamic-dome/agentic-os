@@ -5,7 +5,15 @@
 # est_input_tokens = context_bytes / 4. This is an ESTIMATE ("estimate":true):
 # Claude Code exposes no real per-run token counts to skills; we trace what is
 # deterministically measurable (bytes of files actually read, model class,
-# escalation flag). Real token baselines require external telemetry (OTEL).
+# escalation flag).
+#
+# DO NOT reason about cost from these records (4.17.0). The estimate has no
+# error bar and a skill's own guess at "bytes read this run" is a guess: a
+# wrap-up run traced --context-bytes 96000 while the transcript showed 6.6M
+# context tokens actually transported. For real numbers use
+#   python scripts/measure_session_cost.py <transcript.jsonl> --append-trace .agent-memory
+# which reads the transcript and writes records with "estimate": false.
+# Both record kinds live in the same JSONL — filter on the estimate flag.
 #
 # Fail-soft contract: NEVER exits non-zero, never blocks a skill run.
 # Usage:

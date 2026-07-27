@@ -177,6 +177,22 @@ fi
 
 echo ""
 
+# Run measured session-cost tests (4.17.0: measurement replaces estimates)
+echo ">>> Running measure-session-cost tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-measure-session-cost.py"; then
+    echo ">>> Measure-session-cost tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Measure-session-cost tests: SKIPPED (no python found)"
+else
+    echo ">>> Measure-session-cost tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run handoff write-guard tests (T-19)
 echo ">>> Running handoff write-guard tests..."
 PY_BIN=""
