@@ -69,10 +69,26 @@ def load_open_tasks(mem_dir):
             and t.get("status") in ("open", "blocked")]
 
 
-def render_block(approved, tasks):
+def project_label(mem_dir):
+    """Project label for the task heading: config.json project_id, falling back
+    to the project root's directory name. Fail-soft — a missing/corrupt config
+    must never kill the projection (T-014: the old hard-coded '(membrain)' put
+    the wrong label into every other project's AGENTS.md)."""
+    path = os.path.join(mem_dir, "config.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            pid = json.load(f).get("project_id", "")
+        if isinstance(pid, str) and pid.strip():
+            return pid.strip()
+    except (OSError, ValueError):
+        pass
+    return os.path.basename(os.path.dirname(os.path.abspath(mem_dir)))
+
+
+def render_block(approved, tasks, label):
     lines = [BEGIN]
     if tasks:
-        lines.append("## Bridge: Offene Tasks (membrain)")
+        lines.append(f"## Bridge: Offene Tasks ({label})")
         for t in tasks[:TASK_CAP]:
             title = str(t.get("title", "")).strip()
             if len(title) > 200:
@@ -149,7 +165,7 @@ def main(argv):
             print("bridge: no approved learnings or open tasks, nothing to do")
         return 0
 
-    block = render_block(approved, tasks)
+    block = render_block(approved, tasks, project_label(args.mem_dir))
     base = strip_block(current) if exists else ""
     if base and not base.endswith("\n"):
         base += "\n"

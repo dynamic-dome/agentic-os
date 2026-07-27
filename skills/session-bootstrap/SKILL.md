@@ -115,6 +115,13 @@ Apply identity settings from `soul.md` silently (communication style, guard rail
 
 **Primary path — Atlas MCP (when available):**
 
+**Tool-load bundling (one-toolsearch-per-run):** the Atlas tool is deferred — load it
+with EXACTLY ONE `ToolSearch("select:mcp__agent-memory-atlas__memory_search_tool")`
+call per bootstrap run, covering ALL Atlas queries of this run (KEY LEARNINGS, the
+Codex-gotchas query below, and Step 2.5's cross-vault enrichment). Never issue a
+second ToolSearch: each call carries a measured ~26% prefix-cache-rewrite probability
+(L34/T-017), which at 100k+ context costs more than the query is worth.
+
 1. Build a query from `context/open-tasks.json`: concat the titles of the top 3 open/blocked
    tasks, e.g. `"Relevante Learnings für: T-3-opt Writeback; RAG-Hybrid-Bootstrap; ..."`.
    If no open tasks exist, use the project name + stack keywords as fallback query.

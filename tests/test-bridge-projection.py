@@ -258,6 +258,28 @@ def main():
         check("empty-tasks-no-learn: foreign preserved",
               read(agents).startswith(foreign))
 
+    # 17. Task-Label aus config.json project_id, nie hart kodiert (T-014)
+    with tempfile.TemporaryDirectory() as tmp:
+        mem, agents = setup(tmp, [learning("L1", "2026-07-16", "x")], foreign)
+        write_tasks(mem, [task("T-25", "sache")])
+        with open(os.path.join(mem, "config.json"), "w", encoding="utf-8") as f:
+            json.dump({"project_id": "fooproj"}, f)
+        run([mem, "--agents-md", agents], cwd=tmp)
+        content = read(agents)
+        check("label: from config project_id", "Offene Tasks (fooproj)" in content)
+        check("label: membrain not hard-coded", "(membrain)" not in content)
+
+    # 18. Label-Fallback ohne config.json -> Projektordner-Name, exit 0
+    with tempfile.TemporaryDirectory() as tmp:
+        mem, agents = setup(tmp, [learning("L1", "2026-07-16", "x")], foreign)
+        write_tasks(mem, [task("T-25", "sache")])
+        p = run([mem, "--agents-md", agents], cwd=tmp)
+        content = read(agents)
+        expected = os.path.basename(os.path.abspath(tmp))
+        check("label-fallback: exit 0", p.returncode == 0, f"rc={p.returncode}")
+        check("label-fallback: project dir name",
+              f"Offene Tasks ({expected})" in content, f"expected ({expected})")
+
     n = len(FAILURES)
     print(f"=== {n} failure(s) ===" if n else "=== all tests passed ===")
     return 1 if n else 0
