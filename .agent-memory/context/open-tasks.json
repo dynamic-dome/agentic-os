@@ -109,10 +109,10 @@
   {
     "id": "T-012",
     "title": "Iteration-Log-Luecke 2026-07-16..2026-07-24 (Releases 4.8-4.15, ~20 Commits) nachtragen oder bewusst als verloren markieren — diese Sessions haben nie ein wrap-up gefahren",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "Owner-Entscheid 2026-07-27: Luecke bewusst als verloren markiert. Learnings/Decisions der Phase sind separat konsolidiert (L-/D-Records, CLAUDE.md); Nachtrag aus git log waere Rekonstruktion ohne Konversations-Ground-Truth (UC2). Marker-Block in iteration-log.md gesetzt.",
     "source": "wrap-up",
     "cross_project": false
   },

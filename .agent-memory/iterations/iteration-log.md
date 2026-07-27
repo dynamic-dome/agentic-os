@@ -241,3 +241,12 @@
 - **Summary:** Bewertung des Delegations-Umbaus als Entscheidung festgehalten (D-012): Hauptgewinn ist Determinismus, Kostenersparnis ~$1.50-3/Lauf, Amortisation nach 10-15 Laeufen - weitere Mikro-Optimierung (T-018/T-021) beendet. Als Gegenmassnahme zum realen Informationsverlust (extract_patterns.py sieht nur die fehlerbasierte Haelfte, T-019) traegt wrap-up Step 4 jetzt den pattern-starvation-guard: ~5 Sessions mit Iterationen aber 0 neuen Patterns/Proposals -> einmal voller pattern-extractor-Lauf als bewusster Tiefenblick. T-020-Finalmessung: 48 Calls, $20.66, 4 Rewrites gegen Baseline 54/$25.10/6 bei deutlich groesserem Sessionumfang; Skill-Invokes im wrap-up-Lauf 1 statt 4 - DoD erfuellt.
 - **Confidence:** 4/5
 - **Tests:** passed (validate-plugin 159/159, validate-skills 154/154)
+
+## Luecke 2026-07-16..2026-07-24 — bewusst als verloren markiert (T-012)
+
+Die Sessions der Releases 4.8–4.15 (~20 Commits) haben nie ein wrap-up gefahren;
+ihre Iterationen wurden nicht geloggt. Owner-Entscheid 2026-07-27: NICHT aus git log
+rekonstruieren — Learnings/Decisions dieser Phase sind separat konsolidiert
+(L-Eintraege, D-Records, CLAUDE.md), ein Nachtrag waere Buchhaltung ohne
+Konversations-Ground-Truth. Konsequenz: Datei-Hotspot-Heuristiken (T-019) sehen
+diese Commits nicht. Absichtlich kein Datums-Header — Parser ueberspringt den Block.
