@@ -207,3 +207,20 @@
 - **Summary:** D-005 (deklaratives Modell-Routing) auf superseded, D-010 angelegt: die Modellklasse ist kein Kostenhebel (opus $15.50/28 Calls vs sonnet $15.16/66 Calls). Erste Hypothese (Skill-Delegationsketten) war nach einer Auswertung PRO SESSION scheinbar widerlegt — eine Session mit 0 Skills hatte 5 Rewrites. Erst die Normalisierung auf GELEGENHEITEN ueber 7 Transkripte/~1300 Calls zeigte den Effekt: Skill 41% (9/22), ToolSearch 26% (5/19) gegen Bash 0,5% (3/618) und Edit 0% (0/233). TTL-Confound widerlegt (5 von 6 Rewrites nach Pausen <60s). L34 haelt Befund UND Methodenfehler fest. Commit c5d4d84.
 - **Confidence:** 4/5
 - **Tests:** n/a (Analyse, kein Produktionscode)
+
+## 2026-07-27 — feature: Delegations-Umbau T-015: 3 Skill-Injektionen durch Skripte ersetzt (4.18.0) (recovered from session 814b8dd0)
+- **Type:** feature
+- **Tags:** wrap-up, cost-analysis, refactor, python, delegation
+- **Files changed:** scripts/apply_wrapup.py, scripts/extract_patterns.py, tests/test-apply-wrapup.py, tests/test-extract-patterns.py, tests/validate-plugin.sh, skills/wrap-up/SKILL.md, skills/iteration-logger/SKILL.md, skills/context-keeper/SKILL.md, skills/pattern-extractor/SKILL.md, skills/DEPENDENCIES.md, CLAUDE.md
+- **Summary:** Konsequenz aus L34/D-010 (Skill-Aufruf = 41% Prefix-Rewrite): wrap-up ruft iteration-logger/context-keeper/pattern-extractor auf dem Routinepfad nicht mehr auf. apply_wrapup.py bekam die Plan-Sektionen iterations+decisions (ID-Fortschreibung im On-Disk-Format, Recurrence-Regel, Append-only, Supersede-Flip); extract_patterns.py (neu) uebernimmt Detektion/Confidence/Jaccard/patterns.md, --apply nimmt nur Sprache, Zahlen kommen aus der Messung. Ownership verschoben statt aufgeweicht (APPLIER_OWNED). validate-plugin.sh: Delegations-Budget-Test ersetzt den false-green Vorgaenger-Grep. DoD erfuellt: deklarierte Invokes 5->3, typischer Lauf 4->1. Commit 1e5c504.
+- **Confidence:** 5/5
+- **Tests:** passed (apply-wrapup 55->90, extract-patterns 49 neu, Suite gruen)
+
+## 2026-07-27 — bugfix: Codex-Verifier-Befunde zum Delegations-Umbau behoben (14 Befunde, Verdikt rejected) (recovered from session 814b8dd0)
+- **Type:** bugfix
+- **Tags:** wrap-up, code-review, idempotency, security, python
+- **Files changed:** scripts/apply_wrapup.py, tests/test-apply-wrapup.py, scripts/extract_patterns.py
+- **Summary:** Review von 1e5c504 war 'rejected' mit 14 Befunden; 2 selbst reproduziert vor Uebernahme, 1 entstand erst durch den Fix und wurde vom Smoke-Lauf gegen eine Store-Kopie gefunden. Kern: (a) Header-Dedup lief NACH der Fehlerverarbeitung - wiederholter Plan zaehlte denselben Fehler jedes Mal als Recurrence (occurrences 2->3->4); (b) Decision-Identitaet jetzt (title, supersedes) statt Titel-only; (c) validate_plan prueft alle Pflichtfelder vorab, sonst hinterliess ein spaet scheiternder Plan ein halb geschriebenes iteration-log; (d) canon(): 'iterations/../iterations/errors.json' passierte den Ownership-Check. Commit af647fc.
+- **Confidence:** 5/5
+- **Tests:** passed (Suite gruen nach Fix)
+- **Errors:** err-011

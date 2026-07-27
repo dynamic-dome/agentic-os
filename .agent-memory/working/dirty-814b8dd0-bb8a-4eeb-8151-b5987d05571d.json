@@ -1,0 +1,49 @@
+{
+  "session_id": "814b8dd0-bb8a-4eeb-8151-b5987d05571d",
+  "agent": "claude",
+  "dirty": false,
+  "started": "2026-07-27T11:51:39+02:00",
+  "updated": "2026-07-27T12:57:18+02:00",
+  "touched_files": [
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\test-apply-wrapup.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\apply_wrapup.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\test-extract-patterns.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\extract_patterns.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\run-all.sh",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\wrap-up\\SKILL.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\wrap-up\\references\\wrapup-schemas.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\iteration-logger\\SKILL.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\context-keeper\\SKILL.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\pattern-extractor\\SKILL.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\validate-plugin.sh",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\eval\\gate_linkage.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\DEPENDENCIES.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\CLAUDE.md",
+    "C:\\Users\\domes\\.claude\\projects\\C--Users-domes-Desktop-Claude-Plugins-Skills-agentic-os-plugin\\memory\\autonom-bis-freigabepunkt.md",
+    "C:\\Users\\domes\\.claude\\projects\\C--Users-domes-Desktop-Claude-Plugins-Skills-agentic-os-plugin\\memory\\codex-rescue-holt-keine-ergebnisse.md",
+    "C:\\Users\\domes\\.claude\\projects\\C--Users-domes-Desktop-Claude-Plugins-Skills-agentic-os-plugin\\memory\\MEMORY.md",
+    "C:\\Users\\domes\\.claude\\projects\\C--Users-domes-Desktop-Claude-Plugins-Skills-agentic-os-plugin\\memory\\plugin-update-verifikation.md"
+  ],
+  "write_count": 80,
+  "consolidated_at": "2026-07-27T13:11:33+02:00",
+  "consolidated_by": "wrap-up",
+  "session_end": {
+    "reason": "other",
+    "ended_at": "2026-07-27T12:57:56+02:00",
+    "consolidated": false,
+    "git": {
+      "dirty_files": 5,
+      "porcelain_sample": [
+        " M .agent-memory/context/open-tasks.json",
+        " M .agent-memory/working/dirty-585bbdaa-b850-4f26-8d85-8432c89d4289.json",
+        "?? .agent-memory/working/dirty-814b8dd0-bb8a-4eeb-8151-b5987d05571d.json",
+        "?? .agent-memory/working/session-end-37f1ffc7-3cea-43cd-9c02-a6434b34cf0b.md",
+        "?? .agent-memory/working/session-end-585bbdaa-b850-4f26-8d85-8432c89d4289.md"
+      ],
+      "last_commit": "af647fc fix(wrap-up): Codex-Verifier-Befunde zum Delegations-Umbau behoben"
+    }
+  },
+  "last_consolidated_at": "2026-07-27T13:11:33+02:00",
+  "last_consolidated_by": "wrap-up",
+  "writes_since_consolidation": 0
+}

@@ -336,5 +336,47 @@
       "transcript-analysis-2026-07-27 (7 sessions)",
       "scripts/measure_session_cost.py"
     ]
+  },
+  {
+    "id": "D-011",
+    "date": "2026-07-27",
+    "type": "architecture-decision",
+    "title": "Memory-Store-Writes laufen nur noch ueber benannte Applier (APPLIER_OWNED), Skills bleiben Entry-Points",
+    "status": "active",
+    "context": "L34/D-010: Skill-Aufruf = 41% Prefix-Rewrite; die Bodies von iteration-logger/context-keeper/pattern-extractor waren fast vollstaendig mechanische Regeln. T-015 verlangte den Umbau mit DoD auf dem Skill-Invocation-Budget.",
+    "options_considered": [
+      {
+        "option": "Skills weiter per Delegation aufrufen",
+        "pros": [
+          "keine Codeaenderung",
+          "Regeln an einem Ort (Prompt)"
+        ],
+        "cons": [
+          "41% Rewrite-Risiko je Aufruf",
+          "Prompt-Regeln nicht testbar (L13)"
+        ]
+      },
+      {
+        "option": "Mechanik in Skripte, Ownership hart (APPLIER_OWNED)",
+        "pros": [
+          "1 statt 4 Invokes im typischen Lauf",
+          "Regeln unit-getestet",
+          "Trust-Boundary im Code"
+        ],
+        "cons": [
+          "Skill-Body und Skript koennen driften",
+          "Schema-Luecken brauchen Code-Aenderung (T-013)"
+        ]
+      }
+    ],
+    "decision": "iteration-log.md, errors.json, current-session.json und decisions.json sind nur noch ueber ihre benannten Applier in apply_wrapup.py erreichbar; patterns.* gehoert exklusiv extract_patterns.py; soul.md bleibt verweigert. Die drei Skills bleiben Entry-Points fuer Direktaufrufe. Deklarierte wrap-up-Invokes 5->3, typischer Lauf 4->1 (Delegations-Budget-Test erzwingt das).",
+    "consequences": "Wrap-up-Routinepfad ist billiger und deterministischer; Aenderungen an Store-Mechanik erfordern Skript+Tests statt Prompt-Edit; Messlauf gegen Baseline (54 Calls, $25.10, 6 Rewrites) steht aus (T-020).",
+    "supersedes": null,
+    "tags": [
+      "wrap-up",
+      "cost-analysis",
+      "ownership",
+      "architecture"
+    ]
   }
 ]

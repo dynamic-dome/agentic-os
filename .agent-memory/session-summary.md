@@ -1,31 +1,30 @@
 # Last Session
 
-*Date: 2026-07-27 11:35*
+*Date: 2026-07-27 13:11*
 *Agent: Claude Code*
 
 ## What Was Done
 
-- Konsolidierung der 4.16.0-Arbeit (3 Iterationen retro-geharvestet, err-009/err-010, L30-L33, D-008/D-009, 3 Identity-Promotions)
-- measure_session_cost.py (4.17.0): gemessene Kosten aus dem Transkript statt cost-trace-Schaetzungen, 14 TDD-Tests, Suite gruen
-- Kostenhebel empirisch bestimmt: D-005 supersediert (Modellklasse wirkungslos), D-010 aktiv; Trigger sind Skill 41% / ToolSearch 26% gegen Bash 0,5% / Edit 0%
-- Wiki-Sync + zentraler Handoff + Status-Board aktualisiert; Bridge-Projektion nach AGENTS.md (4 Learnings, user-bestaetigt)
+- Recovery-Konsolidierung der Session 814b8dd0: Delegations-Umbau T-015 (4.18.0) retro-geharvestet - 2 Iterationen, err-011, L35/L36, D-011
+- Umbau-Inhalt: apply_wrapup.py owns iterations+decisions (APPLIER_OWNED), extract_patterns.py neu, Delegations-Budget-Test; Invokes 5->3 deklariert, 4->1 typisch
+- Codex-Review (rejected, 14 Befunde) behoben: Idempotenz-Reihenfolge, Decision-Identitaet, validate_plan-Vorabpruefung, canon()-Pfad-Traversal
 
 ## Open Items
 
-- Delegations-Umbau des wrap-up noch nicht gemacht â€” Baseline gemessen, DoD definiert
-- bridge_projection.py schreibt hart kodiert '(membrain)' als Projektlabel (T-014)
-- Trigger-Analyse liegt nur als Scratchpad-Skript vor, nicht getestet im Repo
+- T-020: Delegations-Umbau gegen Baseline messen (54 Calls, $25.10, 6 Rewrites) - dieser Lauf ist der erste Messkandidat
+- T-013: apply_wrapup.py setzt kein bridge_status=candidate auf neue Learnings importance>=4 (L35/L36 heute betroffen)
+- T-014: bridge_projection.py hart kodiertes '(membrain)'-Label
 
 ## Next Steps
 
-1. Delegations-Umbau in frischer Session: iteration-logger/context-keeper/pattern-extractor ins Skript, dann gegen Baseline messen
-2. ToolSearch-Buendelung als Regel in wrap-up Step 3a.2 + session-bootstrap verankern
-3. T-008 manuelle Eval-Checkliste E1-E5 (DCO #8948)
+1. T-020: diesen wrap-up-Lauf mit measure_session_cost.py auswerten
+2. T-017: ToolSearch-Buendelung in wrap-up 3a.2 + session-bootstrap verankern
+3. T-014: Projektlabel aus config.json ableiten
 
 ## Statistics
 
-- Iterations: 5 | Errors: 2 | New Patterns: 0
+- Iterations: 2 | Errors: 1 | New Patterns: 0
 
 ## Active Warnings
 
-- L34 (importance 5): Skill-Aufruf = 41% Prefix-Rewrite â€” Delegationsketten sind teure Architektur-Entscheidungen, keine neutralen Aufrufe
+- L34: Skill-Aufruf = 41% Prefix-Rewrite - Delegationsketten sind teure Architektur-Entscheidungen

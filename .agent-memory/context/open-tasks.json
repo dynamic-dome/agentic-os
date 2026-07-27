@@ -139,10 +139,10 @@
   {
     "id": "T-015",
     "title": "Experiment Delegations-Umbau: wrap-up-Lauf OHNE Skill-Delegation (iteration-logger/context-keeper/pattern-extractor ins Skript) messen und gegen die Baseline halten â€” Baseline 2026-07-27: 54 API-Calls, $25.10, 6 Prefix-Rewrites, 6,6M Kontext-Tokens. DoD: Rewrite-Zahl halbiert, sonst Hypothese verworfen (TTL-Confound)",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "wrap-up",
     "cross_project": false
   },
@@ -174,6 +174,36 @@
     "updated": "2026-07-27",
     "resolution": null,
     "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-019",
+    "title": "extract_patterns.py: Step-2-Heuristiken auf strukturierte Iterationsdaten erweitern (Datei-Hotspots 3+ Iterationen, wiederholte erfolgreiche Ansaetze, fragile Testbereiche) — iteration-log.md ist Prosa, daher aktuell nur die fehlerbasierte Haelfte abgedeckt (Codex-Befund HIGH-5, Doku entsprechend eingegrenzt)",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "codex-review",
+    "cross_project": false
+  },
+  {
+    "id": "T-020",
+    "title": "Delegations-Umbau gegen Baseline messen: naechsten echten wrap-up-Lauf mit measure_session_cost.py auswerten (Baseline 2026-07-27: 54 Calls, $25.10, 6 Rewrites) — primaer Skill-Invocation-Budget, sekundaer Rewrites",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-021",
+    "title": "positive_invokes() in validate-plugin.sh ist eine Prosa-Regex und bleibt approximativ — pruefen, ob eine maschinenlesbare Invocation-Registry pro Skill die Delegationen belastbarer erzwingt (Codex-Befund MEDIUM)",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "codex-review",
     "cross_project": false
   }
 ]

@@ -218,5 +218,23 @@
     "occurrences": 1,
     "recurrence_dates": [],
     "last_seen": "2026-07-27"
+  },
+  {
+    "id": "err-011",
+    "date": "2026-07-27",
+    "category": "logic",
+    "tags": [],
+    "trigger": "",
+    "problem": "",
+    "root_cause": "",
+    "fix": "",
+    "failed_approaches": [],
+    "prevention": "",
+    "severity": "minor",
+    "attempts": 1,
+    "confidence": 3,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-27"
   }
 ]

@@ -611,5 +611,45 @@
       "D-010"
     ],
     "review_after": "2026-10-25"
+  },
+  {
+    "id": "L35",
+    "date": "2026-07-27",
+    "text": "Idempotenz-/Dedup-Checks muessen VOR allen Seiteneffekten laufen, in Eingabe-Reihenfolge des Verarbeitungspfads: apply_wrapup.py lief der Header-Dedup NACH der Fehlerverarbeitung, wodurch ein wiederholter identischer Plan denselben Fehler jedes Mal als Recurrence zaehlte (occurrences 2->3->4) - der Eintrag wurde zwar dedupliziert, sein Seiteneffekt aber nicht. Pruefmuster fuer jeden Batch-Writer: denselben Plan zweimal anwenden und ALLE Zaehler/Stores byte-identisch erwarten, nicht nur die Hauptdatei.",
+    "importance": 4,
+    "tags": [
+      "idempotency",
+      "batch-writer",
+      "python",
+      "testing"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-27",
+    "derived_from": [
+      "err-011"
+    ],
+    "review_after": "2026-10-25",
+    "bridge_status": "candidate"
+  },
+  {
+    "id": "L36",
+    "date": "2026-07-27",
+    "text": "Ownership-/Whitelist-Checks auf Dateipfaden sind wirkungslos ohne vorherige Pfad-Kanonisierung: 'iterations/../iterations/errors.json' passierte den APPLIER_OWNED-Check von apply_wrapup.py, weil der Vergleich auf dem rohen String lief. Regel: erst os.path.normpath/realpath relativ zur erlaubten Wurzel aufloesen, DANN gegen die Whitelist vergleichen - und der Bypass-Fall gehoert als Regressionstest in die Suite. Verwandt mit L30 (Grenze auf jedem Pfad erzwingen): auch hier existierte die Grenze, aber ein zweiter Darstellungs-Pfad desselben Ziels umging sie.",
+    "importance": 4,
+    "tags": [
+      "security",
+      "path-traversal",
+      "batch-writer",
+      "python"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-27",
+    "derived_from": [
+      "err-011"
+    ],
+    "review_after": "2026-10-25",
+    "bridge_status": "candidate"
   }
 ]
