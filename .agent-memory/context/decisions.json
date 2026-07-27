@@ -382,5 +382,45 @@
     ],
     "wiki_ref": "wiki/entities/agentic-os-plugin.md",
     "promoted_at": "2026-07-27"
+  },
+  {
+    "id": "D-012",
+    "date": "2026-07-27",
+    "type": "architecture-decision",
+    "title": "Kostenoptimierung des wrap-up-Pfads beendet (Circuit-Breaker); Pattern-Starvation-Guard kompensiert den Informationsverlust",
+    "status": "active",
+    "context": "Nach dem Delegations-Umbau (D-011) stellte sich die Frage, ob weitere Kosten-Mikro-Optimierung lohnt und ob der Umbau Informationen wegnimmt. Messung: Ersparnis ~$1.50-3/Lauf, Amortisation 10-15 Laeufe; 94% der Kosten sind Kontext-Transport, der mit Session-Laenge waechst, nicht mit wrap-up-Mechanik. Realer Informationsverlust: extract_patterns.py sieht nur die fehlerbasierte Haelfte des Signals (T-019).",
+    "options_considered": [
+      {
+        "option": "Weiter optimieren (T-018 Trigger-Analyse, T-021 Invocation-Registry)",
+        "pros": [
+          "potenziell weitere Messdaten"
+        ],
+        "cons": [
+          "abnehmende Ertraege",
+          "Optimierung frisst eigene Ersparnis"
+        ]
+      },
+      {
+        "option": "Circuit-Breaker: beenden + Starvation-Guard als Sicherung",
+        "pros": [
+          "Aufwand fliesst in echte Arbeit",
+          "Informationsverlust adressiert statt ignoriert"
+        ],
+        "cons": [
+          "T-018/T-021 bleiben unerledigt"
+        ]
+      }
+    ],
+    "decision": "Kosten-Mikro-Optimierung am wrap-up-Pfad ist beendet; T-018/T-021 werden geschlossen und nur bei neuem Messbefund wiedereroeffnet. Der Umbau bleibt wegen Determinismus (getestete Invarianten), nicht wegen der Kosten. wrap-up Step 4 traegt den pattern-starvation-guard: ~5 Sessions mit Iterationen aber 0 neuen Patterns/Proposals -> einmal voller pattern-extractor-Lauf (der billige Routinepfad rationiert den semantischen Tiefenblick, ersetzt ihn nie dauerhaft).",
+    "consequences": "Naechster Kostenhebel waere Session-Laenge/Briefing-Groesse, nicht wrap-up-Mechanik. Pattern-Pipeline wird ueber den Guard beobachtet statt ueber einen eigenen Task.",
+    "supersedes": null,
+    "tags": [
+      "cost-analysis",
+      "governance",
+      "pattern-pipeline"
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-07-27"
   }
 ]

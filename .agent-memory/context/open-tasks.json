@@ -169,10 +169,10 @@
   {
     "id": "T-018",
     "title": "Trigger-Analyse (Rewrite-Wahrscheinlichkeit je Tool ueber mehrere Transkripte) als getestete Option in scripts/measure_session_cost.py aufnehmen â€” liegt derzeit nur als Scratchpad-Skript vor",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "wrap-up",
     "cross_project": false
   },
@@ -189,20 +189,20 @@
   {
     "id": "T-020",
     "title": "Delegations-Umbau gegen Baseline messen: naechsten echten wrap-up-Lauf mit measure_session_cost.py auswerten (Baseline 2026-07-27: 54 Calls, $25.10, 6 Rewrites) — primaer Skill-Invocation-Budget, sekundaer Rewrites",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "wrap-up",
     "cross_project": false
   },
   {
     "id": "T-021",
     "title": "positive_invokes() in validate-plugin.sh ist eine Prosa-Regex und bleibt approximativ — pruefen, ob eine maschinenlesbare Invocation-Registry pro Skill die Delegationen belastbarer erzwingt (Codex-Befund MEDIUM)",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "codex-review",
     "cross_project": false
   }

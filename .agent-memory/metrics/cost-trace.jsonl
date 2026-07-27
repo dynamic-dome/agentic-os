@@ -3,3 +3,4 @@
 {"ts": "2026-07-27T09:36:33Z", "task": "wrap-up", "estimate": false, "api_calls": 70, "context_tokens_sum": 9764046, "output_tokens": 88366, "cost_usd": 32.3295, "rewrite_events": 6, "rewrite_cost_usd": 9.4825}
 {"ts":"2026-07-27T11:07:13Z","task_type":"session-bootstrap","model_class":"cheap-write","context_bytes":26000,"est_input_tokens":6500,"escalated":0,"estimate":true}
 {"ts":"2026-07-27T11:12:28Z","task_type":"wrap-up","model_class":"cheap-write","context_bytes":42000,"est_input_tokens":10500,"escalated":0,"estimate":true}
+{"ts": "2026-07-27T11:28:45Z", "task": "session", "estimate": false, "api_calls": 48, "context_tokens_sum": 6033099, "output_tokens": 53898, "cost_usd": 20.659, "rewrite_events": 4, "rewrite_cost_usd": 6.4372}

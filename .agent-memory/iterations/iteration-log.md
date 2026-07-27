@@ -224,3 +224,20 @@
 - **Confidence:** 5/5
 - **Tests:** passed (Suite gruen nach Fix)
 - **Errors:** err-011
+
+## 2026-07-27 — bugfix: T-014 Projektlabel-Fix + T-017 ToolSearch-Buendelung verankert (4.18.1)
+- **Type:** bugfix
+- **Tags:** bridge, cost-analysis, python, skill-doc
+- **Files changed:** scripts/bridge_projection.py, tests/test-bridge-projection.py, skills/session-bootstrap/SKILL.md, .claude-plugin/plugin.json
+- **Summary:** bridge_projection.py schrieb '(membrain)' hart kodiert in jedes AGENTS.md - Label kommt jetzt aus config.json project_id mit Fallback Projektordner-Name, fail-soft, 2 Regressionstests (inkl. Fallback-Fall). session-bootstrap schreibt den Atlas-Tool-Load auf EXAKT EINEN ToolSearch-Call pro Lauf fest (26% Rewrite je Call, L34); wrap-up 3a.2 hatte die Regel schon. Live verifiziert: AGENTS.md traegt '(agentic-os-plugin)'. Commit c083663.
+- **Confidence:** 5/5
+- **Tests:** passed (bridge-Tests + volle Suite gruen)
+- **Commits:** c083663
+
+## 2026-07-27 — config: Kosten-Circuit-Breaker + Pattern-Starvation-Guard verankert (4.18.2)
+- **Type:** config
+- **Tags:** governance, cost-analysis, pattern-pipeline, skill-doc
+- **Files changed:** skills/wrap-up/SKILL.md, .claude-plugin/plugin.json
+- **Summary:** Bewertung des Delegations-Umbaus als Entscheidung festgehalten (D-012): Hauptgewinn ist Determinismus, Kostenersparnis ~$1.50-3/Lauf, Amortisation nach 10-15 Laeufen - weitere Mikro-Optimierung (T-018/T-021) beendet. Als Gegenmassnahme zum realen Informationsverlust (extract_patterns.py sieht nur die fehlerbasierte Haelfte, T-019) traegt wrap-up Step 4 jetzt den pattern-starvation-guard: ~5 Sessions mit Iterationen aber 0 neuen Patterns/Proposals -> einmal voller pattern-extractor-Lauf als bewusster Tiefenblick. T-020-Finalmessung: 48 Calls, $20.66, 4 Rewrites gegen Baseline 54/$25.10/6 bei deutlich groesserem Sessionumfang; Skill-Invokes im wrap-up-Lauf 1 statt 4 - DoD erfuellt.
+- **Confidence:** 4/5
+- **Tests:** passed (validate-plugin 159/159, validate-skills 154/154)

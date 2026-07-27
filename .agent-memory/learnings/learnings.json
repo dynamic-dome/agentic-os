@@ -651,5 +651,23 @@
     ],
     "review_after": "2026-10-25",
     "bridge_status": "approved"
+  },
+  {
+    "id": "L37",
+    "date": "2026-07-27",
+    "text": "Kosten-Optimierungen an Agenten-Workflows brauchen eine Amortisationsrechnung VOR dem Umbau: der wrap-up-Delegations-Umbau kostete mehrere Sessions a $15-25 und spart ~$1.50-3 pro Lauf - Amortisation erst nach 10-15 Laeufen. Regel: erwartete Ersparnis pro Lauf x realistische Lauffrequenz gegen die Umbaukosten stellen; liegt die Amortisation jenseits von ~15 Laeufen, ist der Umbau nur gerechtfertigt, wenn er ZUSAETZLICH Korrektheit/Determinismus bringt (hier: getestete Invarianten statt Prompt-Interpretation - der eigentliche Gewinn). Mikro-Optimierung unterhalb dieser Schwelle beenden (Circuit-Breaker), sonst frisst die Optimierung ihre eigene Ersparnis.",
+    "importance": 3,
+    "tags": [
+      "cost-analysis",
+      "governance",
+      "workflow"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-27",
+    "derived_from": [
+      "D-012"
+    ],
+    "review_after": "2026-10-25"
   }
 ]
