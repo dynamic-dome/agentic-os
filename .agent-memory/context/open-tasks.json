@@ -155,5 +155,25 @@
     "resolution": null,
     "source": "wrap-up",
     "cross_project": false
+  },
+  {
+    "id": "T-017",
+    "title": "ToolSearch-Buendelung als Kostenregel verankern (26% Rewrite-Wahrscheinlichkeit je Call): in wrap-up Step 3a.2 und session-bootstrap den Atlas-Tool-Load explizit auf EINEN Call pro Lauf festschreiben",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-018",
+    "title": "Trigger-Analyse (Rewrite-Wahrscheinlichkeit je Tool ueber mehrere Transkripte) als getestete Option in scripts/measure_session_cost.py aufnehmen â€” liegt derzeit nur als Scratchpad-Skript vor",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
   }
 ]

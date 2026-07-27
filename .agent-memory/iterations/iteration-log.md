@@ -191,3 +191,19 @@
 - **Confidence:** 5/5
 - **Tests:** passed (Suite gruen)
 - **Errors:** err-010
+
+## 2026-07-27 — feature: Gemessene Session-Kosten statt Schaetzungen (measure_session_cost.py, 4.17.0)
+- **Type:** feature
+- **Tags:** cost-analysis, measurement, prompt-cache, tdd, python, metrics
+- **Files changed:** scripts/measure_session_cost.py, tests/test-measure-session-cost.py, tests/run-all.sh, scripts/cost-trace.sh, .claude-plugin/plugin.json
+- **Summary:** cost-trace.sh schrieb Schaetzungen (context_bytes/4); ein realer Lauf tracete 96k Bytes bei tatsaechlich 6,6M transportierten Kontext-Tokens — keine Ungenauigkeit, sondern eine andere Einheit. Neues Skript liest das Transkript, dedupliziert auf message.id (err-010-Regression) und meldet cache_creation-Events einzeln statt sie wegzumitteln. TDD: 14 Tests rot -> gruen, Randfall-Matrix nach P011 (fehlende/leere/kaputte Eingabe, --help-stdout-Reinheit, Trailing-Flag, Non-ASCII, fail-soft Trace-Write). Gegenprobe am echten Transkript reproduziert die Handmessung exakt. Commit 56513c2.
+- **Confidence:** 5/5
+- **Tests:** passed (14/14 neu, volle Suite gruen)
+
+## 2026-07-27 — refactor: Kostenhebel neu bestimmt — D-005 supersediert, Trigger empirisch identifiziert
+- **Type:** refactor
+- **Tags:** cost-analysis, model-routing, decision, measurement, prompt-cache
+- **Files changed:** .agent-memory/context/decisions.json, .agent-memory/context/open-tasks.json, .agent-memory/learnings/learnings.json
+- **Summary:** D-005 (deklaratives Modell-Routing) auf superseded, D-010 angelegt: die Modellklasse ist kein Kostenhebel (opus $15.50/28 Calls vs sonnet $15.16/66 Calls). Erste Hypothese (Skill-Delegationsketten) war nach einer Auswertung PRO SESSION scheinbar widerlegt — eine Session mit 0 Skills hatte 5 Rewrites. Erst die Normalisierung auf GELEGENHEITEN ueber 7 Transkripte/~1300 Calls zeigte den Effekt: Skill 41% (9/22), ToolSearch 26% (5/19) gegen Bash 0,5% (3/618) und Edit 0% (0/233). TTL-Confound widerlegt (5 von 6 Rewrites nach Pausen <60s). L34 haelt Befund UND Methodenfehler fest. Commit c5d4d84.
+- **Confidence:** 4/5
+- **Tests:** n/a (Analyse, kein Produktionscode)

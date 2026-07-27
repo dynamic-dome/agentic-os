@@ -179,5 +179,20 @@
     "first_seen": "2026-07-27",
     "last_seen": "2026-07-27",
     "trust_source": "conversation"
+  },
+  {
+    "id": "UC12",
+    "key": "delegate-execution-after-agreed-direction",
+    "observation": "Sobald die Richtung geklaert ist, delegiert der User die Ausfuehrung explizit ('mache es so, wie Du fuer richtig haeltst') statt jeden Teilschritt freizugeben â€” will aber den Befund und die Gegenargumente sehen, bevor die Richtung feststeht",
+    "status": "inferred",
+    "signal_type": "work-style",
+    "confidence": 0.6,
+    "occurrences": 1,
+    "evidence": [
+      "session 2026-07-27: nach der Kosten-Analyse 'Mache es so, wie Du fuer richtig haeltst. Ich denke, jetzt sind wir auf dem richtigen Weg.'"
+    ],
+    "first_seen": "2026-07-27",
+    "last_seen": "2026-07-27",
+    "trust_source": "conversation"
   }
 ]

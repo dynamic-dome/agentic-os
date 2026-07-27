@@ -590,5 +590,26 @@
     ],
     "review_after": "2026-10-25",
     "bridge_status": "approved"
+  },
+  {
+    "id": "L34",
+    "date": "2026-07-27",
+    "text": "Prefix-Cache-Invalidierung ist der teuerste Einzelposten einer Agenten-Session, und sie wird von genau zwei Operationsklassen ausgeloest: solchen, die den ANFANG des Kontexts aendern. Gemessen ueber 7 Transkripte und ~1300 API-Calls, normalisiert auf Gelegenheiten: nach einem Skill-Aufruf folgt in 41% der Faelle ein voller Prefix-Rewrite (9/22), nach ToolSearch in 26% (5/19), nach Workflow 25% (1/4) â€” gegen Bash 0,5% (3/618) und Edit 0% (0/233). Grund: Skill laedt einen Body und ToolSearch aendert die Tool-Liste im System-Prompt, waehrend normale Tool-Calls hinten anhaengen und den Cache behalten. Ein Rewrite bei 100k+ Kontext kostet $1.20-$2.30 (cache_creation = 12,5x cache_read). Konsequenz: Skill-Delegationsketten und einzeln abgesetzte ToolSearch-Calls sind teure Architektur-Entscheidungen, keine neutralen Aufrufe â€” buendeln oder durch Skripte ersetzen. WICHTIG zur Methode: eine erste Auswertung PRO SESSION zeigte keinen Zusammenhang (eine Session mit 0 Skills hatte 5 Rewrites) â€” der Effekt wurde erst sichtbar, als auf Gelegenheiten normalisiert wurde statt auf Sessions.",
+    "importance": 5,
+    "tags": [
+      "cost-analysis",
+      "prompt-cache",
+      "agent-design",
+      "skills",
+      "toolsearch",
+      "measurement"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-27",
+    "derived_from": [
+      "D-010"
+    ],
+    "review_after": "2026-10-25"
   }
 ]

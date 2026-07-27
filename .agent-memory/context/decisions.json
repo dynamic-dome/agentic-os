@@ -324,13 +324,17 @@
       }
     ],
     "decision": "D-005 wird supersediert: die Modellklasse ist kein Kostenhebel und wird nicht weiter verfolgt (T-010 geschlossen). Verfolgt wird stattdessen die Reduktion der Skill-Delegationsketten im wrap-up nach dem Muster von D-008 (Batch-Writer). Die Eskalations-Disziplin aus D-005 (escalations-<sid>.json + ESKALATION:-Marker) bleibt bestehen — sie war nie eine Kostenmassnahme, sondern eine Sicherheitsmassnahme.",
-    "consequences": "Kein Fork-Umbau. Vor dem Delegations-Umbau ist ein Messvergleich Pflicht (Baseline: 54 Calls, $25.10, 6 Rewrites, 6,6M Kontext-Tokens). Bestaetigt sich die Halbierung der Rewrite-Zahl nicht, ist die Hypothese widerlegt und der TTL-Confound die Erklaerung — dann wird NICHT umgebaut.",
+    "consequences": "Kein Fork-Umbau. Vor dem Delegations-Umbau ist ein Messvergleich Pflicht (Baseline: 54 Calls, $25.10, 6 Rewrites, 6,6M Kontext-Tokens). Bestaetigt sich die Halbierung der Rewrite-Zahl nicht, ist die Hypothese widerlegt und der TTL-Confound die Erklaerung — dann wird NICHT umgebaut. NACHTRAG 2026-07-27 (7 Transkripte, ~1300 Calls, normalisiert auf Gelegenheiten): Skill-Aufruf -> Prefix-Rewrite in 41% der Faelle (9/22), ToolSearch 26% (5/19), Workflow 25% (1/4), gegen Bash 0,5% (3/618) und Edit 0% (0/233). Der TTL-Confound ist widerlegt (5 von 6 Rewrites folgten Pausen <60s, nicht >300s). Damit ist die Richtung belegt und um einen zweiten Hebel erweitert: ToolSearch-Aufrufe buendeln, nicht einzeln absetzen.",
     "supersedes": "D-005",
     "tags": [
       "cost",
       "model-routing",
       "architecture",
       "measurement"
+    ],
+    "evidence_refs": [
+      "transcript-analysis-2026-07-27 (7 sessions)",
+      "scripts/measure_session_cost.py"
     ]
   }
 ]
