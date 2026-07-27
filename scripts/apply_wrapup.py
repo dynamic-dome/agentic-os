@@ -467,14 +467,22 @@ def apply_learnings(mem, plan, date, dry, touched, tally):
                 _dt.date.fromisoformat(date) + _dt.timedelta(days=REVIEW_AFTER_DAYS)
             ).isoformat(),
         }
+        # Step 3d.1: derived from importance alone. Plan-supplied bridge_status
+        # is deliberately dropped - "approved" exists only via the [j/n] gate.
+        if entry["importance"] >= 4:
+            entry["bridge_status"] = "candidate"
         added.append(entry)
-    if not added:
-        return
-    rows.extend(added)
-    write_json(mem, "learnings/learnings.json", rows, dry, touched)
-    tally["learnings_added"] = len(added)
-    tally["learning_ids"] = [e["id"] for e in added]
-    render_learnings_md(mem, rows, dry, touched)
+    if added:
+        rows.extend(added)
+        write_json(mem, "learnings/learnings.json", rows, dry, touched)
+        tally["learnings_added"] = len(added)
+        tally["learning_ids"] = [e["id"] for e in added]
+        render_learnings_md(mem, rows, dry, touched)
+    # Store-wide, not session-scoped: earlier declined candidates must keep
+    # triggering the Step 3d.2 prompt line. Pre-3d entries lack the field
+    # (never backfilled) and are invisible here by design.
+    tally["bridge_candidates"] = [
+        r["id"] for r in rows if r.get("bridge_status") == "candidate"]
 
 
 def render_learnings_md(mem, rows, dry, touched):
@@ -822,6 +830,7 @@ def main() -> int:
         "decisions_added": 0, "decisions_superseded": 0,
         "decisions_skipped_duplicate": 0, "decision_ids": [],
         "learnings_added": 0, "learnings_skipped_duplicate": 0, "learning_ids": [],
+        "bridge_candidates": [],
         "candidates_new": 0, "candidates_updated": 0, "candidates_promoted": 0,
         "candidates_rejected_trust": 0, "promotion_blocked_trust": 0,
         "promoted_ids": [], "queue_open": 0,

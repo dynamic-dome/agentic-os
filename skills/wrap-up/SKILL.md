@@ -222,11 +222,13 @@ Curated Claude→Codex bridge (design: membrain/membridge.md). Canonical store i
 learnings.json (`bridge_status`); the AGENTS.md block is a projection.
 
 1. Every learning written this session with `importance >= 4` gets
-   `"bridge_status": "candidate"` (additive field; older entries without it are
-   untouched, never backfill).
+   `"bridge_status": "candidate"` — **done by `apply_wrapup.py` automatically**
+   (additive field; older entries without it are untouched, never backfill; a
+   plan-supplied `bridge_status` is dropped — `approved` exists only via gate 3).
 2. If ANY candidates exist store-wide (this session's or earlier declined ones),
    emit ONE line: `BRIDGE CANDIDATES: {n} — nach AGENTS.md projizieren? [j/n]`
-   listing id + first ~10 words each.
+   listing id + first ~10 words each. Source: `tally.bridge_candidates` from the
+   apply run — do not re-read learnings.json for this.
 3. **Only on an explicit `j`** (all) or a listed subset (`j L26 L27`): set those
    entries to `"bridge_status": "approved"`, then run the projection:
    `python scripts/bridge_projection.py .agent-memory --agents-md <project-root>/AGENTS.md`

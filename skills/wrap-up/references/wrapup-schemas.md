@@ -61,7 +61,10 @@ overlapping tags), the decision supersede flip, `review_after` = date + 90d,
 exact-text dedup,
 the `signal_type: mood` block, the promotion rule (`confirmed` OR `inferred`
 AND `occurrences >= 2` AND `confidence >= 0.6`), changelog-before-edit
-ordering, `learnings.md` regeneration, the consolidation marker and the dirty
+ordering, `learnings.md` regeneration, the bridge-candidate derivation
+(`importance >= 4` → `bridge_status: "candidate"`, Step 3d.1 — a plan-supplied
+`bridge_status` is dropped; `approved` exists only via the Step 3d.3 gate),
+the consolidation marker and the dirty
 flags. Supply judgment only: what is a learning, what is an identity signal,
 how important, which section.
 
@@ -87,7 +90,10 @@ Guarantees worth relying on:
 
 The returned `identity_status_line` is computed from the writes that actually
 happened — use it verbatim for the mandatory Step 6.5 line instead of counting
-by hand.
+by hand. Likewise `tally.bridge_candidates` lists ALL store-wide
+`bridge_status: "candidate"` ids (this session's and earlier declined ones) —
+build the Step 3d.2 `BRIDGE CANDIDATES:` prompt from it instead of re-reading
+`learnings.json`.
 
 ## Learning entry (Step 3b)
 

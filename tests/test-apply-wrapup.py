@@ -161,6 +161,34 @@ md = read(mem, "learnings/learnings.md")
 check("L2" in md and "L1" in md, "learnings.md is a full projection of learnings.json")
 check(md.index("## Importance 5") < md.index("## Importance 4"),
       "learnings.md sorted by importance descending")
+check(new["bridge_status"] == "candidate",
+      "importance >= 4 derives bridge_status=candidate (Step 3d.1)")
+
+# --- 1b. bridge_status: derivation + trust boundary --------------------------
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "learnings": [
+    {"text": "Unwichtiges Detail", "importance": 3},
+    {"text": "Schmuggelversuch", "importance": 2, "bridge_status": "approved"},
+]})
+rows = load(mem, "learnings/learnings.json")
+low = [r for r in rows if r["text"] == "Unwichtiges Detail"][0]
+check("bridge_status" not in low,
+      "importance < 4 gets NO bridge_status field (additive, never backfill)")
+smuggled = [r for r in rows if r["text"] == "Schmuggelversuch"][0]
+check("bridge_status" not in smuggled,
+      "plan-supplied bridge_status is ignored (gate bypass defense)")
+check(out["tally"]["bridge_candidates"] == [],
+      "tally lists no bridge candidates when none exist store-wide")
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "learnings": [
+    {"text": "Wichtige Erkenntnis", "importance": 4},
+]})
+check(out["tally"]["bridge_candidates"] == ["L2"],
+      "tally lists store-wide candidates for Step 3d.2")
+rows = load(mem, "learnings/learnings.json")
+old = [r for r in rows if r["id"] == "L1"][0]
+check("bridge_status" not in old,
+      "pre-existing imp-4 entry without the field is never backfilled")
 
 # --- 2. trust boundary + mood block -----------------------------------------
 mem = make_mem()
