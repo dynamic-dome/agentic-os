@@ -273,9 +273,15 @@ PLAN
 `evidence`, `occurrences`, `confidence` and the dates come from the measurement
 and are ignored if the plan sets them — you supply language, never numbers.
 
-Invoke the `pattern-extractor` skill ONLY when the report lists `skill_candidates`
-or `rueckfluss_candidates` you actually intend to act on: skill generation (its
-Step 6.5) and delta drafts (Step 6.6) are genuine judgment work and stay there.
+Invoke the `pattern-extractor` skill ONLY when (a) the report lists
+`skill_candidates` or `rueckfluss_candidates` you actually intend to act on —
+skill generation (its Step 6.5) and delta drafts (Step 6.6) are genuine judgment
+work and stay there — or (b) the **starvation guard (pattern-starvation-guard)**
+fires: the script only sees the error-based half of the signal (iteration-log is
+prose, T-019/D-012), so if roughly 5 consecutive sessions produced iterations but
+ZERO new patterns and ZERO proposals, run the full `pattern-extractor` skill once
+as a deliberate deep pass over the prose history — the cheap routine path must
+never permanently replace the semantic read, only ration it.
 Fewer than 3 new iterations: skip the whole step.
 
 ## Step 4.5: Decision Scan (decision-scan)
