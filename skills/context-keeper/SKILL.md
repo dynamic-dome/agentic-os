@@ -126,7 +126,28 @@ Maintain this structure:
 
 ## Step 3: Record Decision (if applicable)
 
-For `architecture-decision` and `stack-change` types, append to `decisions.json`:
+**NOT at session end.** Since T-015 `wrap-up` Step 4.5 puts decisions of record into
+its own write plan instead of invoking this skill — a skill-body injection triggered
+a full prefix-cache rewrite in 41% of measured cases (L34/D-010). This skill remains
+the entry point for recording a decision *during* a session, and it is the sole owner
+of `project-context.md` either way.
+
+**Write path (write-path):** `scripts/apply_wrapup.py` is the single writer of
+`decisions.json`. It continues the id format already on disk (`D-00n`, not the
+`D{n}` this template used to claim), enforces append-only, and performs the
+supersede flip:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/apply_wrapup.py" .agent-memory --session-id <sid> <<'PLAN'
+{"date": "YYYY-MM-DD", "decisions": [ { ...one object per decision... } ]}
+PLAN
+```
+
+Supply the content below; omit `id`, `date` and `status` — the script sets them.
+A `supersedes` pointing at an unknown id rejects the whole plan rather than
+silently creating an orphan.
+
+For `architecture-decision` and `stack-change` types, the record shape is:
 
 ```json
 {
@@ -147,9 +168,9 @@ For `architecture-decision` and `stack-change` types, append to `decisions.json`
 }
 ```
 
-Read `decisions.json` first to determine the next `id` number.
-
-If this decision supersedes a previous one, set `supersedes: "D{old_id}"` and update the old entry's `status` to `"superseded"`.
+If this decision supersedes a previous one, set `supersedes: "<old id>"` — the
+script flips the old entry's `status` to `"superseded"` (never deletes it) and
+counts the supersession in its tally.
 
 ## Step 3.5: Wiki-ADR Writeback (if Wiki configured)
 
@@ -220,6 +241,10 @@ Context updated: {type} — {title}
 ## What NOT to Do
 
 - Do NOT delete entries from decisions.json (set status to "superseded" instead)
+- Do NOT create decisions.json records with Write/Edit — new records go through
+  `apply_wrapup.py` (Step 3 write-path). The Step 3.5 marker (`wiki_ref` +
+  `promoted_at` on an EXISTING record) stays a direct field extension: it happens
+  after a successful wiki write, outside any write plan
 - Do NOT make project-context.md longer than ~60 lines
 - Do NOT record trivial decisions (choosing a variable name is not an ADR)
 - Do NOT modify files outside of context/ directory — sole exception: the Step 3.5

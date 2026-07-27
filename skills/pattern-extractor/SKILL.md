@@ -20,22 +20,44 @@ Analyze `.agent-memory/iterations/` to extract recurring patterns into `.agent-m
 ## When to Use
 
 - Every 5 iterations (suggested by iteration-logger)
-- At session end (called by wrap-up)
 - When user explicitly requests pattern analysis
 - When an error occurs for the 3rd+ time
+- When `extract_patterns.py` reports `skill_candidates` or `rueckfluss_candidates`
+  worth acting on (Steps 6.5/6.6 below — the only genuinely judgment-bound parts)
 
-## Step 1: Load Data
+**NOT for the routine session-end run.** Since T-015 `wrap-up` Step 4 calls
+`scripts/extract_patterns.py` directly: a skill-body injection triggered a full
+prefix-cache rewrite in 41% of measured cases (L34/D-010), and Steps 1–6 of this
+skill are exact thresholds, i.e. code.
 
-Read these files:
+## Step 1: Run the Extractor (extractor-script)
 
-1. `.agent-memory/iterations/errors.json` — structured error records
-2. `.agent-memory/iterations/iteration-log.md` — iteration history
-3. `.agent-memory/patterns/patterns.json` — existing patterns (to avoid duplicates)
+`scripts/extract_patterns.py` owns the whole deterministic pipeline — loading
+errors/iterations/patterns, the Step-2 heuristics, the Step-3 confidence formula,
+the Step-4 Jaccard dedup, the legacy normalization, the Step-5 entry shape and the
+Step-6 `patterns.md` projection. It is the **sole writer** of `patterns.json` and
+`patterns.md`:
 
-**Minimum data guard:**
-- If triggered as "refresh patterns" / "pattern refresh" / "regenerate patterns": skip this guard entirely — just regenerate `patterns.md` from `patterns.json` (jump to Step 6) and stop.
-- If `patterns.json` already has entries: always allow running (existing patterns can be updated even without new errors).
-- If `errors.json` has fewer than 3 entries AND `patterns.json` is empty: output "Not enough data for pattern extraction (need 3+ error records or existing patterns)" and stop.
+```bash
+# apply everything determined; report clusters that still need wording
+python "${CLAUDE_PLUGIN_ROOT}/scripts/extract_patterns.py" .agent-memory --update
+
+# name the ones worth keeping (evidence/occurrences/confidence are NOT settable)
+python "${CLAUDE_PLUGIN_ROOT}/scripts/extract_patterns.py" .agent-memory --apply <<'PLAN'
+{"patterns": [{"cluster_key": "...", "description": "...", "recommendation": "..."}]}
+PLAN
+```
+
+Sections 2–6 below document the rules the script implements — read them to judge
+a proposal, not to re-implement them by hand. `--dry-run` previews any run.
+
+**Minimum data guard** (enforced by the script): fewer than 3 error records AND an
+empty `patterns.json` → it reports `skipped: not-enough-data` and writes nothing.
+
+A "refresh patterns" / "regenerate patterns" request is `--refresh`, which rewrites
+`patterns.md` from `patterns.json` unconditionally. `--update` alone writes nothing
+when nothing changed — quiet is right for the routine path, but it would silently
+no-op an explicit refresh.
 
 ## Step 2: Detection Heuristics
 
@@ -154,12 +176,12 @@ must tolerate both shapes (same contract as `derived_from`/`review_after` on lea
 (see `sync-context` recency-supersession), it becomes `"superseded"` and gains
 `superseded_by: <new id>` + `superseded_at: <ISO>`. Superseded entries are never deleted.
 
-Set `skill_candidate: true` when:
-- `occurrences >= 3` AND `confidence >= 0.7`
-- The recommendation describes a multi-step procedure
-- The pattern is generalizable beyond one specific file
+`skill_candidate` is set by the script from the measurable half of the rule
+(`occurrences >= 3` AND `confidence >= 0.7`). The two judgment halves — the
+recommendation describes a multi-step procedure, and the pattern generalizes
+beyond one file — are yours to apply in Step 6.5 before generating anything.
 
-Append to `patterns.json` array.
+The script appends to the `patterns.json` array; never edit it by hand.
 
 ### Canonical schema + legacy normalization (pattern-schema-canon)
 
@@ -337,6 +359,8 @@ Pattern Extraction Complete:
 ## What NOT to Do
 
 - Do NOT invent patterns from insufficient data (< 2 occurrences)
+- Do NOT write patterns.json / patterns.md with Write/Edit — `extract_patterns.py`
+  is the sole writer (Step 1); hand-edits fork the id sequence and the confidence values
 - Do NOT modify errors.json or iteration-log.md (read-only for this skill)
 - Do NOT push to global memory (that's wrap-up's job)
 - Do NOT guess confidence — calculate it from the formula above

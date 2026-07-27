@@ -34,7 +34,8 @@ WORK PHASE (user-driven, no auto-triggers on code changes)
   │
   ├── iteration-logger (after fixes/features)
   │     ├── reads: errors.json, iteration-log.md, working/current-session.json
-  │     ├── writes: iteration-log.md, errors.json, working/current-session.json
+  │     ├── writes (via scripts/apply_wrapup.py, `iterations` plan section — never by hand):
+  │     │     iteration-log.md, errors.json, working/current-session.json
   │     │     (append-only; rotation is memory-maintenance's job, thresholds in memory-thresholds.sh)
   │     └── suggests (no invoke): pattern-extractor every 5th iteration
   │
@@ -45,8 +46,8 @@ WORK PHASE (user-driven, no auto-triggers on code changes)
   │     └── writes (optional, Step 3.5 if sync_enabled): ~/wiki/wiki/entities/<id>.md
   │
   ├── pattern-extractor (every ~5 iterations, on request, "refresh" mode)
-  │     ├── reads: errors.json, iteration-log.md, patterns.json
-  │     ├── writes: patterns.json, patterns.md
+  │     ├── runs: scripts/extract_patterns.py (--update / --apply) — sole writer of
+  │     │     patterns.json + patterns.md; detection, confidence and dedup live there
   │     └── Step 6.5 SKILL CANDIDATE GENERATION (former skill-generator, folded in v4.0.0):
   │           pattern with skill_candidate=true, conf≥0.7, occ≥3 →
   │           writes generated-skills/<name>/SKILL.md + back-ref in patterns.json
@@ -79,10 +80,13 @@ SESSION END (SessionEnd hook → wrap-up)
   │  ├── writes: session-summary.md, learnings.json + learnings.md,
   │  │     context/open-tasks.json (Step 5.5, SSoT for next steps),
   │  │     working/current-session.json (reset)
-  │  ├── Step 1.5 → invokes iteration-logger (session-harvest: retro-logs the
-  │  │     session's iterations when none were logged today)
-  │  ├── Step 4   → invokes pattern-extractor (if 3+ new iterations)
-  │  ├── Step 4.5 → invokes context-keeper (decision-scan: decisions of record)
+  │  ├── Step 1.5 → session-harvest: retro-logs the session's iterations into
+  │  │     the write plan (`iterations`) when none were logged today — since
+  │  │     T-015 NO iteration-logger invoke (apply_wrapup.py owns the writes)
+  │  ├── Step 4   → runs scripts/extract_patterns.py (if 3+ new iterations);
+  │  │     invokes pattern-extractor ONLY for skill/rueckfluss candidates
+  │  ├── Step 4.5 → decision-scan: decisions of record into the write plan
+  │  │     (`decisions`) — since T-015 NO context-keeper invoke
   │  ├── Step 6   → IDENTITY GROWTH — the ONLY producer of identity observations:
   │  │     checklist harvest → working/user-candidates.json (queue) →
   │  │     FULL queue re-review (queue-re-review) → identity/user.md promotion
@@ -103,10 +107,10 @@ SESSION END (SessionEnd hook → wrap-up)
 | Skill | Reads From | Writes To | Invokes |
 |-------|-----------|-----------|---------|
 | session-bootstrap | local: session-summary.md, soul.md, user.md, soul-candidates.md, user-candidates.json, project-context.md, patterns.md, quality-score.json (legacy), errors.json (tail), working/current-session.json, context/open-tasks.json (SSoT for next steps), config.json · learnings via Atlas-RAG or `scripts/learnings_top.py` · health via `scripts/memory-thresholds.sh` · cross-project: ~/AI/.agent-memory/session-summary.md, cross-project-status.md, SESSION-WORKFLOW.md · wiki (optional): entity + entrypoints | (read-only) EXCEPT the user-confirmed identity gates in Step 6.5 → soul.md + user.md, user-changelog.json, soul-candidates.md / user-candidates.json (only on explicit `j`). Staleness display (`[STALE? …]`) is DISPLAY-ONLY, never a write. | — |
-| iteration-logger | errors.json, iteration-log.md, working/current-session.json | iteration-log.md, errors.json, working/current-session.json (append-only — rotation belongs to memory-maintenance) | — (suggests pattern-extractor) |
-| pattern-extractor | errors.json, iteration-log.md, patterns.json | patterns.json (sole creator/schema owner; authorized field-GAIN exceptions: obsidian-sync → promotion metadata, implementing/validating main session → implemented_by/validated_by + dates per Step 6.6), patterns.md, generated-skills/<name>/SKILL.md (Step 6.5 skill-candidate generation, former skill-generator), context/open-tasks.json (Step 6.6 delta-draft tasks; decisions route via context-keeper, never written directly) | context-keeper (Step 6.6 architecture-level delta drafts) |
-| context-keeper | docs/PROJECT.md+ARCHITECTURE.md+CAPABILITIES.md (SoT), project-context.md, decisions.json, config.json | project-context.md (cache), decisions.json, ~/wiki/wiki/entities/<id>.md (optional) | — |
-| wrap-up | iteration-log.md, errors.json, learnings.json, working/current-session.json, working/user-candidates.json, context/open-tasks.json, skills/wrap-up/references/handoff-template.md | session-summary.md, learnings.json + learnings.md, user.md (via queue promotion, changelog first), user-candidates.json (queue), user-changelog.json (audit), soul-candidates.md (propose — never soul.md), working/current-session.json (reset), context/open-tasks.json (Step 5.5 SSoT); cross-project handoff (max 1 block per project, next steps as pointer + `[cross-project]` only) + status-board + Sharepoint | iteration-logger (Step 1.5 session-harvest), pattern-extractor (Step 4, 3+ iters), context-keeper (Step 4.5 decision-scan), obsidian-sync (Step 7.5), memory-maintenance (Step 9, threshold-script exit 10 or explicit request) |
+| iteration-logger | errors.json, iteration-log.md, working/current-session.json | iteration-log.md, errors.json, working/current-session.json — **written only through `scripts/apply_wrapup.py`** (`iterations` plan section; the script owns id continuation, the recurrence rule and the markdown shape), append-only, rotation belongs to memory-maintenance | — (suggests pattern-extractor) |
+| pattern-extractor | errors.json, iteration-log.md, patterns.json (all via `scripts/extract_patterns.py`) | patterns.json — **written only through `scripts/extract_patterns.py`** (sole writer; the skill keeps schema ownership and the judgment-bound Steps 6.5/6.6; authorized field-GAIN exceptions: obsidian-sync → promotion metadata, implementing/validating main session → implemented_by/validated_by + dates per Step 6.6), patterns.md, generated-skills/<name>/SKILL.md (Step 6.5 skill-candidate generation, former skill-generator), context/open-tasks.json (Step 6.6 delta-draft tasks; decisions route via context-keeper, never written directly) | context-keeper (Step 6.6 architecture-level delta drafts) |
+| context-keeper | docs/PROJECT.md+ARCHITECTURE.md+CAPABILITIES.md (SoT), project-context.md, decisions.json, config.json | project-context.md (cache, own write), decisions.json — new records **only through `scripts/apply_wrapup.py`** (`decisions` plan section; Step 3.5 wiki_ref/promoted_at stays a direct field extension), ~/wiki/wiki/entities/<id>.md (optional) | — |
+| wrap-up | iteration-log.md, errors.json, learnings.json, working/current-session.json, working/user-candidates.json, context/open-tasks.json, skills/wrap-up/references/handoff-template.md | session-summary.md, learnings.json + learnings.md, user.md (via queue promotion, changelog first), user-candidates.json (queue), user-changelog.json (audit), soul-candidates.md (propose — never soul.md), working/current-session.json (reset), context/open-tasks.json (Step 5.5 SSoT); cross-project handoff (max 1 block per project, next steps as pointer + `[cross-project]` only) + status-board + Sharepoint | pattern-extractor (Step 4, ONLY for skill/rueckfluss candidates), obsidian-sync (Step 7.5), memory-maintenance (Step 9, threshold-script exit 10 or explicit request). Step 1.5 session-harvest and Step 4.5 decision-scan route through the write plan instead of invoking iteration-logger/context-keeper (T-015) |
 | memory-maintenance | all .agent-memory/ files, scripts/memory-thresholds.sh (threshold SSoT), improvements/state.json (precondition); Step 4b: global store + scripts/global-schema.sh (apply_decay) | archives/*, repaired JSON, compacted session-summary.md + learnings.md, working/ scratch cleanup (Step 3b — deletes stale *.py/*.tmp/*.bak, exempts current-session.json + user-candidates.json); global: decayed confidence + lifecycle:archived in ~/.claude-memory/global/* (never hard-delete) | pattern-extractor (patterns.md refresh) |
 | sync-context | local patterns/learnings, ~/.claude-memory/global/*; scripts/global-schema.sh (is_denied, compute_scope, passes_promotion_gate) + scripts/mem-schema.sh (MEM_GLOBAL_DENY_TAGS) | local + ~/.claude-memory/global/{patterns,learnings,projects}.json with provenance schema (G-<type>-<n>, scope, valid_from, lifecycle); privacy-filter before gate; promotion gate; pull serves only lifecycle:active | — |
 | obsidian-sync | config.json, session-summary.md, iteration-log.md, learnings.json/.md, patterns.json/.md, decisions.json, ~/wiki/{index.md,log.md,entities,synthesis} | ~/wiki/wiki/queries/*.md, ~/wiki/{index.md,log.md}, entity + synthesis (append), patterns.json (promotion_status + promotion_scope only) | — |
@@ -146,7 +150,7 @@ Removed agents (2026-04-30): `improvement-scout`, `fix-reviewer` → use `improv
 1. **No circular dependencies** — DAG only.
 2. **No auto-triggers on code changes** — user/CLAUDE.md driven (the only hook-driven skills are session-bootstrap on start and wrap-up on end).
 3. **session-bootstrap is read-only** — never writes during startup, with ONE exception: the user-confirmed identity gates (Step 6.5) write soul.md/user.md + user-changelog.json + the queues, but only on an explicit `j` from the user (never autonomously).
-4. **Skills that invoke other skills:** `wrap-up` (iteration-logger via session-harvest, pattern-extractor, context-keeper via decision-scan, obsidian-sync, memory-maintenance via the threshold script), `self-improve` (pattern-extractor), `memory-maintenance` (pattern-extractor). All other skills are leaf nodes.
+4. **Skills that invoke other skills:** `wrap-up` (pattern-extractor only for skill/rueckfluss candidates, obsidian-sync, memory-maintenance via the threshold script — iteration-logger/context-keeper are NOT invoked since T-015), `self-improve` (pattern-extractor), `memory-maintenance` (pattern-extractor). All other skills are leaf nodes.
 5. **sync-context is manual-only** — no auto-sync.
 6. **self-improve has all pipeline phases inline** — only pattern-extractor is delegated.
 7. **P9 safety: git revert over git stash pop** — stash may already be dropped.
@@ -166,9 +170,10 @@ stays deliberately on-demand:
 |---|---|
 | Context restore, health checks, salience learnings, wiki context, Sharepoint pull | bootstrap (learnings_top.py / Atlas-RAG, memory-thresholds.sh) |
 | Auto-init, PreCompact survival, SessionEnd task guard, intent hints | hooks |
-| Iteration logging | wrap-up Step 1.5 session-harvest → iteration-logger |
-| Pattern extraction (incl. skill-candidate generation) | wrap-up Step 4 (3+ iterations, fed by harvest) → pattern-extractor |
-| Decisions of record | wrap-up Step 4.5 decision-scan → context-keeper |
+| Iteration logging | wrap-up Step 1.5 session-harvest → write plan → `scripts/apply_wrapup.py` |
+| Pattern extraction | wrap-up Step 4 (3+ iterations, fed by harvest) → `scripts/extract_patterns.py` |
+| Skill-candidate generation, rueckfluss drafts | wrap-up Step 4 → pattern-extractor Steps 6.5/6.6 (only when the extractor reports candidates) |
+| Decisions of record | wrap-up Step 4.5 decision-scan → write plan → `scripts/apply_wrapup.py` |
 | Identity growth (user.md, soul candidates) + gates | wrap-up Step 6 (producer) + bootstrap Step 6.5 (consumer) |
 | Learnings, open-tasks SSoT | wrap-up Steps 3-5.5 |
 | Wiki sync, central handoff, status board, maintenance trigger | wrap-up Steps 7-9 (handoff-template.md, memory-thresholds.sh) |

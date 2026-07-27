@@ -1,0 +1,513 @@
+#!/usr/bin/env python3
+"""extract_patterns.py — deterministic half of pattern-extractor.
+
+WHY THIS EXISTS
+---------------
+wrap-up Step 4 used to invoke the `pattern-extractor` skill, which injects a
+343-line body into the context. Measured over 7 transcripts / ~1300 API calls
+(2026-07-27, normalized per opportunity): a skill invocation is followed by a
+full prefix-cache rewrite in 41% of cases, against 0.5% for Bash and 0% for
+Edit. A rewrite at 100k+ context costs $1.20-$2.30, because cache_creation is
+12.5x the cache_read price. Delegation chains are therefore an architectural
+cost decision, not a neutral call (L34, D-010).
+
+Almost nothing in that body needed a model. The skill spells out exact
+thresholds - same category AND >= 2 overlapping tags, occurrences >= 3, Jaccard
+>= 0.6, and a closed-form confidence formula. Those are code. What genuinely
+needs a model is the WORDING of a newly discovered pattern, and that is the only
+thing this script asks for.
+
+MODES
+-----
+    python scripts/extract_patterns.py .agent-memory --update
+        Applies everything that is fully determined: updates to existing
+        patterns (evidence merge, occurrences, recomputed confidence,
+        last_seen), legacy-shape normalization, patterns.md regeneration.
+        Reports NEW clusters as `proposals` WITHOUT inventing wording for them.
+
+    python scripts/extract_patterns.py .agent-memory --apply < plan.json
+        Takes {"patterns": [{"cluster_key", "description", "recommendation",
+        "type"?, "severity"?}]} and writes those clusters as real entries.
+
+    python scripts/extract_patterns.py .agent-memory --refresh
+        Regenerates patterns.md from patterns.json even when nothing changed
+        ("refresh patterns"). Without it a run that changes nothing writes no
+        file at all - which is right for the routine path and wrong for an
+        explicit refresh request.
+
+The plan supplies language only. evidence, occurrences, confidence, tags and
+the dates are taken from the freshly recomputed measurement and CANNOT be
+overridden by the plan - a caller can misjudge what a pattern means, but it can
+never inflate the numbers that justify it (verify-subagent-tallies).
+
+Most runs need one call: with no new clusters, --update is the whole job.
+
+Exit codes:
+  0 = applied (including the "not enough data" no-op)
+  1 = usage error (memory dir missing) - nothing attempted
+  2 = plan rejected or IO failure
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as _dt
+import json
+import os
+import re
+import sys
+import tempfile
+
+# This script owns patterns/ and nothing else. Every other memory file belongs
+# to another writer (apply_wrapup.py, the skills, the bootstrap gate).
+ALLOWED_PREFIX = "patterns/"
+
+BASE_CONFIDENCE = 0.3
+JACCARD_DUPLICATE = 0.6
+MIN_ERRORS_FOR_COLD_START = 3
+SKILL_CANDIDATE_OCCURRENCES = 3
+SKILL_CANDIDATE_CONFIDENCE = 0.7
+RECURRING_ERROR_OCCURRENCES = 3
+
+LEGACY_FIELDS = {
+    "solution": "recommendation",
+    "prevention": "recommendation",
+    "source_errors": "evidence",
+    "error_ids": "evidence",
+}
+
+
+class PlanError(Exception):
+    """Plan is malformed - nothing gets written."""
+
+
+# ---------------------------------------------------------------- io helpers
+
+def _p(mem: str, rel: str) -> str:
+    if not rel.startswith(ALLOWED_PREFIX):
+        raise PlanError(f"refusing to write {rel}: this script only owns {ALLOWED_PREFIX}")
+    return os.path.join(mem, rel)
+
+
+def load_json(mem: str, rel: str, default):
+    path = os.path.join(mem, rel)
+    if not os.path.exists(path):
+        return default
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        guarded = _p(mem, rel)
+        os.replace(guarded, guarded + ".corrupt.bak")
+        return default
+
+
+def write_atomic(mem: str, rel: str, text: str, dry: bool, touched: list) -> None:
+    path = _p(mem, rel)
+    touched.append(rel)
+    if dry:
+        return
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path) or ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
+
+
+def write_json(mem: str, rel: str, data, dry: bool, touched: list) -> None:
+    write_atomic(mem, rel, json.dumps(data, indent=2, ensure_ascii=False) + "\n", dry, touched)
+
+
+def norm_tokens(text: str) -> set:
+    return set(re.sub(r"[^a-z0-9\s]", " ", str(text or "").lower()).split())
+
+
+def jaccard(a: str, b: str) -> float:
+    ta, tb = norm_tokens(a), norm_tokens(b)
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / len(ta | tb)
+
+
+def next_pattern_id(rows) -> str:
+    """Continue the dominant id family (patterns.json holds one 'G-pattern-005'
+    alongside 'P0nn' - a single outlier must not hijack the sequence)."""
+    pat = re.compile(r"^(.*?)(\d+)$")
+    groups: dict = {}
+    for r in rows:
+        m = pat.match(str(r.get("id", "")))
+        if not m:
+            continue
+        digits = m.group(2)
+        g = groups.setdefault(m.group(1), {"count": 0, "hi": 0, "pad": 0})
+        g["count"] += 1
+        g["hi"] = max(g["hi"], int(digits))
+        g["pad"] = max(g["pad"], len(digits) if len(digits) > 1 else 0)
+    if not groups:
+        return "P001"
+    prefix = max(groups, key=lambda k: (groups[k]["count"], groups[k]["hi"]))
+    pad, hi = groups[prefix]["pad"], groups[prefix]["hi"]
+    n = hi + 1
+    return f"{prefix}{n:0{pad}d}" if pad else f"{prefix}{n}"
+
+
+# ------------------------------------------------------------- normalization
+
+def normalize_legacy(patterns, tally) -> None:
+    """One-shape convergence (pattern-schema-canon). In place, never a parallel entry."""
+    for p in patterns:
+        changed = False
+        for old, new in LEGACY_FIELDS.items():
+            if old in p:
+                value = p.pop(old)
+                if not p.get(new):
+                    p[new] = value
+                changed = True
+        for old in ("name", "title"):
+            if old in p:
+                value = p.pop(old)
+                if p.get("description"):
+                    p["description"] = f"{value} — {p['description']}"
+                else:
+                    p["description"] = value
+                changed = True
+        if not re.match(r"^P\d+$", str(p.get("id", ""))) and str(p.get("id", "")).startswith("pattern-"):
+            p["previous_id"] = p["id"]
+            p["id"] = None  # assigned below, after the whole set is known
+            changed = True
+        if changed:
+            tally["patterns_normalized"] += 1
+    for p in patterns:
+        if p.get("id") is None:
+            p["id"] = next_pattern_id([q for q in patterns if q.get("id")])
+
+
+# ---------------------------------------------------------------- clustering
+
+def cluster_errors(errors):
+    """Detection heuristics from pattern-extractor Step 2 - thresholds verbatim."""
+    clusters, used = [], set()
+
+    # (a) same category AND >= 2 overlapping tags
+    for i, a in enumerate(errors):
+        if a.get("id") in used:
+            continue
+        members = [a]
+        for b in errors[i + 1:]:
+            if b.get("id") in used or b.get("category") != a.get("category"):
+                continue
+            if len(set(a.get("tags") or []) & set(b.get("tags") or [])) >= 2:
+                members.append(b)
+        if len(members) >= 2:
+            shared = set(members[0].get("tags") or [])
+            for m in members[1:]:
+                shared &= set(m.get("tags") or [])
+            for m in members:
+                used.add(m.get("id"))
+            clusters.append(make_cluster(
+                f"cat:{a.get('category')}|{'+'.join(sorted(shared))}", members))
+
+    # (b) same root_cause across errors (fuzzy)
+    for i, a in enumerate(errors):
+        if a.get("id") in used:
+            continue
+        members = [a]
+        for b in errors[i + 1:]:
+            if b.get("id") in used:
+                continue
+            if jaccard(a.get("root_cause"), b.get("root_cause")) >= JACCARD_DUPLICATE:
+                members.append(b)
+        if len(members) >= 2:
+            for m in members:
+                used.add(m.get("id"))
+            clusters.append(make_cluster(f"rc:{a.get('id')}", members))
+
+    # (c) a single error that already recurred often enough is confirmed on its own
+    for e in errors:
+        if e.get("id") in used:
+            continue
+        if int(e.get("occurrences", 1)) >= RECURRING_ERROR_OCCURRENCES:
+            used.add(e.get("id"))
+            clusters.append(make_cluster(f"rec:{e.get('id')}", [e]))
+
+    unmatched = [e.get("id") for e in errors if e.get("id") not in used]
+    return clusters, unmatched
+
+
+def make_cluster(key, members):
+    dates = sorted({m.get("date") for m in members if m.get("date")})
+    for m in members:
+        dates.extend(m.get("recurrence_dates") or [])
+    dates = sorted({d for d in dates if d})
+    tags = []
+    for m in members:
+        for t in (m.get("tags") or []):
+            if t not in tags:
+                tags.append(t)
+    occurrences = sum(int(m.get("occurrences", 1)) for m in members)
+    return {
+        "cluster_key": key,
+        "type": "anti-pattern",
+        "evidence": [m.get("id") for m in members],
+        "occurrences": occurrences,
+        "tags": tags,
+        "severity": pick_severity(members),
+        "first_seen": dates[0] if dates else "",
+        "last_seen": dates[-1] if dates else "",
+        "confidence": score_confidence(members, occurrences),
+        "sample_root_causes": [m.get("root_cause", "") for m in members][:3],
+        "categories": sorted({m.get("category", "") for m in members}),
+    }
+
+
+def pick_severity(members):
+    order = ["critical", "major", "minor", "info"]
+    found = [m.get("severity") for m in members if m.get("severity") in order]
+    return min(found, key=order.index) if found else "minor"
+
+
+def score_confidence(members, occurrences) -> float:
+    """Step 3, verbatim. Rounded so the value is comparable, not float noise."""
+    c = BASE_CONFIDENCE
+    c += min(0.3, 0.1 * max(0, occurrences - 1))
+    if len(members) >= 2:
+        first = members[0]
+        if all(jaccard(first.get("root_cause"), m.get("root_cause")) >= JACCARD_DUPLICATE
+               for m in members[1:]):
+            c += 0.1
+        files = [set(m.get("files_changed") or []) for m in members]
+        if all(files) and set.intersection(*files):
+            c += 0.1
+        preventions = {str(m.get("prevention", "")).strip() for m in members}
+        if len(preventions) == 1 and preventions != {""}:
+            c += 0.1
+    dates = {m.get("date") for m in members}
+    for m in members:
+        dates |= set(m.get("recurrence_dates") or [])
+    if len({d for d in dates if d}) >= 2:
+        c += 0.1
+    return round(min(1.0, c), 2)
+
+
+def match_existing(cluster, patterns):
+    """Step 4 dedup: shared evidence, a Jaccard-close description, or the
+    category+tags shortcut. First match wins - a cluster updates ONE pattern."""
+    for p in patterns:
+        if set(cluster["evidence"]) & set(p.get("evidence") or []):
+            return p
+        if len(set(cluster["tags"]) & set(p.get("tags") or [])) >= 2:
+            return p
+        if jaccard(cluster.get("suggested_description", ""), p.get("description")) >= JACCARD_DUPLICATE:
+            return p
+    return None
+
+
+def update_pattern(p, cluster, tally):
+    evidence = list(p.get("evidence") or [])
+    for e in cluster["evidence"]:
+        if e not in evidence:
+            evidence.append(e)
+    p["evidence"] = evidence
+    p["occurrences"] = max(int(p.get("occurrences", 1)), cluster["occurrences"])
+    p["confidence"] = cluster["confidence"]
+    p["last_seen"] = max(str(p.get("last_seen") or ""), cluster["last_seen"])
+    if not p.get("first_seen"):
+        p["first_seen"] = cluster["first_seen"]
+    tags = list(p.get("tags") or [])
+    for t in cluster["tags"]:
+        if t not in tags:
+            tags.append(t)
+    p["tags"] = tags
+    p["skill_candidate"] = is_skill_candidate(p)
+    tally["patterns_updated"] += 1
+    # description / recommendation are the model's words - never overwritten.
+
+
+def is_skill_candidate(p) -> bool:
+    return (int(p.get("occurrences", 1)) >= SKILL_CANDIDATE_OCCURRENCES
+            and float(p.get("confidence", 0)) >= SKILL_CANDIDATE_CONFIDENCE)
+
+
+def new_pattern(cluster, spec, patterns):
+    description = (spec.get("description") or "").strip()
+    recommendation = (spec.get("recommendation") or "").strip()
+    if not description:
+        raise PlanError(f"pattern for cluster {cluster['cluster_key']} without 'description'")
+    if not recommendation:
+        raise PlanError(f"pattern for cluster {cluster['cluster_key']} without 'recommendation'")
+    entry = {
+        "id": next_pattern_id(patterns),
+        "type": spec.get("type", cluster["type"]),
+        "description": description,
+        "evidence": list(cluster["evidence"]),
+        "confidence": cluster["confidence"],
+        "severity": spec.get("severity", cluster["severity"]),
+        "tags": list(cluster["tags"]),
+        "source_projects": ["current-project"],
+        "first_seen": cluster["first_seen"],
+        "last_seen": cluster["last_seen"],
+        "occurrences": cluster["occurrences"],
+        "recommendation": recommendation,
+        "skill_candidate": False,
+        "lifecycle": "active",
+        "implemented_by": [],
+        "implemented_at": None,
+        "validated_by": [],
+        "validated_at": None,
+    }
+    entry["skill_candidate"] = is_skill_candidate(entry)
+    return entry
+
+
+# ------------------------------------------------------------------ projection
+
+def render_patterns_md(patterns, date) -> str:
+    active = [p for p in patterns if p.get("lifecycle", "active") != "superseded"]
+    anti = sum(1 for p in active if p.get("type") == "anti-pattern")
+    best = sum(1 for p in active if p.get("type") == "best-practice")
+    out = ["# Pattern Catalog", "", f"*Last updated: {date}*",
+           f"*Total patterns: {len(active)} ({anti} anti-patterns, {best} best practices)*", ""]
+
+    def block(title, rows):
+        if not rows:
+            return
+        out.append(f"## {title}")
+        out.append("")
+        for p in sorted(rows, key=lambda x: -float(x.get("confidence", 0))):
+            out.append(f"### {p.get('id')}: {p.get('description')} "
+                       f"(confidence: {p.get('confidence')})")
+            out.append(f"- **Type:** {p.get('type', 'pattern')}")
+            out.append(f"- **Evidence:** {p.get('occurrences', 1)} occurrences "
+                       f"({', '.join(p.get('evidence') or []) or 'n/a'})")
+            out.append(f"- **Recommendation:** {p.get('recommendation', '')}")
+            out.append(f"- **Tags:** {', '.join(p.get('tags') or [])}")
+            out.append("")
+
+    block("High Confidence Warnings", [p for p in active if float(p.get("confidence", 0)) >= 0.7])
+    block("Medium Confidence",
+          [p for p in active if 0.5 <= float(p.get("confidence", 0)) < 0.7])
+    block("Low Confidence", [p for p in active if float(p.get("confidence", 0)) < 0.5])
+    candidates = [p for p in active if p.get("skill_candidate")]
+    if candidates:
+        out.append("## Skill Candidates")
+        out.append("")
+        for p in candidates:
+            state = p.get("generated_skill") or "ready for skill generation"
+            out.append(f"- {p.get('id')}: {p.get('description')} — {state}")
+        out.append("")
+    return "\n".join(out).rstrip() + "\n"
+
+
+# -------------------------------------------------------------------- main
+
+def main() -> int:
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except (AttributeError, OSError):
+        pass
+
+    ap = argparse.ArgumentParser(description="Deterministic pattern extraction.")
+    ap.add_argument("mem", nargs="?", default=".agent-memory")
+    ap.add_argument("--update", action="store_true",
+                    help="apply determined changes, propose new clusters")
+    ap.add_argument("--apply", action="store_true",
+                    help="write new clusters from a plan on stdin")
+    ap.add_argument("--refresh", action="store_true",
+                    help="regenerate patterns.md from patterns.json even when nothing changed")
+    ap.add_argument("--plan", default="-", help="plan JSON file, '-' for stdin")
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+
+    if not os.path.isdir(args.mem):
+        print(json.dumps({"ok": False, "error": f"memory dir not found: {args.mem}"}))
+        return 1
+    if not (args.update or args.apply or args.refresh):
+        print(json.dumps({"ok": False, "error": "need --update, --apply or --refresh"}))
+        return 1
+
+    date = _dt.date.today().isoformat()
+    tally = {"patterns_added": 0, "patterns_updated": 0, "patterns_normalized": 0}
+    touched: list = []
+
+    try:
+        errors = load_json(args.mem, "iterations/errors.json", [])
+        patterns = load_json(args.mem, "patterns/patterns.json", [])
+        if len(errors) < MIN_ERRORS_FOR_COLD_START and not patterns:
+            print(json.dumps({"ok": True, "skipped": "not-enough-data", "dry_run": args.dry_run,
+                              "proposals": [], "files_written": [], "tally": tally,
+                              "unmatched_errors": [], "skill_candidates": []}, indent=2))
+            return 0
+
+        normalize_legacy(patterns, tally)
+        clusters, unmatched = cluster_errors(errors)
+
+        matched, proposals = [], []
+        for cluster in clusters:
+            existing = match_existing(cluster, patterns)
+            if existing is not None:
+                update_pattern(existing, cluster, tally)
+                matched.append(cluster["cluster_key"])
+            else:
+                proposals.append(cluster)
+
+        if args.apply:
+            plan = read_plan(args.plan)
+            by_key = {c["cluster_key"]: c for c in proposals}
+            for spec in (plan.get("patterns") or []):
+                key = spec.get("cluster_key")
+                if key not in by_key:
+                    raise PlanError(f"unknown cluster_key {key!r} - re-run --update for the "
+                                    f"current keys ({', '.join(by_key) or 'none'})")
+                entry = new_pattern(by_key[key], spec, patterns)
+                patterns.append(entry)
+                tally["patterns_added"] += 1
+                proposals = [p for p in proposals if p["cluster_key"] != key]
+
+        # --refresh forces the projection: "refresh patterns" must actually rewrite
+        # patterns.md, and a run that changed nothing writes nothing without it.
+        if (args.refresh or tally["patterns_added"] or tally["patterns_updated"]
+                or tally["patterns_normalized"]):
+            write_json(args.mem, "patterns/patterns.json", patterns, args.dry_run, touched)
+            write_atomic(args.mem, "patterns/patterns.md",
+                         render_patterns_md(patterns, date), args.dry_run, touched)
+    except (PlanError, OSError) as e:
+        kind = "plan rejected" if isinstance(e, PlanError) else "io error"
+        print(json.dumps({"ok": False, "error": f"{kind}: {e}", "files_written": touched},
+                         ensure_ascii=False))
+        return 2
+
+    print(json.dumps({
+        "ok": True,
+        "dry_run": args.dry_run,
+        "proposals": proposals,
+        "updated_clusters": matched,
+        "unmatched_errors": unmatched,
+        "skill_candidates": [p.get("id") for p in patterns if p.get("skill_candidate")
+                             and not p.get("generated_skill")],
+        "rueckfluss_candidates": [p.get("id") for p in patterns
+                                  if float(p.get("confidence", 0)) >= 0.7
+                                  and not p.get("delta_task_id")],
+        "files_written": touched,
+        "tally": tally,
+    }, indent=2, ensure_ascii=False))
+    return 0
+
+
+def read_plan(source: str) -> dict:
+    try:
+        raw = sys.stdin.read() if source == "-" else open(source, encoding="utf-8").read()
+        plan = json.loads(raw)
+    except (json.JSONDecodeError, OSError) as e:
+        raise PlanError(f"unreadable plan: {e}") from e
+    if not isinstance(plan, dict):
+        raise PlanError("plan must be a JSON object")
+    return plan
+
+
+if __name__ == "__main__":
+    sys.exit(main())

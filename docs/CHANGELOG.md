@@ -4,6 +4,62 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-07-27] Release v4.18.0 — T-015: Delegations-Umbau des wrap-up
+
+wrap-up ruft auf dem Routine-Pfad keine Skills mehr auf, deren Arbeit mechanisch
+ist. Grundlage ist die Messung aus D-010/L34: ueber 7 Transkripte und ~1300
+API-Calls, **normalisiert auf Gelegenheiten**, folgt auf einen Skill-Aufruf in 41%
+der Faelle ein voller Prefix-Cache-Rewrite (9/22) — gegen 0,5% bei Bash (3/618)
+und 0% bei Edit (0/233). Ein Rewrite bei 100k+ Kontext kostet $1.20-$2.30, weil
+`cache_creation` das 12,5-fache von `cache_read` kostet. Eine Skill-Injektion ist
+damit eine Architektur-Entscheidung, kein neutraler Aufruf.
+
+**Was verschoben wurde (nicht geloescht).** Ein Skill-Aufruf startet keinen
+zweiten Prozess — er laedt Anleitungstext in denselben Kontext, der die Arbeit
+ohnehin macht. Die drei Bodies zerfielen daher in zwei Haelften: die mechanische
+wanderte in Code, die urteilende in ~10 Zeilen wrap-up-Body.
+
+- `iterations` + `decisions` sind neue Plan-Sektionen von `scripts/apply_wrapup.py`
+  (Step 1.5 / Step 4.5). Das Skript besitzt ID-Fortschreibung, die Recurrence-Regel
+  (gleiche category UND >= 2 ueberlappende Tags), das Markdown-Format, die
+  Working-Memory-Buchhaltung, den Append-only-Kontrakt und den Supersede-Flip.
+- `scripts/extract_patterns.py` (neu) besitzt die Detektions-Heuristiken, die
+  Confidence-Formel, den Jaccard-Dedup, die Legacy-Normalisierung und die
+  `patterns.md`-Projektion. `--update` wendet alles Determinierte an und meldet
+  unbenannte Cluster als `proposals`; `--apply` nimmt **nur Sprache** —
+  evidence/occurrences/confidence stammen aus der Messung und sind nicht setzbar.
+- `pattern-extractor` behaelt genau einen bedingten Aufruf: Steps 6.5/6.6
+  (Skill-Generierung, Rueckfluss-Drafts) sind echte Urteilsarbeit.
+
+**Ownership verschoben, nicht aufgeweicht.** `apply_wrapup.py` verweigerte diese
+Dateien bisher pauschal (D-008). Jetzt sind sie ueber `APPLIER_OWNED` **nur** durch
+ihren benannten Applier erreichbar — der generische Schreibpfad und die
+Quarantaene-Route verweigern sie weiterhin, `patterns.*` und `soul.md` bleiben
+komplett gesperrt.
+
+**Nebenbefund: die Schemata stimmten nicht.** Die dokumentierten Templates
+versprachen `E{n}`, `D{n}` und `## Iteration #{n}` — auf Platte stehen seit Monaten
+`err-007`, `D-008` und `## {date} — {type}: {title}`. Jeder Lauf hatte das Format
+neu interpretiert. Beide Skripte **erkennen** das dominante Format jetzt, statt es
+anzunehmen (ein Ausreisser wie `G-pattern-005` unter `P0nn` kann die Sequenz nicht
+kapern), und das Markdown-Format ist einmalig fixiert.
+
+**DoD (bewusst geaendert).** T-015 forderte urspruenglich eine Halbierung der
+Rewrite-Zahl gegen die Baseline (6). Der Umbau entfernt 3 Injektionen, was bei
+p=0,41 ~1,2 Rewrites erwarten laesst — kleiner als das Rauschen zwischen zwei
+Laeufen. Gemessen wird deshalb das **Skill-Invocation-Budget pro wrap-up-Lauf**:
+deklarierte Invokes 5 -> 3 (pattern-extractor bedingt, obsidian-sync,
+memory-maintenance bedingt), auf einem typischen Lauf 4 -> 1, weil nur
+obsidian-sync unbedingt feuert. Erzwungen vom Test `wrap-up delegation budget`
+in `validate-plugin.sh`.
+Der ersetzte Vorgaenger-Test greppte `invoke ... <skill>` und lief nach dem Umbau
+**false-green** auf `do NOT invoke <skill>`.
+
+**Tests.** +35 in `test-apply-wrapup.py` (55 -> 90), neu `test-extract-patterns.py`
+(46), Eval `gate_linkage.py` auf die neuen Klauseln gezogen. Volle Suite gruen.
+
+---
+
 ## [2026-07-21] Release v4.13.0 — T-41/T-42: Rueckfluss sichtbar, Autoritaets-Matrix messbar
 
 Zwei Rosinen aus der membrain-Ernte `memperfectflowharvest.md`. Beide schliessen

@@ -177,6 +177,22 @@ fi
 
 echo ""
 
+# Run extract_patterns tests (T-015: deterministic half of pattern-extractor)
+echo ">>> Running extract-patterns tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-extract-patterns.py"; then
+    echo ">>> Extract-patterns tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Extract-patterns tests: SKIPPED (no python found)"
+else
+    echo ">>> Extract-patterns tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run measured session-cost tests (4.17.0: measurement replaces estimates)
 echo ">>> Running measure-session-cost tests..."
 PY_BIN=""

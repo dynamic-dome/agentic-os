@@ -67,10 +67,32 @@ def make_mem() -> str:
     write(mem, "identity/user.md",
           "# User Profile\n\n## Preferences\n\n- Handgeschriebene Zeile\n\n"
           "## Work Style\n\n## Known Corrections\n")
-    # Files owned by OTHER skills - must stay byte-identical.
-    put(mem, "iterations/errors.json", [{"id": "E1"}])
-    put(mem, "patterns/patterns.json", [{"id": "P1"}])
-    put(mem, "context/decisions.json", [{"id": "D1"}])
+    # Fixtures in the REAL on-disk shapes (2026-07-27 drift audit): errors use
+    # "err-00n" and decisions "D-00n", NOT the "E{n}"/"D{n}" the old SKILL.md
+    # templates claimed. The id format is therefore detected, never assumed.
+    put(mem, "iterations/errors.json", [{
+        "id": "err-001", "date": "2026-07-01", "category": "import",
+        "tags": ["python", "import-error", "circular-import"],
+        "trigger": "pytest", "problem": "Zirkulaerer Import", "root_cause": "Modul A imports B",
+        "fix": "Lazy import", "severity": "major", "occurrences": 1,
+        "recurrence_dates": [], "last_seen": "2026-07-01",
+    }])
+    write(mem, "iterations/iteration-log.md",
+          "# Iteration Log\n\n## 2026-07-01 — feature: Etwas Altes\n"
+          "- **Type:** feature\n- **Tags:** alt, bestand\n- **Summary:** Vorher da.\n")
+    put(mem, "context/decisions.json", [{
+        "id": "D-001", "date": "2026-07-01", "type": "architecture-decision",
+        "title": "Alte Entscheidung", "status": "active", "context": "c",
+        "options_considered": [], "decision": "d", "consequences": "k",
+        "supersedes": None, "tags": ["alt"],
+    }])
+    put(mem, "working/current-session.json", {
+        "session_start": "2026-07-27T09:00:00", "errors_this_session": [],
+        "learnings_draft": [],
+    })
+    # Files owned by OTHER skills / other scripts - must stay byte-identical.
+    put(mem, "patterns/patterns.json", [{"id": "P001"}])
+    write(mem, "patterns/patterns.md", "# Pattern Catalog\n")
     write(mem, "identity/soul.md", "# Soul\n\n- unantastbar\n")
     put(mem, "working/dirty-sess-A.json", {
         "session_id": "sess-A", "agent": "main", "dirty": True,
@@ -311,6 +333,172 @@ check(not os.path.exists(os.path.join(mem, "consolidation-marker.json")),
       "no consolidation marker after an IO failure")
 check(load(mem, "working/dirty-sess-A.json")["dirty"] is True,
       "dirty state stays honest after an IO failure")
+
+# --- 15. iterations: real markdown shape, appended ---------------------------
+# T-015 delegation rebuild: wrap-up no longer injects the iteration-logger body.
+# The format is now FIXED here instead of being re-interpreted per run (the old
+# SKILL.md template "## Iteration #{n}" was never actually followed on disk).
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "iterations": [{
+    "type": "feature", "title": "Batch-Writer erweitert",
+    "tags": ["wrap-up", "python"], "files_changed": ["scripts/apply_wrapup.py"],
+    "summary": "Iterationen laufen jetzt ueber den Schreibplan.",
+    "confidence": 5, "tests": "passed (60/60)", "commits": "abc1234",
+}]})
+log = read(mem, "iterations/iteration-log.md")
+check(rc == 0, "plan with iterations applies cleanly")
+check("## 2026-07-27 — feature: Batch-Writer erweitert" in log,
+      "iteration header uses the real on-disk shape (date — type: title)")
+check("- **Type:** feature" in log and "- **Tags:** wrap-up, python" in log,
+      "iteration renders Type/Tags bullet fields")
+check("- **Files changed:** scripts/apply_wrapup.py" in log and "- **Confidence:** 5/5" in log,
+      "iteration renders Files changed and Confidence")
+check(log.startswith("# Iteration Log") and "Etwas Altes" in log,
+      "existing log content is preserved (append, never overwrite)")
+check(out["tally"]["iterations_logged"] == 1, "tally counts logged iterations")
+
+# --- 16. errors from an iteration: detected id format + working memory -------
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "iterations": [{
+    "type": "bugfix", "title": "Ein Fehler", "tags": ["x", "y"],
+    "summary": "s", "errors": [{
+        "category": "runtime", "tags": ["node", "timeout"], "problem": "Hing",
+        "root_cause": "Kein Timeout gesetzt", "fix": "Timeout ergaenzt", "severity": "major",
+    }],
+}]})
+errs = load(mem, "iterations/errors.json")
+check(len(errs) == 2 and errs[-1]["id"] == "err-002",
+      "new error id follows the DETECTED format (err-00n), not the template E{n}")
+check(errs[-1]["occurrences"] == 1 and errs[-1]["recurrence_dates"] == [],
+      "new error entry carries the full schema")
+check("- **Errors:** err-002" in read(mem, "iterations/iteration-log.md"),
+      "iteration block references the error id it produced")
+cs = load(mem, "working/current-session.json")
+check("err-002" in cs["errors_this_session"], "error id lands in working/current-session.json")
+check(out["tally"]["errors_added"] == 1, "tally counts new errors")
+
+# --- 17. recurrence: same category + 2 overlapping tags ----------------------
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "iterations": [{
+    "type": "bugfix", "title": "Schon wieder", "tags": ["x", "y"], "summary": "s",
+    "errors": [{
+        "category": "import", "tags": ["python", "circular-import", "neu"],
+        "problem": "Wieder zirkulaer", "root_cause": "gleiche Ursache",
+        "fix": "wieder lazy", "severity": "major",
+    }],
+}]})
+errs = load(mem, "iterations/errors.json")
+check(len(errs) == 1, "recurrence does NOT create a second error entry")
+check(errs[0]["occurrences"] == 2 and "2026-07-27" in errs[0]["recurrence_dates"],
+      "recurrence increments occurrences and records the date")
+check(errs[0]["last_seen"] == "2026-07-27", "recurrence updates last_seen")
+check("(Recurrence of err-001)" in read(mem, "iterations/iteration-log.md"),
+      "iteration block marks the recurrence")
+check(out["tally"]["errors_recurred"] == 1 and out["tally"]["errors_added"] == 0,
+      "tally separates recurrences from new errors")
+
+# --- 18. iteration dedup: same header is not written twice -------------------
+mem = make_mem()
+it = {"type": "feature", "title": "Etwas Altes", "tags": ["a"], "summary": "s"}
+run(mem, {"date": "2026-07-01", "iterations": [it]})
+rc, out = run(mem, {"date": "2026-07-01", "iterations": [it]})
+check(read(mem, "iterations/iteration-log.md").count("feature: Etwas Altes") == 1,
+      "identical iteration header is skipped (idempotent re-run)")
+check(out["tally"]["iterations_skipped_duplicate"] == 1, "tally reports the skipped duplicate")
+
+# --- 19. decisions: detected id format, append-only --------------------------
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "decisions": [{
+    "type": "architecture-decision", "title": "Neue Entscheidung",
+    "context": "warum", "decision": "was", "consequences": "folgen",
+    "options_considered": [{"option": "A", "pros": ["p"], "cons": ["c"]}],
+    "tags": ["architecture"],
+}]})
+decs = load(mem, "context/decisions.json")
+check(rc == 0 and len(decs) == 2, "decision appended")
+check(decs[-1]["id"] == "D-002", "decision id follows the DETECTED format (D-00n)")
+check(decs[-1]["status"] == "active" and decs[-1]["date"] == "2026-07-27",
+      "new decision is active and dated")
+check(decs[0]["title"] == "Alte Entscheidung" and decs[0]["status"] == "active",
+      "existing decisions are never rewritten")
+check(out["tally"]["decisions_added"] == 1, "tally counts decisions")
+
+# --- 20. supersedes flips the old record ------------------------------------
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "decisions": [{
+    "type": "architecture-decision", "title": "Loest ab", "context": "c",
+    "decision": "d", "consequences": "k", "supersedes": "D-001",
+}]})
+decs = {d["id"]: d for d in load(mem, "context/decisions.json")}
+check(decs["D-001"]["status"] == "superseded", "superseded decision is flipped, not deleted")
+check(decs["D-002"]["supersedes"] == "D-001", "new decision records what it supersedes")
+check(out["tally"]["decisions_superseded"] == 1, "tally counts supersessions")
+
+# --- 21. unknown supersedes target is a plan error --------------------------
+mem = make_mem()
+before_log = read(mem, "iterations/iteration-log.md")
+rc, out = run(mem, {"date": "2026-07-27",
+                    "iterations": [{"type": "feature", "title": "Wird verworfen",
+                                    "tags": ["a"], "summary": "s"}],
+                    "decisions": [{"type": "architecture-decision", "title": "Kaputt",
+                                   "context": "c", "decision": "d", "consequences": "k",
+                                   "supersedes": "D-999"}],
+                    "consolidate": True})
+check(rc == 2 and "D-999" in out.get("error", ""),
+      "supersedes pointing at an unknown decision is rejected")
+check(not os.path.exists(os.path.join(mem, "consolidation-marker.json")),
+      "rejected decision plan leaves no consolidation marker")
+
+# --- 22. legacy id formats still work ---------------------------------------
+mem = make_mem()
+put(mem, "iterations/errors.json", [{"id": "E1", "category": "x", "tags": ["a"]}])
+put(mem, "context/decisions.json", [{"id": "D1", "title": "Legacy", "status": "active"}])
+rc, out = run(mem, {"date": "2026-07-27",
+                    "iterations": [{"type": "bugfix", "title": "L", "tags": ["q"], "summary": "s",
+                                    "errors": [{"category": "runtime", "tags": ["z"],
+                                                "problem": "p", "root_cause": "r",
+                                                "fix": "f", "severity": "minor"}]}],
+                    "decisions": [{"type": "constraint-update", "title": "N", "context": "c",
+                                   "decision": "d", "consequences": "k"}]})
+check(load(mem, "iterations/errors.json")[-1]["id"] == "E2",
+      "legacy E{n} error format is continued, not broken")
+check(load(mem, "context/decisions.json")[-1]["id"] == "D2",
+      "legacy D{n} decision format is continued, not broken")
+
+# --- 23. pattern files stay out of this script ------------------------------
+# Patterns are owned by scripts/extract_patterns.py - a different script, so the
+# guard must refuse them even though errors/decisions are now writable.
+mem = make_mem()
+before = {f: read(mem, f) for f in ("patterns/patterns.json", "patterns/patterns.md",
+                                    "identity/soul.md")}
+rc, out = run(mem, {"date": "2026-07-27",
+                    "iterations": [{"type": "feature", "title": "T", "tags": ["a"], "summary": "s"}],
+                    "decisions": [{"type": "constraint-update", "title": "D", "context": "c",
+                                   "decision": "d", "consequences": "k"}]})
+check(rc == 0 and all(read(mem, f) == b for f, b in before.items()),
+      "patterns.json / patterns.md / soul.md stay byte-identical")
+
+# --- 24. the generic write path cannot reach an applier-owned file ----------
+spec = importlib.util.spec_from_file_location("apply_wrapup2", SCRIPT)
+aw2 = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(aw2)
+mem = make_mem()
+try:
+    aw2.write_atomic(mem, "iterations/iteration-log.md", "gekapert", False, [])
+    fail("generic write path must not reach an applier-owned file")
+except aw2.PlanError:
+    pass_("applier-owned file is refused on the generic write path (via= required)")
+write(mem, "context/decisions.json", "{ kaputt")  # only the corrupt branch mutates
+try:
+    aw2.load_json(mem, "context/decisions.json", None)
+    fail("generic quarantine path must not reach an applier-owned file")
+except aw2.PlanError:
+    pass_("applier-owned file is refused on the generic quarantine path")
+check(read(mem, "context/decisions.json") == "{ kaputt",
+      "applier-owned file untouched on the generic quarantine path")
+check(aw2.load_json(mem, "context/decisions.json", None, via="decisions") is None
+      and os.path.exists(os.path.join(mem, "context/decisions.json.corrupt.bak")),
+      "the owning applier CAN quarantine its own corrupt file")
 
 for tmp in []:
     shutil.rmtree(tmp, ignore_errors=True)

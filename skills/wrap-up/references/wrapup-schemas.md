@@ -22,6 +22,19 @@ model is stateless, so cost is the sum of context length over calls).
 {
   "date": "{YYYY-MM-DD}",
   "session_id": "{sid}",
+  "iterations":      [ { "type": "feature", "title": "...", "tags": [], "files_changed": [],
+                         "summary": "...", "confidence": 5, "tests": "passed (n/n)",
+                         "learnings": "...", "commits": "abc1234",
+                         "recovered_from": null,
+                         "errors": [ { "category": "runtime", "tags": [], "trigger": "...",
+                                       "problem": "...", "root_cause": "...", "fix": "...",
+                                       "failed_approaches": [], "prevention": "...",
+                                       "severity": "major", "attempts": 1,
+                                       "confidence": 4 } ] } ],
+  "decisions":       [ { "type": "architecture-decision", "title": "...", "context": "...",
+                         "options_considered": [ { "option": "...", "pros": [], "cons": [] } ],
+                         "decision": "...", "consequences": "...",
+                         "supersedes": null, "tags": [] } ],
   "learnings":       [ { "text": "...", "importance": 3, "tags": [], "derived_from": [] } ],
   "user_candidates": [ { "key": "kebab-key", "observation": "...", "signal_type": "preference",
                          "confidence": 0.5, "evidence": [], "confirmed": false,
@@ -40,8 +53,12 @@ model is stateless, so cost is the sum of context length over calls).
 ```
 
 Every key is optional — omit what the session did not produce. The script owns
-all deterministic rules and needs no help with them: id assignment
-(`L{n}` / `UC{n}` / `T-{00n}`), `review_after` = date + 90d, exact-text dedup,
+all deterministic rules and needs no help with them: id assignment continuing
+whatever format is already on disk (`L{n}` / `UC{n}` / `T-{00n}` / `err-{00n}` /
+`D-{00n}` — never assume, the real files drifted from their templates),
+the iteration markdown shape, the recurrence rule (same category AND ≥2
+overlapping tags), the decision supersede flip, `review_after` = date + 90d,
+exact-text dedup,
 the `signal_type: mood` block, the promotion rule (`confirmed` OR `inferred`
 AND `occurrences >= 2` AND `confidence >= 0.6`), changelog-before-edit
 ordering, `learnings.md` regeneration, the consolidation marker and the dirty
@@ -54,9 +71,14 @@ Guarantees worth relying on:
   both when enqueuing a new observation **and** when the full-queue re-review
   considers a row that was already on disk. A poisoned row that somehow
   reached the queue can never be promoted into `user.md`.
-- `errors.json`, `patterns.json`, `decisions.json`, `iteration-log.md` and
-  `soul.md` are refused — those belong to other skills. Quarantining a corrupt
-  file goes through the same guard.
+- `patterns.json`/`patterns.md` (owned by `scripts/extract_patterns.py`) and
+  `soul.md` are refused outright. `iteration-log.md`, `errors.json`,
+  `current-session.json` and `decisions.json` are reachable ONLY through their
+  named applier (`iterations` / `decisions`) — the generic write path still
+  refuses them, and so does the corrupt-file quarantine route.
+- A `supersedes` pointing at an unknown decision id rejects the WHOLE plan
+  before the first byte is written, so a rejected plan never leaves a
+  half-written iteration log behind.
 - On a rejected plan or an IO failure the run stops there, **the consolidation
   marker is skipped and dirty flags stay set** (Step 9.5 rule 5), and the
   failure is reported as JSON with exit code 2. `session_id` may be passed in

@@ -30,12 +30,21 @@ numbers instead of a model self-report (see the verify-subagent-tallies rule).
 WHAT IT DOES NOT DO
 -------------------
 No judgment. Deduplication beyond exact-text matching, learning importance,
-what counts as an identity observation — all of that stays with the model and
-arrives via the plan. This script only applies deterministic rules that are
-already written down in skills/wrap-up/SKILL.md.
+what counts as an identity observation, what counts as ONE iteration or as a
+decision of record — all of that stays with the model and arrives via the plan.
+This script only applies deterministic rules that are already written down in
+skills/wrap-up/SKILL.md.
 
-It also refuses to touch files owned by other skills (errors.json,
-patterns.json, decisions.json, iteration-log.md) and never writes soul.md.
+OWNERSHIP (widened in T-015, not loosened)
+------------------------------------------
+Since the delegation rebuild the script also writes iteration-log.md,
+errors.json and decisions.json, because wrap-up no longer injects the
+iteration-logger / context-keeper skill bodies just to have those files
+written (a skill invocation triggered a full prefix-cache rewrite in 41% of
+measured cases, L34). Ownership moved rather than disappeared: those files are
+reachable ONLY through their named applier (see APPLIER_OWNED), so the generic
+write path still refuses them. patterns.json/patterns.md belong to
+scripts/extract_patterns.py and stay refused here; soul.md is never written.
 
 USAGE
 -----
@@ -64,14 +73,23 @@ import re
 import sys
 import tempfile
 
-# Files owned by other skills - writing them here is a hard bug, not a warning.
+# Files no path in this script may ever touch.
 FORBIDDEN = {
-    "iterations/errors.json",         # iteration-logger
-    "iterations/iteration-log.md",    # iteration-logger
-    "patterns/patterns.json",         # pattern-extractor
-    "patterns/patterns.md",           # pattern-extractor
-    "context/decisions.json",         # context-keeper
+    "patterns/patterns.json",         # scripts/extract_patterns.py owns these
+    "patterns/patterns.md",
     "identity/soul.md",               # bootstrap [j/n] gate only - never here
+}
+
+# Files that carry their own deterministic ruleset. Since T-015 the wrap-up run
+# no longer injects the iteration-logger / context-keeper skill bodies to get
+# them written - the rules live here instead. The ownership is NOT dropped, it
+# moves: each file is reachable ONLY through the applier named below, so the
+# generic write path still cannot touch it (a hard bug, not a warning).
+APPLIER_OWNED = {
+    "iterations/iteration-log.md":   "iterations",
+    "iterations/errors.json":        "iterations",
+    "working/current-session.json":  "iterations",
+    "context/decisions.json":        "decisions",
 }
 
 SECTION_BY_SIGNAL = {
@@ -91,13 +109,16 @@ class PlanError(Exception):
 
 # ---------------------------------------------------------------- io helpers
 
-def _p(mem: str, rel: str) -> str:
+def _p(mem: str, rel: str, via: str | None = None) -> str:
     if rel in FORBIDDEN:
-        raise PlanError(f"refusing to write {rel}: owned by another skill")
+        raise PlanError(f"refusing to write {rel}: owned by another script")
+    owner = APPLIER_OWNED.get(rel)
+    if owner and owner != via:
+        raise PlanError(f"refusing to write {rel}: only the '{owner}' applier may touch it")
     return os.path.join(mem, rel)
 
 
-def load_json(mem: str, rel: str, default):
+def load_json(mem: str, rel: str, default, via: str | None = None):
     path = os.path.join(mem, rel)
     if not os.path.exists(path):
         return default
@@ -109,13 +130,14 @@ def load_json(mem: str, rel: str, default):
         # Route the rename through _p() so quarantining is covered by the same
         # guard as every other mutation - otherwise this would be a second,
         # unguarded write path into the memory dir.
-        guarded = _p(mem, rel)
+        guarded = _p(mem, rel, via)
         os.replace(guarded, guarded + ".corrupt.bak")
         return default
 
 
-def write_atomic(mem: str, rel: str, text: str, dry: bool, touched: list) -> None:
-    path = _p(mem, rel)
+def write_atomic(mem: str, rel: str, text: str, dry: bool, touched: list,
+                 via: str | None = None) -> None:
+    path = _p(mem, rel, via)
     touched.append(rel)
     if dry:
         return
@@ -131,17 +153,40 @@ def write_atomic(mem: str, rel: str, text: str, dry: bool, touched: list) -> Non
         raise
 
 
-def write_json(mem: str, rel: str, data, dry: bool, touched: list) -> None:
-    write_atomic(mem, rel, json.dumps(data, indent=2, ensure_ascii=False) + "\n", dry, touched)
+def write_json(mem: str, rel: str, data, dry: bool, touched: list,
+               via: str | None = None) -> None:
+    write_atomic(mem, rel, json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+                 dry, touched, via)
 
 
 def next_id(rows, prefix: str, pad: int = 0) -> str:
-    hi = 0
-    pat = re.compile(re.escape(prefix) + r"(\d+)$")
+    """Continue the id sequence that is ACTUALLY on disk.
+
+    The arguments are only a fallback for an empty store. The real files drifted
+    away from their documented templates long ago (drift audit 2026-07-27:
+    errors.json carries "err-007" where the template promised "E{n}",
+    decisions.json "D-008" where it promised "D{n}"). Assuming the template
+    would silently fork the sequence into two parallel id families, so the shape
+    is derived from the data: pick the most common prefix, continue its highest
+    number, keep its zero padding. A single foreign id (patterns.json holds one
+    "G-pattern-005" among "P0nn") loses the vote instead of hijacking the format.
+    """
+    pat = re.compile(r"^(.*?)(\d+)$")
+    groups: dict = {}
     for r in rows:
         m = pat.match(str(r.get("id", "")))
-        if m:
-            hi = max(hi, int(m.group(1)))
+        if not m:
+            continue
+        digits = m.group(2)
+        g = groups.setdefault(m.group(1), {"count": 0, "hi": 0, "pad": 0})
+        g["count"] += 1
+        g["hi"] = max(g["hi"], int(digits))
+        g["pad"] = max(g["pad"], len(digits) if len(digits) > 1 else 0)
+    if not groups:
+        hi = 0
+    else:
+        prefix = max(groups, key=lambda k: (groups[k]["count"], groups[k]["hi"]))
+        pad, hi = groups[prefix]["pad"], groups[prefix]["hi"]
     n = hi + 1
     return f"{prefix}{n:0{pad}d}" if pad else f"{prefix}{n}"
 
@@ -151,6 +196,195 @@ def norm(text: str) -> str:
 
 
 # ------------------------------------------------------------------- steps
+
+def validate_plan(mem, plan):
+    """Reject cross-reference errors BEFORE the first byte is written.
+
+    A supersedes pointing at a non-existent decision is the one plan error that
+    cannot be detected inside its own applier without having already written
+    earlier sections. Checking it up front keeps a rejected plan from leaving a
+    half-applied iteration log behind.
+    """
+    sups = [d.get("supersedes") for d in (plan.get("decisions") or []) if d.get("supersedes")]
+    if not sups:
+        return
+    known = {str(r.get("id")) for r in load_json(mem, "context/decisions.json", [], via="decisions")}
+    for sup in sups:
+        if str(sup) not in known:
+            raise PlanError(f"supersedes points at unknown decision {sup}")
+
+
+def render_iteration(it, date, error_refs):
+    """Render ONE iteration block in the shape the log actually uses.
+
+    Not the shape iteration-logger's template described ("## Iteration #{n} —
+    {date} {HH:MM}" plus "### Details"/"### Learnings" subsections): that
+    template was never followed on disk. Every run re-invented the format from
+    the surrounding entries, so it is pinned here once and for all.
+    """
+    title = (it.get("title") or "").strip()
+    if not title:
+        raise PlanError("iteration without 'title'")
+    if it.get("recovered_from"):
+        title += f" (recovered from session {it['recovered_from']})"
+    out = [f"## {date} — {it.get('type', 'feature')}: {title}"]
+
+    def field(label, value):
+        if value:
+            out.append(f"- **{label}:** {value}")
+
+    field("Type", it.get("type", "feature"))
+    field("Tags", ", ".join(it.get("tags") or []))
+    field("Files changed", ", ".join(it.get("files_changed") or []))
+    field("Summary", it.get("summary"))
+    if it.get("confidence"):
+        out.append(f"- **Confidence:** {int(it['confidence'])}/5")
+    field("Tests", it.get("tests"))
+    field("Errors", ", ".join(error_refs))
+    field("Learnings", it.get("learnings"))
+    field("Commits", it.get("commits"))
+    return "\n".join(out) + "\n"
+
+
+def apply_iterations(mem, plan, date, dry, touched, tally):
+    """Step 1.5 session-harvest without the iteration-logger body injection.
+
+    Judgment (what counts as ONE iteration - distinct approaches, not file
+    saves) stays with the model and arrives in the plan. Everything below is
+    mechanical: id continuation, the recurrence rule (same category AND >= 2
+    overlapping tags), markdown rendering, working-memory bookkeeping.
+    """
+    items = plan.get("iterations") or []
+    if not items:
+        return
+    log = ""
+    log_path = os.path.join(mem, "iterations/iteration-log.md")
+    if os.path.exists(log_path):
+        log = open(log_path, encoding="utf-8").read()
+    if not log.strip():
+        log = "# Iteration Log\n"
+
+    errors = load_json(mem, "iterations/errors.json", [], via="iterations")
+    session = load_json(mem, "working/current-session.json",
+                        {"errors_this_session": [], "learnings_draft": []}, via="iterations")
+    blocks, new_error_ids, wrote_errors = [], [], False
+
+    for it in items:
+        refs = []
+        for err in (it.get("errors") or []):
+            existing = find_recurrence(errors, err)
+            if existing is not None:
+                existing["occurrences"] = int(existing.get("occurrences", 1)) + 1
+                existing.setdefault("recurrence_dates", []).append(date)
+                existing["last_seen"] = date
+                refs.append(f"(Recurrence of {existing.get('id')})")
+                tally["errors_recurred"] += 1
+            else:
+                entry = {
+                    "id": next_id(errors, "err-", pad=3),
+                    "date": date,
+                    "category": err.get("category", "runtime"),
+                    "tags": list(err.get("tags") or []),
+                    "trigger": err.get("trigger", ""),
+                    "problem": err.get("problem", ""),
+                    "root_cause": err.get("root_cause", ""),
+                    "fix": err.get("fix", ""),
+                    "failed_approaches": list(err.get("failed_approaches") or []),
+                    "prevention": err.get("prevention", ""),
+                    "severity": err.get("severity", "minor"),
+                    "attempts": int(err.get("attempts", 1)),
+                    "confidence": int(err.get("confidence", 3)),
+                    "occurrences": 1,
+                    "recurrence_dates": [],
+                    "last_seen": date,
+                }
+                errors.append(entry)
+                refs.append(entry["id"])
+                new_error_ids.append(entry["id"])
+                tally["errors_added"] += 1
+            wrote_errors = True
+
+        block = render_iteration(it, date, refs)
+        header = block.splitlines()[0]
+        if header in log or any(header in b for b in blocks):
+            # Idempotent re-run: the same iteration must not appear twice.
+            tally["iterations_skipped_duplicate"] += 1
+            continue
+        blocks.append(block)
+        tally["iterations_logged"] += 1
+
+    if blocks:
+        write_atomic(mem, "iterations/iteration-log.md",
+                     log.rstrip() + "\n\n" + "\n".join(blocks), dry, touched, via="iterations")
+    if wrote_errors:
+        write_json(mem, "iterations/errors.json", errors, dry, touched, via="iterations")
+    if new_error_ids or blocks:
+        for eid in new_error_ids:
+            if eid not in session.setdefault("errors_this_session", []):
+                session["errors_this_session"].append(eid)
+        session.setdefault("learnings_draft", [])
+        write_json(mem, "working/current-session.json", session, dry, touched, via="iterations")
+
+
+def find_recurrence(errors, err):
+    """iteration-logger Step 2: same category AND >= 2 overlapping tags, last 20."""
+    cat = err.get("category")
+    tags = set(err.get("tags") or [])
+    for existing in reversed(errors[-20:]):
+        if existing.get("category") != cat:
+            continue
+        if len(tags & set(existing.get("tags") or [])) >= 2:
+            return existing
+    return None
+
+
+def apply_decisions(mem, plan, date, dry, touched, tally):
+    """Step 4.5 decision-scan without the context-keeper body injection.
+
+    Judgment (is this a decision of record at all?) stays with the model.
+    Mechanical here: id continuation, the append-only rule, and the supersede
+    flip - old records are never deleted or rewritten, only their status moves.
+    """
+    items = plan.get("decisions") or []
+    if not items:
+        return
+    rows = load_json(mem, "context/decisions.json", [], via="decisions")
+    by_id = {str(r.get("id")): r for r in rows}
+    titles = {norm(r.get("title")) for r in rows}
+
+    for it in items:
+        title = (it.get("title") or "").strip()
+        if not title:
+            raise PlanError("decision without 'title'")
+        if norm(title) in titles:
+            tally["decisions_skipped_duplicate"] += 1
+            continue
+        titles.add(norm(title))
+        entry = {
+            "id": next_id(rows, "D-", pad=3),
+            "date": date,
+            "type": it.get("type", "architecture-decision"),
+            "title": title,
+            "status": "active",
+            "context": it.get("context", ""),
+            "options_considered": list(it.get("options_considered") or []),
+            "decision": it.get("decision", ""),
+            "consequences": it.get("consequences", ""),
+            "supersedes": it.get("supersedes"),
+            "tags": list(it.get("tags") or []),
+        }
+        sup = it.get("supersedes")
+        if sup:
+            # validate_plan() already proved the target exists.
+            by_id[str(sup)]["status"] = "superseded"
+            tally["decisions_superseded"] += 1
+        rows.append(entry)
+        by_id[entry["id"]] = entry
+        tally["decisions_added"] += 1
+        tally["decision_ids"].append(entry["id"])
+
+    write_json(mem, "context/decisions.json", rows, dry, touched, via="decisions")
+
 
 def apply_learnings(mem, plan, date, dry, touched, tally):
     items = plan.get("learnings") or []
@@ -460,7 +694,9 @@ def apply_consolidation(mem, plan, session_id, dry, touched, tally):
     write_json(mem, "consolidation-marker.json", {
         "last_wrapup": now,
         "consolidated_sessions": sessions or ([session_id] if session_id else []),
-        "iterations_logged": int(plan.get("iterations_logged", 0)),
+        # Measured first, plan-declared only as a fallback for runs whose
+        # iterations were logged elsewhere (see verify-subagent-tallies).
+        "iterations_logged": tally["iterations_logged"] or int(plan.get("iterations_logged", 0)),
         "learnings_added": tally["learnings_added"],
         "touched_files_seen": seen_files,
     }, dry, touched)
@@ -511,6 +747,10 @@ def main() -> int:
     session_id = args.session_id or plan.get("session_id", "")
 
     tally = {
+        "iterations_logged": 0, "iterations_skipped_duplicate": 0,
+        "errors_added": 0, "errors_recurred": 0,
+        "decisions_added": 0, "decisions_superseded": 0,
+        "decisions_skipped_duplicate": 0, "decision_ids": [],
         "learnings_added": 0, "learnings_skipped_duplicate": 0, "learning_ids": [],
         "candidates_new": 0, "candidates_updated": 0, "candidates_promoted": 0,
         "candidates_rejected_trust": 0, "promotion_blocked_trust": 0,
@@ -523,6 +763,9 @@ def main() -> int:
     touched: list = []
 
     try:
+        validate_plan(args.mem, plan)
+        apply_iterations(args.mem, plan, date, args.dry_run, touched, tally)
+        apply_decisions(args.mem, plan, date, args.dry_run, touched, tally)
         apply_learnings(args.mem, plan, date, args.dry_run, touched, tally)
         apply_user_candidates(args.mem, plan, date, args.dry_run, touched, tally)
         apply_soul_candidates(args.mem, plan, date, args.dry_run, touched, tally)

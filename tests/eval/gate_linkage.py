@@ -132,7 +132,7 @@ WRAPUP_GATES = [
     {"name": "session-harvest", "clauses": [
         ["(session-harvest)"],                           # marker
         ["git log --oneline --since=midnight"],          # trigger: substantial work
-        ["iteration-logger"],                            # action: owns the writes
+        ["`iterations` array"],                          # action: into the write plan (T-015)
     ]},
     {"name": "stale-session-harvest", "clauses": [
         ["is NOT this session"],                         # trigger: crashed session
@@ -160,11 +160,11 @@ WRAPUP_GATES = [
     ]},
     {"name": "pattern-extraction", "clauses": [
         ["3+ new iterations"],                           # trigger: enough new data
-        ["pattern-extractor"],                           # action: invoke extractor
+        ["extract_patterns.py"],                         # action: run the extractor script
     ]},
     {"name": "decision-scan", "clauses": [
         ["(decision-scan)"],                             # marker
-        ["context-keeper"],                              # action: owns decisions.json
+        ["`decisions` array"],                           # action: into the write plan (T-015)
     ]},
     {"name": "session-summary-cap", "clauses": [
         ["max 30 lines"],                                # contract: bounded summary

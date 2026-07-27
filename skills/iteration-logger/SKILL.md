@@ -24,9 +24,29 @@ Log every meaningful coding iteration to `.agent-memory/iterations/`.
 - After fixing an error (especially multi-attempt fixes)
 - When the Stop hook detects unlogged work
 - User says "log this" or similar trigger phrases
-- When invoked by wrap-up's Step 1.5 session-harvest (retro-logging at session end):
-  same schema and counting rule apply — the caller supplies the reconstructed data,
-  this skill remains the only writer of iteration-log.md / errors.json
+
+**NOT at session end.** Since T-015 `wrap-up` Step 1.5 harvests iterations into its
+own write plan instead of invoking this skill — loading a skill body triggered a
+full prefix-cache rewrite in 41% of measured cases (L34/D-010), and wrap-up already
+holds the session context this skill would re-derive. This skill is the entry point
+for logging *during* a session, not for the wrap-up.
+
+## The Write Path (write-path)
+
+`scripts/apply_wrapup.py` is the single writer for `iteration-log.md`,
+`errors.json` and `working/current-session.json`. Do not write them by hand — the
+script owns id continuation, the recurrence rule, the markdown shape and the
+working-memory bookkeeping, so both entry points produce byte-identical results:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/apply_wrapup.py" .agent-memory --session-id <sid> <<'PLAN'
+{"date": "YYYY-MM-DD", "iterations": [ { ...one object per iteration... } ]}
+PLAN
+```
+
+Field schema: `skills/wrap-up/references/wrapup-schemas.md` §Write plan
+(`iterations`). Steps 1–4 below define WHAT goes into that object; the script
+decides how it lands on disk. Use `--dry-run` to preview the tally.
 
 ## Step 1: Analyze the Iteration
 
@@ -98,43 +118,42 @@ Only if errors occurred during the iteration.
 }
 ```
 
-**Required fields**: id, date, category, tags, problem, root_cause, fix, severity
+**Required fields**: category, tags, problem, root_cause, fix, severity
 **Optional fields**: trigger, failed_approaches, prevention, attempts, confidence
 
-Read `errors.json` first to determine the next `id` number. Append to the array.
+Put these into the iteration's `errors` array — do NOT set `id`, `date`,
+`occurrences`, `recurrence_dates` or `last_seen`. The script assigns the id in the
+format already on disk (`err-00n`, not the `E{n}` older versions of this file
+claimed) and applies the Step-2 recurrence rule itself: a match increments the
+existing entry instead of appending a new one.
 
-## Step 4: Write iteration-log.md Entry
+## Step 4: iteration-log.md Entry
+
+The script renders the block; supply the content fields (`type`, `title`, `tags`,
+`files_changed`, `summary`, `confidence`, `tests`, `learnings`, `commits`). The
+rendered shape is:
 
 ```markdown
-## Iteration #{n} — {YYYY-MM-DD} {HH:MM}
-
-**Type:** feature | bugfix | refactor | config | docs | test
-**Summary:** One-line description
-**Files changed:** file1.py, file2.py
-**Tests:** passed | failed | skipped | not applicable
-**Confidence:** 3/5
-**Tags:** python, import-error
-
-### Details
-- What was done and why
-
-### Learnings
-- Non-obvious insight (skip if nothing new was learned)
-
-### Errors
-- E{n}: Brief error reference (if applicable)
+## {YYYY-MM-DD} — {type}: {title}
+- **Type:** feature | bugfix | refactor | config | docs | test
+- **Tags:** python, import-error
+- **Files changed:** file1.py, file2.py
+- **Summary:** One-line description
+- **Confidence:** 3/5
+- **Tests:** passed | failed | skipped | not applicable
+- **Errors:** err-00n | (Recurrence of err-00n)
 ```
 
-Read `iteration-log.md` first to determine the next iteration number.
+Do not re-derive this format from surrounding entries and do not hand-write the
+block — that is exactly how the log drifted away from its documented template for
+months. An identical header on a re-run is skipped, so applying the same plan
+twice is safe.
 
-## Step 4b: Update Working Memory
+## Step 4b: Working Memory
 
-If `.agent-memory/working/current-session.json` exists, update it:
-
-1. If errors occurred: append error IDs to `errors_this_session`
-2. If the iteration produced a non-obvious insight: append to `learnings_draft` (these are candidates that wrap-up will later promote to `learnings.json` or discard)
-
-This keeps a running tally of the current session's activity for wrap-up consumption.
+`working/current-session.json` is updated by the same call: new error ids land in
+`errors_this_session`. Non-obvious insights belong in the iteration's `learnings`
+field — wrap-up later promotes them to `learnings.json` or discards them.
 
 ## Step 5: Confirm and Suggest
 
@@ -158,8 +177,10 @@ The rotation thresholds live in `scripts/memory-thresholds.sh` (single source of
 
 ## What NOT to Do
 
+- Do NOT write `iteration-log.md`, `errors.json` or `current-session.json` with
+  Write/Edit — they go through `apply_wrapup.py` (see The Write Path)
 - Do NOT push to global memory (that's wrap-up's job)
-- Do NOT modify patterns.json (that's pattern-extractor's job)
+- Do NOT modify patterns.json (that's `scripts/extract_patterns.py`)
 - Do NOT modify decisions.json (that's context-keeper's job)
 - Do NOT count individual file saves as separate attempts
 - Do NOT log trivial changes (typo fixes, whitespace) unless part of a larger iteration

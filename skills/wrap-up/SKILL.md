@@ -24,9 +24,11 @@ prepares the next session.
 After every substantial task or session, consolidate durable knowledge into the
 central .agent-memory/ knowledge base instead of leaving it in the conversation:
 
-- Work iterations → `iterations/iteration-log.md` via `iteration-logger`
+- Work iterations → `iterations/iteration-log.md` + `errors.json` (write plan, Step 1.5 —
+  the `iteration-logger` skill stays the entry point for mid-session logging)
 - Reusable learnings → `learnings/learnings.json` + `learnings.md`
-- Durable decisions → `context/decisions.json` via `context-keeper`
+- Durable decisions → `context/decisions.json` (write plan, Step 4.5 — the
+  `context-keeper` skill stays the entry point outside wrap-up)
 - Open next steps → `context/open-tasks.json`
 - Identity observations → `working/user-candidates.json` → `identity/user.md` / `identity/soul-candidates.md`
 - Handoff snapshot → `session-summary.md` + central handoff
@@ -55,10 +57,11 @@ files you actually read this run; Step 9.5 logs that number.
 
 ## Step 0.6: Write-Plan Discipline (write-plan)
 
-Do NOT write `learnings.json`/`learnings.md`, `session-summary.md`,
+Do NOT write `iteration-log.md`, `errors.json`, `working/current-session.json`,
+`decisions.json`, `learnings.json`/`learnings.md`, `session-summary.md`,
 `open-tasks.json`, `user-candidates.json`, `user-changelog.json`, `user.md`,
 `soul-candidates.md`, `consolidation-marker.json` or the `dirty-*.json` flags
-with individual Write/Edit calls. Collect the results of Steps 3–7 into ONE
+with individual Write/Edit calls. Collect the results of Steps 1.5–7 into ONE
 write plan and hand it to the batch writer in Step 8.5.
 
 Why: a measured run cost $15.50 for 28 API calls — 11.8M cache-read and 1.38M
@@ -66,6 +69,12 @@ cache-write tokens against only 39k output tokens. That is 94% context
 transport and 6% thinking. The model is stateless: every call resends the
 whole conversation, so each additional turn costs another full context. The
 plan collapses the write phase to ~2 calls.
+
+The same arithmetic is why this skill no longer invokes `iteration-logger`,
+`context-keeper` or `pattern-extractor`: loading a skill body was followed by a
+full prefix-cache rewrite in 41% of measured cases (L34/D-010), and those three
+bodies were almost entirely mechanical rules that now live in the scripts. The
+skills remain the entry point when a user calls them directly.
 
 Keep judgment in your head (what is a learning, what is an identity signal, how
 important); leave every mechanical rule to the script — ids, `review_after`,
@@ -104,11 +113,19 @@ Do not invent details the files and git history cannot support.
 
 1. Reconstruct 1–5 **distinct iterations** from conversation + git evidence
    (feature/bugfix/refactor/config/docs/test — distinct approaches, not individual edits).
-2. For each: **invoke the `iteration-logger` skill** with type, summary, files, errors +
-   root cause, test status. iteration-logger **owns all writes** to `iteration-log.md`,
-   `errors.json`, `working/current-session.json` — wrap-up never writes those directly.
+   **Counting rule:** three failed fixes before the right one are ONE iteration with
+   `attempts: 3`, not three iterations. **Tags:** at least 2, lowercase, reusing the
+   conventions already in `errors.json` (language/framework · domain · error type).
+2. Put them into the write plan's `iterations` array (Step 8.5). Do **NOT** invoke the
+   `iteration-logger` skill for this and do NOT write `iteration-log.md` /
+   `errors.json` / `working/current-session.json` by hand — `apply_wrapup.py` owns
+   those writes and their mechanics: id continuation in the format already on disk,
+   the recurrence rule (same category AND ≥2 overlapping tags → `occurrences++`
+   instead of a new entry), the markdown shape, and the working-memory bookkeeping.
+   Judgment stays here: what counts as one iteration, which errors mattered, why.
 3. Trivial session (pure lookup/discussion, no artifacts): skip silently.
-4. After harvesting, re-run Step 1 so Steps 2–4 see the fresh entries.
+4. The plan is applied in Step 8.5, so Steps 2–4 work from the reconstruction you
+   just made — do not re-read the log to "see" it.
 
 ## Step 2: Summarize Work Done
 
@@ -212,18 +229,53 @@ learnings.json (`bridge_status`); the AGENTS.md block is a projection.
   `derived_from` pointing at their source iteration if the draft names one, else `[]`.
 - New learning contradicts an old one → set `superseded_by` on the old entry.
 
-## Step 4: Pattern Extraction
+## Step 4: Pattern Extraction (pattern-extraction)
 
-If 3+ new iterations were logged this session: trigger `pattern-extractor`
-(lightweight — analyzes only the new data). Fewer than 3: skip.
+If 3+ new iterations were logged this session, run the deterministic extractor.
+Do **NOT** invoke the `pattern-extractor` skill for this path — its detection
+heuristics, confidence formula and Jaccard dedup are exact thresholds, and they
+live in the script:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/extract_patterns.py" .agent-memory --update
+```
+
+It applies everything already determined (evidence merge, recomputed confidence,
+legacy-shape normalization, `patterns.md`) and returns `proposals` — clusters it
+found but cannot name. Empty `proposals` (the common case) means you are done
+after one call. Otherwise supply wording for the ones worth keeping in ONE
+follow-up call:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/extract_patterns.py" .agent-memory --apply <<'PLAN'
+{"patterns": [{"cluster_key": "<from the proposal>", "description": "...",
+               "recommendation": "..."}]}
+PLAN
+```
+
+`evidence`, `occurrences`, `confidence` and the dates come from the measurement
+and are ignored if the plan sets them — you supply language, never numbers.
+
+Invoke the `pattern-extractor` skill ONLY when the report lists `skill_candidates`
+or `rueckfluss_candidates` you actually intend to act on: skill generation (its
+Step 6.5) and delta drafts (Step 6.6) are genuine judgment work and stay there.
+Fewer than 3 new iterations: skip the whole step.
 
 ## Step 4.5: Decision Scan (decision-scan)
 
 Scan the session for **decisions of record**: new/changed dependencies, architecture
 choices, storage/format changes, ownership/policy decisions ("X is SSoT", "no auto-sync").
-If found: **invoke `context-keeper`** with the list — it owns `decisions.json` and
-`project-context.md`. Trust boundary: conversation + repo evidence only. One-off
-implementation details are NOT decisions — when in doubt, skip. None found: skip silently.
+Trust boundary: conversation + repo evidence only. One-off implementation details are
+NOT decisions — when in doubt, skip. None found: skip silently.
+
+If found: put them into the write plan's `decisions` array (Step 8.5) — do **NOT**
+invoke the `context-keeper` skill for this and never edit `decisions.json` by hand.
+`apply_wrapup.py` owns the mechanics: id continuation in the on-disk format, the
+append-only rule, and the supersede flip (`supersedes: "D-00n"` sets the old record
+to `superseded`; pointing at an unknown id rejects the whole plan). Judgment stays
+here: is this a decision of record, what were the real alternatives, what follows
+from it. `project-context.md` (the docs cache) remains context-keeper's own job and
+is NOT part of wrap-up.
 
 ## Step 5: Update session-summary.md
 
@@ -507,8 +559,9 @@ patterns / Open questions). Template: `references/wrapup-schemas.md` §Handoff M
 
 ## What NOT to Do
 
-- Do NOT write `errors.json` (iteration-logger), `patterns.json` (pattern-extractor),
-  or `decisions.json` (context-keeper) directly
+- Do NOT write `errors.json`, `iteration-log.md` or `decisions.json` with Write/Edit —
+  they go through the write plan (Step 8.5); `patterns.json`/`patterns.md` belong to
+  `scripts/extract_patterns.py` and are refused by the batch writer
 - Do NOT write soul.md — ever (candidates only; the write is bootstrap's [j/n] gate)
 - Do NOT skip Step 6 or its status line — identity growth must be visible
 - Do NOT write session-summary.md longer than 30 lines

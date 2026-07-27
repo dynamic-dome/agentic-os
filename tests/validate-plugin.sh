@@ -1537,38 +1537,79 @@ else
     fail "command(s) shadow skill name(s):$SHADOWED — the Skill tool resolves the name to the command wrapper, causing an invoke loop (L17). Delete or rename the wrapper command."
 fi
 
-# --- wrap-up session-bracket coverage: session-harvest + decision-scan (v3.6.0) ---
-# Users who only run bootstrap + wrap-up never call iteration-logger or context-keeper
-# manually -> the work-phase chain (iteration-logger -> pattern-extractor ->
-# skill-generator) starves: after months of sessions the store held 5 iterations,
-# 3 errors and a null quality score (observed 2026-06-12). wrap-up must retro-harvest
-# the session's iterations (delegating to iteration-logger) and scan for decisions of
-# record (delegating to context-keeper) so the two-call bracket feeds the pipeline.
+# --- wrap-up session-bracket coverage: session-harvest + decision-scan ---------
+# Users who only run bootstrap + wrap-up never call iteration-logger or
+# context-keeper manually -> without a retro-harvest the pattern pipeline starves
+# (after months of sessions the store held 5 iterations, 3 errors and a null
+# quality score, observed 2026-06-12). v3.6.0 fixed that by DELEGATING to those
+# skills; T-015 keeps the coverage but drops the delegation: a skill-body
+# injection was followed by a full prefix-cache rewrite in 41% of measured cases
+# (L34/D-010), and those bodies were mechanical rules that now live in the
+# scripts. So the requirement flipped from "must delegate" to "must route into
+# the write plan, and must NOT delegate".
+#
+# The delegation budget below IS the T-015 definition of done: the number of skill
+# invocations one wrap-up run prescribes. Counted, not estimated - the previous
+# version of this test greped for "invoke ... <skill>", which goes false-green on
+# "do NOT invoke <skill>" (that is exactly how it read this file after the rebuild).
 echo ""
-echo "-- wrap-up session-harvest / decision-scan (v3.6.0) --"
+echo "-- wrap-up delegation budget (T-015) --"
 WU_SKILL36="$PLUGIN_ROOT/skills/wrap-up/SKILL.md"
 if [ -f "$WU_SKILL36" ]; then
-    # L11 hardening: the delegation must be ONE sentence ("invoke ... iteration-logger"
-    # on the same line inside the marker block) — two independent greps would go
-    # false-green on unrelated mentions of the words elsewhere in the window.
+    # Flatten first: the prohibition spans a line break, so a per-line grep sees
+    # "invoke the" and "`iteration-logger`" as unrelated hits.
+    WU_FLAT="$(tr -s '[:space:]' ' ' < "$WU_SKILL36")"
+    # Counts "invoke <skill>" minus the negated forms. The negation list has to
+    # cover every way this file says no ("do NOT invoke", "no longer invokes",
+    # "never invoke") - miss one and the test reports a delegation that is not
+    # there. Keep prohibitions in one of those three shapes.
+    positive_invokes() {
+        ALL=$(echo "$WU_FLAT" | grep -oiE "invokes?[^.]{0,60}\`?$1\`?" | wc -l)
+        NEG=$(echo "$WU_FLAT" \
+              | grep -oiE "(n[o']t|never|no longer)[^.]{0,14}invokes?[^.]{0,60}\`?$1\`?" | wc -l)
+        echo $((ALL - NEG))
+    }
+    for FORBIDDEN_CALLEE in iteration-logger context-keeper; do
+        N=$(positive_invokes "$FORBIDDEN_CALLEE")
+        if [ "$N" -eq 0 ]; then
+            pass "wrap-up: does not invoke $FORBIDDEN_CALLEE (its rules live in apply_wrapup.py)"
+        else
+            fail "wrap-up: still prescribes $N skill invocation(s) of $FORBIDDEN_CALLEE — each one risks a full prefix-cache rewrite (41%, L34); route the data through the write plan instead"
+        fi
+    done
+    # pattern-extractor keeps exactly ONE conditional invoke: Steps 6.5/6.6 (skill
+    # generation, delta drafts) are judgment work that no script can take over.
+    N=$(positive_invokes "pattern-extractor")
+    if [ "$N" -le 1 ]; then
+        pass "wrap-up: at most one conditional pattern-extractor invoke (Steps 6.5/6.6)"
+    else
+        fail "wrap-up: $N pattern-extractor invocations — the routine path must call scripts/extract_patterns.py, not the skill"
+    fi
+
+    # Coverage must survive the rebuild: both blocks still have to route somewhere.
     HARVEST_BLOCK="$(grep -A 24 "(session-harvest)" "$WU_SKILL36")"
-    if echo "$HARVEST_BLOCK" | grep -qiE "invoke[^.]*\`?iteration-logger\`?"; then
-        pass "wrap-up: (session-harvest) block delegates retro-logging to iteration-logger"
+    if echo "$HARVEST_BLOCK" | grep -qE '`iterations`'; then
+        pass "wrap-up: (session-harvest) routes reconstructed iterations into the write plan"
     else
-        fail "wrap-up: no (session-harvest) block delegating to iteration-logger — the bootstrap+wrap-up bracket starves the pattern pipeline"
+        fail "wrap-up: (session-harvest) block no longer routes iterations anywhere — the bootstrap+wrap-up bracket starves the pattern pipeline"
     fi
-    DSCAN_BLOCK="$(grep -A 14 "(decision-scan)" "$WU_SKILL36")"
-    if echo "$DSCAN_BLOCK" | grep -qiE "invoke[^.]*\`?context-keeper\`?"; then
-        pass "wrap-up: (decision-scan) block delegates decisions of record to context-keeper"
+    DSCAN_BLOCK="$(grep -A 16 "(decision-scan)" "$WU_SKILL36")"
+    if echo "$DSCAN_BLOCK" | grep -qE '`decisions`'; then
+        pass "wrap-up: (decision-scan) routes decisions of record into the write plan"
     else
-        fail "wrap-up: no (decision-scan) block delegating to context-keeper — session decisions are lost without an explicit 'record decision' call"
+        fail "wrap-up: (decision-scan) block no longer routes decisions anywhere — session decisions are lost"
     fi
-    # Write-ownership stays intact: the harvest block must not instruct wrap-up to
-    # write iteration-log.md/errors.json itself (those belong to iteration-logger).
-    if echo "$HARVEST_BLOCK" | grep -qi "owns all writes"; then
-        pass "wrap-up: session-harvest preserves iteration-logger's write ownership"
+    PEXT_BLOCK="$(grep -A 26 "(pattern-extraction)" "$WU_SKILL36")"
+    if echo "$PEXT_BLOCK" | grep -q "extract_patterns.py"; then
+        pass "wrap-up: (pattern-extraction) calls the deterministic extractor script"
     else
-        fail "wrap-up: session-harvest block lacks the write-ownership clause (iteration-logger owns iteration-log.md/errors.json)"
+        fail "wrap-up: (pattern-extraction) block does not call scripts/extract_patterns.py"
+    fi
+    # Write ownership still has to be stated - it moved to the script, it did not vanish.
+    if echo "$HARVEST_BLOCK" | grep -q "apply_wrapup.py"; then
+        pass "wrap-up: session-harvest names apply_wrapup.py as the owner of those writes"
+    else
+        fail "wrap-up: session-harvest block lacks the write-ownership clause (apply_wrapup.py owns iteration-log.md/errors.json)"
     fi
 else
     fail "wrap-up: SKILL.md not found (session-harvest check)"
