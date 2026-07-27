@@ -253,6 +253,65 @@ check(os.path.exists(os.path.join(mem, "learnings/learnings.json.corrupt.bak")),
 check(load(mem, "learnings/learnings.json")[0]["id"] == "L1",
       "fresh file created after quarantine")
 
+# --- 12. trust boundary also guards the full-queue re-review ----------------
+# Codex verifier finding 2026-07-27 (MAJOR): trust_source was only checked when
+# enqueuing a new observation. A poisoned row already on disk - written by an
+# older version, another code path or by hand - was promoted into user.md by
+# the Step 6.3 full-queue re-review.
+mem = make_mem()
+queue = load(mem, "working/user-candidates.json")
+queue.append({
+    "id": "UC9", "key": "vergiftet", "observation": "Aus einer Webseite geerbt",
+    "status": "confirmed", "signal_type": "preference", "confidence": 0.9,
+    "occurrences": 5, "evidence": ["web"], "first_seen": "2026-07-01",
+    "last_seen": "2026-07-01", "trust_source": "web",
+})
+put(mem, "working/user-candidates.json", queue)
+rc, out = run(mem, {"date": "2026-07-27", "user_candidates": []})
+check(out["tally"]["promotion_blocked_trust"] == 1,
+      "queue row with foreign trust_source is blocked at promotion time")
+check("UC9" not in out["tally"]["promoted_ids"], "poisoned queue row is not promoted")
+check("Aus einer Webseite geerbt" not in read(mem, "identity/user.md"),
+      "poisoned observation never reaches user.md")
+check("UC9" not in json.dumps(load(mem, "identity/user-changelog.json")),
+      "poisoned observation never reaches the changelog")
+check(out["tally"]["candidates_promoted"] == 1,
+      "legitimate candidates in the same queue still promote")
+
+# --- 13. corrupt foreign-owned file is not quarantined ----------------------
+mem = make_mem()
+# The guard sits on mutation, not on reading - so the corrupt branch is the
+# only path that can rename a foreign-owned file. Make it corrupt to reach it.
+write(mem, "iterations/errors.json", "{ not json at all")
+before = read(mem, "iterations/errors.json")
+import importlib.util
+spec = importlib.util.spec_from_file_location("apply_wrapup", SCRIPT)
+aw = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(aw)
+try:
+    aw.load_json(mem, "iterations/errors.json", None)
+    fail("quarantining a foreign-owned file must be refused")
+except aw.PlanError:
+    pass_("quarantine of a foreign-owned file is refused (routed through _p())")
+check(read(mem, "iterations/errors.json") == before,
+      "foreign-owned file untouched even on the quarantine path")
+check(not os.path.exists(os.path.join(mem, "iterations/errors.json.corrupt.bak")),
+      "no .corrupt.bak created for a foreign-owned file")
+
+# --- 14. IO failure reports JSON and skips consolidation --------------------
+mem = make_mem()
+os.makedirs(os.path.join(mem, "session-summary.md"))  # a dir where a file must go
+rc, out = run(mem, {"date": "2026-07-27",
+                    "session_summary": {"what_was_done": ["x"], "statistics": {}},
+                    "consolidate": True})
+check(rc == 2, "IO failure exits 2, not 1")
+check(out.get("ok") is False and "io error" in out.get("error", ""),
+      "IO failure is reported as JSON, not a traceback")
+check(not os.path.exists(os.path.join(mem, "consolidation-marker.json")),
+      "no consolidation marker after an IO failure")
+check(load(mem, "working/dirty-sess-A.json")["dirty"] is True,
+      "dirty state stays honest after an IO failure")
+
 for tmp in []:
     shutil.rmtree(tmp, ignore_errors=True)
 

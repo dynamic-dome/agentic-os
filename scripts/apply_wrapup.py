@@ -32,7 +32,15 @@ USAGE
     python scripts/apply_wrapup.py .agent-memory --session-id <sid> --dry-run < plan.json
 
 Plan schema: skills/wrap-up/references/wrapup-schemas.md §Write plan.
-Exit codes: 0 = applied, 1 = usage/IO error, 2 = plan rejected (nothing written).
+
+Exit codes:
+  0 = applied
+  1 = usage error (bad arguments, memory dir missing) - nothing attempted
+  2 = plan rejected OR IO failure mid-run - the run stopped before
+      consolidation, so the marker is absent and dirty flags stay set
+
+A programming error (TypeError and friends) is deliberately NOT caught: it
+must crash loudly rather than be reported as a well-formed failure.
 """
 
 from __future__ import annotations
@@ -87,7 +95,11 @@ def load_json(mem: str, rel: str, default):
             return json.load(fh)
     except (json.JSONDecodeError, UnicodeDecodeError):
         # Error Handling contract: quarantine, do not crash the whole wrap-up.
-        os.replace(path, path + ".corrupt.bak")
+        # Route the rename through _p() so quarantining is covered by the same
+        # guard as every other mutation - otherwise this would be a second,
+        # unguarded write path into the memory dir.
+        guarded = _p(mem, rel)
+        os.replace(guarded, guarded + ".corrupt.bak")
         return default
 
 
@@ -241,6 +253,14 @@ def promote_candidates(mem, queue, date, dry, touched, tally):
             continue
         if c.get("signal_type") == "mood":
             continue  # signal:mood is NEVER promoted
+        if c.get("trust_source") != "conversation":
+            # The enqueue path rejects foreign sources, but this full-queue
+            # re-review also sees rows written by older versions, other code
+            # paths, or a hand-edited file. Without this check a poisoned row
+            # already sitting in the queue would be laundered into user.md -
+            # exactly what the Step 6.1 boundary exists to prevent.
+            tally["promotion_blocked_trust"] += 1
+            continue
         status = c.get("status")
         occ = int(c.get("occurrences", 1))
         conf = float(c.get("confidence", 0.0))
@@ -482,7 +502,8 @@ def main() -> int:
     tally = {
         "learnings_added": 0, "learnings_skipped_duplicate": 0, "learning_ids": [],
         "candidates_new": 0, "candidates_updated": 0, "candidates_promoted": 0,
-        "candidates_rejected_trust": 0, "promoted_ids": [], "queue_open": 0,
+        "candidates_rejected_trust": 0, "promotion_blocked_trust": 0,
+        "promoted_ids": [], "queue_open": 0,
         "soul_candidates_added": 0, "soul_skipped_duplicate": 0,
         "tasks_added": 0, "tasks_closed": 0, "tasks_skipped_duplicate": 0,
         "session_summary_lines": 0, "dirty_files_consolidated": 0,
@@ -498,8 +519,13 @@ def main() -> int:
         apply_session_summary(args.mem, plan, args.dry_run, touched, tally)
         # LAST: marker only after everything else succeeded (Step 9.5 rule 5)
         apply_consolidation(args.mem, plan, session_id, args.dry_run, touched, tally)
-    except PlanError as e:
-        print(json.dumps({"ok": False, "error": str(e), "files_written": touched,
+    except (PlanError, OSError) as e:
+        # Both classes mean the same thing to the caller: the run stopped before
+        # consolidation, so the marker is absent and the dirty flags still say
+        # "un-consolidated". Reported as JSON so a harness can branch on it
+        # instead of parsing a traceback.
+        kind = "plan rejected" if isinstance(e, PlanError) else "io error"
+        print(json.dumps({"ok": False, "error": f"{kind}: {e}", "files_written": touched,
                           "note": "consolidation marker NOT written - dirty state stays honest"},
                          ensure_ascii=False))
         return 2

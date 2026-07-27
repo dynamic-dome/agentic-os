@@ -20,10 +20,11 @@ $42 per run: 70 turns, each re-reading the full session context).
 ```json
 {
   "date": "{YYYY-MM-DD}",
+  "session_id": "{sid}",
   "learnings":       [ { "text": "...", "importance": 3, "tags": [], "derived_from": [] } ],
   "user_candidates": [ { "key": "kebab-key", "observation": "...", "signal_type": "preference",
                          "confidence": 0.5, "evidence": [], "confirmed": false,
-                         "trust_source": "conversation" } ],
+                         "status": "observed", "trust_source": "conversation" } ],
   "soul_candidates": [ { "proposal": "...", "evidence": [] } ],
   "open_tasks":      { "add": [ { "title": "...", "source": "wrap-up", "cross_project": false } ],
                        "close": ["T-001"] },
@@ -48,11 +49,17 @@ how important, which section.
 
 Guarantees worth relying on:
 
-- `trust_source` other than `conversation` is dropped (Step 6.1 boundary).
+- `trust_source` other than `conversation` is dropped (Step 6.1 boundary) —
+  both when enqueuing a new observation **and** when the full-queue re-review
+  considers a row that was already on disk. A poisoned row that somehow
+  reached the queue can never be promoted into `user.md`.
 - `errors.json`, `patterns.json`, `decisions.json`, `iteration-log.md` and
-  `soul.md` are refused — those belong to other skills.
-- On any error nothing further is written, **the consolidation marker is
-  skipped and dirty flags stay set** (Step 9.5 rule 5). Exit code 2.
+  `soul.md` are refused — those belong to other skills. Quarantining a corrupt
+  file goes through the same guard.
+- On a rejected plan or an IO failure the run stops there, **the consolidation
+  marker is skipped and dirty flags stay set** (Step 9.5 rule 5), and the
+  failure is reported as JSON with exit code 2. `session_id` may be passed in
+  the plan or via `--session-id` (the flag wins).
 - `--dry-run` reports the full tally without touching a file.
 
 The returned `identity_status_line` is computed from the writes that actually
