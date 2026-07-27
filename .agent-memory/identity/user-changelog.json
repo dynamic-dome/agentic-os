@@ -81,5 +81,42 @@
     "new_value": "Subagent-Modellwahl nach Aufgaben-Komplexitaet (UC8 promoted)",
     "candidate_id": "UC8",
     "evidence": "2026-07-06 explizite Formulierung + 2026-07-15 gesamter Session-Auftrag Modell-Routing"
+  },
+  {
+    "ts": "2026-07-27T11:10:18+02:00",
+    "field": "user.md/Preferences",
+    "old_value": null,
+    "new_value": "User verlangt bei jeder Bewertung/Empfehlung eine explizite Begründung — egal ob Zustimmung oder Ablehnung ('egal ob zustimmung oder ablehnung, immer mit begründung').",
+    "candidate_id": "UC1",
+    "evidence": [
+      "session 2026-06-03: Audit-Evaluation explizit gefordert",
+      "session 2026-06-03: Begründung bei jeder Hebel-Bewertung"
+    ]
+  },
+  {
+    "ts": "2026-07-27T11:10:18+02:00",
+    "field": "user.md/Preferences",
+    "old_value": null,
+    "new_value": "User belohnt/erwartet Ground-Truth-Verifikation vor Aktion — Behauptungen (auch aus externen Reports/Handoffs) gegen die Live-Realität prüfen, nicht der Buchhaltung trauen.",
+    "candidate_id": "UC2",
+    "evidence": [
+      "session 2026-06-03: Audit-Claims gegen .agent-memory/ verifiziert (bestätigt)",
+      "session 2026-06-03: Supersession-Korrektur nach Nachhaken akzeptiert",
+      "wiederkehrend: Codex-Verifier nach jeder substanziellen Änderung",
+      "session 2026-06-04: 4x die Ground-Truth-Option gewählt (Fund 1 verworfen, L2/L3 in Ruhe gelassen, Gate nicht gefälscht)",
+      "session 2026-06-12: Rebase-Drift gegen origin geprueft statt force, Cache-Version + Marker ground-truth verifiziert, mtime-Check vor Migration-apply"
+    ]
+  },
+  {
+    "ts": "2026-07-27T11:10:18+02:00",
+    "field": "user.md/Preferences",
+    "old_value": null,
+    "new_value": "User schätzt Rückfragen bei echten Entscheidungen statt stiller Annahmen, und hinterfragt selbst aktiv (z.B. 'wieso die globale supersession vertagen?') — erwartet, dass der Agent eigene Einschätzungen revidiert wenn das Nachhaken berechtigt ist.",
+    "candidate_id": "UC3",
+    "evidence": [
+      "session 2026-06-03: AskUserQuestion bei Pattern-Kanon + soul-Stufe beantwortet",
+      "session 2026-06-03: Supersession-Vertagung erfolgreich hinterfragt -> Agent revidierte",
+      "session 2026-07-06 abends: T-006-AskUserQuestion beantwortet und bewusst GEGEN die Empfehlung entschieden (nur save-session statt beide) — echte Entscheidungen gehoeren dem Owner"
+    ]
   }
 ]

@@ -94,5 +94,45 @@
     "updated": "2026-07-15",
     "source": "wrap-up",
     "cross_project": false
+  },
+  {
+    "id": "T-011",
+    "title": "ESKALATION entscheiden: D-005 (deklaratives Modell-Routing via Frontmatter) supersedieren ODER Routing per Fork/Subagent implementieren — die Wirksamkeitsannahme ist durch D-009 widerlegt",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-012",
+    "title": "Iteration-Log-Luecke 2026-07-16..2026-07-24 (Releases 4.8-4.15, ~20 Commits) nachtragen oder bewusst als verloren markieren — diese Sessions haben nie ein wrap-up gefahren",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-013",
+    "title": "Luecke schliessen: apply_wrapup.py setzt kein bridge_status=candidate auf neue Learnings mit importance>=4 â€” wrap-up SKILL.md Step 3d fordert es, das Plan-Schema kennt das Feld nicht (2026-07-27 manuell nachgezogen)",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-014",
+    "title": "Bug: bridge_projection.py schreibt die Ueberschrift 'Bridge: Offene Tasks (membrain)' hart kodiert (Zeile 75) â€” jedes Projekt bekommt das falsche Label; Projektnamen aus config.json project_id ableiten",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
   }
 ]

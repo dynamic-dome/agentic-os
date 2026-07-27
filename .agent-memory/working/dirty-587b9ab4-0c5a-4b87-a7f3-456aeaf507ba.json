@@ -1,41 +1,44 @@
 {
- "session_id": "587b9ab4-0c5a-4b87-a7f3-456aeaf507ba",
- "agent": "claude",
- "dirty": true,
- "started": "2026-07-27T09:45:47+02:00",
- "updated": "2026-07-27T10:54:37+02:00",
- "touched_files": [
-  "C:\\Users\\domes\\.claude\\skills\\model-routing-probe\\SKILL.md",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\model-routing.sh",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\CLAUDE.md",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\docs\\model-routing-eval-checklist.md",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\validate-skills.sh",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\docs\\superpowers\\specs\\2026-07-15-model-routing-design.md",
-  "C:\\Users\\domes\\wiki\\wiki\\todos\\2026-07-27-skill-model-frontmatter-noop.md",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\apply_wrapup.py",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\test-apply-wrapup.py",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\run-all.sh",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\wrap-up\\references\\wrapup-schemas.md",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\wrap-up\\SKILL.md",
-  "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\.claude-plugin\\plugin.json"
- ],
- "write_count": 38,
- "consolidated_at": null,
- "consolidated_by": null,
- "session_end": {
-  "reason": "other",
-  "ended_at": "2026-07-27T11:00:00+02:00",
-  "consolidated": false,
-  "git": {
-   "dirty_files": 5,
-   "porcelain_sample": [
-    "?? .agent-memory/working/dirty-587b9ab4-0c5a-4b87-a7f3-456aeaf507ba.json",
-    "?? .agent-memory/working/session-end-0ed55d72-3f5b-4655-a7d0-586ed6019f44.md",
-    "?? .agent-memory/working/session-end-7369e517-834c-41ee-a211-90ad4ade7d6d.md",
-    "?? .agent-memory/working/session-end-a6cf8c32-3803-4079-96d2-3acf54a7167b.md",
-    "?? .agent-memory/working/session-end-bed7c024-f3ee-4ef6-a2ae-f6c990303024.md"
-   ],
-   "last_commit": "9cd82c9 chore(release): 4.16.0 — wrap-up batch writer + measured-cost corrections"
-  }
- }
+  "session_id": "587b9ab4-0c5a-4b87-a7f3-456aeaf507ba",
+  "agent": "claude",
+  "dirty": false,
+  "started": "2026-07-27T09:45:47+02:00",
+  "updated": "2026-07-27T10:54:37+02:00",
+  "touched_files": [
+    "C:\\Users\\domes\\.claude\\skills\\model-routing-probe\\SKILL.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\model-routing.sh",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\CLAUDE.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\docs\\model-routing-eval-checklist.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\validate-skills.sh",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\docs\\superpowers\\specs\\2026-07-15-model-routing-design.md",
+    "C:\\Users\\domes\\wiki\\wiki\\todos\\2026-07-27-skill-model-frontmatter-noop.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\apply_wrapup.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\test-apply-wrapup.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\run-all.sh",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\wrap-up\\references\\wrapup-schemas.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\wrap-up\\SKILL.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\.claude-plugin\\plugin.json"
+  ],
+  "write_count": 38,
+  "consolidated_at": "2026-07-27T11:10:18+02:00",
+  "consolidated_by": "wrap-up",
+  "session_end": {
+    "reason": "other",
+    "ended_at": "2026-07-27T11:00:00+02:00",
+    "consolidated": false,
+    "git": {
+      "dirty_files": 5,
+      "porcelain_sample": [
+        "?? .agent-memory/working/dirty-587b9ab4-0c5a-4b87-a7f3-456aeaf507ba.json",
+        "?? .agent-memory/working/session-end-0ed55d72-3f5b-4655-a7d0-586ed6019f44.md",
+        "?? .agent-memory/working/session-end-7369e517-834c-41ee-a211-90ad4ade7d6d.md",
+        "?? .agent-memory/working/session-end-a6cf8c32-3803-4079-96d2-3acf54a7167b.md",
+        "?? .agent-memory/working/session-end-bed7c024-f3ee-4ef6-a2ae-f6c990303024.md"
+      ],
+      "last_commit": "9cd82c9 chore(release): 4.16.0 — wrap-up batch writer + measured-cost corrections"
+    }
+  },
+  "last_consolidated_at": "2026-07-27T11:10:18+02:00",
+  "last_consolidated_by": "wrap-up",
+  "writes_since_consolidation": 0
 }

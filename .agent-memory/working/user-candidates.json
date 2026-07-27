@@ -3,7 +3,7 @@
     "id": "UC1",
     "key": "explicit-reasoning-on-judgments",
     "observation": "User verlangt bei jeder Bewertung/Empfehlung eine explizite Begründung — egal ob Zustimmung oder Ablehnung ('egal ob zustimmung oder ablehnung, immer mit begründung').",
-    "status": "confirmed",
+    "status": "promoted",
     "signal_type": "preference",
     "confidence": 0.9,
     "occurrences": 2,
@@ -20,7 +20,7 @@
     "id": "UC2",
     "key": "ground-truth-before-action",
     "observation": "User belohnt/erwartet Ground-Truth-Verifikation vor Aktion — Behauptungen (auch aus externen Reports/Handoffs) gegen die Live-Realität prüfen, nicht der Buchhaltung trauen.",
-    "status": "confirmed",
+    "status": "promoted",
     "signal_type": "preference",
     "confidence": 0.9,
     "occurrences": 5,
@@ -40,7 +40,7 @@
     "id": "UC3",
     "key": "challenge-and-question-back",
     "observation": "User schätzt Rückfragen bei echten Entscheidungen statt stiller Annahmen, und hinterfragt selbst aktiv (z.B. 'wieso die globale supersession vertagen?') — erwartet, dass der Agent eigene Einschätzungen revidiert wenn das Nachhaken berechtigt ist.",
-    "status": "inferred",
+    "status": "promoted",
     "signal_type": "preference",
     "confidence": 0.75,
     "occurrences": 3,
@@ -163,6 +163,21 @@
     ],
     "first_seen": "2026-07-15",
     "last_seen": "2026-07-15",
+    "trust_source": "conversation"
+  },
+  {
+    "id": "UC11",
+    "key": "consolidate-before-new-work",
+    "observation": "Akzeptierte die Empfehlung, bei erkannter Memory-Drift zuerst zu konsolidieren (wrap-up) statt neue Arbeit zu starten",
+    "status": "observed",
+    "signal_type": "work-style",
+    "confidence": 0.5,
+    "occurrences": 1,
+    "evidence": [
+      "session 2026-07-27: auf den Hinweis, dass session-summary 3 Releases hinterherhinkt, antwortete der User 'wrap-up laufen lassen'"
+    ],
+    "first_seen": "2026-07-27",
+    "last_seen": "2026-07-27",
     "trust_source": "conversation"
   }
 ]

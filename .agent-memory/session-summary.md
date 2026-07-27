@@ -1,27 +1,31 @@
 # Last Session
 
-*Date: 2026-07-15 22:05*
+*Date: 2026-07-27 11:10*
 *Agent: Claude Code*
 
 ## What Was Done
-- Release v4.7.0 "Modell-Routing" komplett: Design (aus GPT-Spec memospartoken.md konsolidiert), Plan (7 TDD-Tasks), subagent-driven Umsetzung, gepusht, Plugin auf 4.7.0 aktualisiert
-- scripts/model-routing.sh (Modellklassen-SSoT) + model:/effort:-Frontmatter in 6 Skills + 2 Agents, bidirektionaler Konsistenztest
-- scripts/preprocess_state.py (Stufe-0-Zustandsobjekt) + scripts/cost-trace.sh (JSONL-Kostentrace), beide fail-soft mit Randfall-Tests
-- wrap-up/session-bootstrap verdrahtet: Kontextdiaet, Delta-Update, Hash-Fast-Path, Eskalationsregeln
-- 5 echte Bugs via Review-Loops gefixt (err-005..err-008); Codex-Verifier: VERIFIED; Suite gruen (Controller-verifiziert)
-- Memory: 5 Iterationen geharvestet, L25-L29, P011 + generierter Skill cli-robustness-edge-case-tests, D-004..D-007
+
+- Konsolidierungs-Session: 5 Commits (4.16.0-Arbeit) aus Session 587b9ab4 retro-geharvestet — das Memory hing 12 Tage / 3 Releases hinterher
+- 3 Iterationen nachgetragen: Routing-No-Op-Doku (b3c802d), Batch-Writer apply_wrapup.py + Trust-Boundary-Fix (a698707/2c29b62), Kosten-Korrektur + Release 4.16.0 (a735be2/9cd82c9)
+- err-009 (Trust-Boundary nur am Eingang geprueft) + err-010 (Kosten um 2.77x verzaehlt) erfasst; 4 Learnings, D-008/D-009
+- G-pattern-005 auf 10 Occurrences (promotion_status ready/global); Wiki-Sync: Session-Note, D-008 in die Entity, 4 Synthese-Bullets
 
 ## Open Items
-- Neue 4.7.0-Skill-Version greift erst nach Session-Restart (diese Session lief auf 4.5.1-Cache)
-- docs/PROJECT.md + ARCHITECTURE.md hinken auf v4.0.1-Stand (Drift, siehe T-014)
+
+- ESKALATION: D-005 widerlegt — supersede oder Fork/Subagent-Implementierung? nicht entschieden
+- Iteration-Log-Luecke 2026-07-16..2026-07-24 (Releases 4.8-4.15) nie geharvestet
+- T-009 (Docs-Drift) nennt noch v4.7.0 — die Drift geht inzwischen bis 4.16.0
 
 ## Next Steps
-1. Manuelle Eval-Checkliste E1-E5 durchfuehren (docs/model-routing-eval-checklist.md, DCO #8948)
-2. docs/PROJECT.md + ARCHITECTURE.md auf v4.7.0 nachziehen
-3. Phase 2 Modell-Routing: bootstrap-Lesepfad als cheap-read-Fork (haiku) mit Gate-Umbau
+
+1. T-008: manuelle Eval-Checkliste E1-E5 durchfuehren (DCO #8948)
+2. T-009: docs/PROJECT.md + ARCHITECTURE.md von v4.0.1 auf 4.16.0 nachziehen
+3. ESKALATION D-005 entscheiden
 
 ## Statistics
-- Iterations: 5 | Errors: 4 | New Patterns: 1 (P011 + generated skill)
+
+- Iterations: 3 | Errors: 2 | New Patterns: 0
 
 ## Active Warnings
-- P011 (conf 0.8): Robustheits-Vertraege ohne Randfall-Tests — bei jedem neuen CLI-Script die 5er-Matrix testen
+
+- G-pattern-005 (0.92/10): Exit-Code/Deklaration beweist keinen inhaltlichen Erfolg — gegen Ground-Truth verifizieren

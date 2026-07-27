@@ -94,7 +94,8 @@
     "scope": "pattern|claude-cli,dco,dual-bridge,exit-code,git,ground-truth,honesty,verification,verifikation-vor-aktion",
     "superseded_by": null,
     "pulled_from_global": "2026-06-12T19:16:54",
-    "promotion_status": "ready"
+    "promotion_status": "ready",
+    "promotion_scope": "global"
   },
   {
     "id": "P011",

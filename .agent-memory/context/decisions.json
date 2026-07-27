@@ -249,7 +249,9 @@
       "architecture",
       "cost",
       "testability"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-07-27"
   },
   {
     "id": "D-009",

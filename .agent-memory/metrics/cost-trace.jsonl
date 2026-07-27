@@ -1,1 +1,2 @@
 {"ts":"2026-07-27T09:01:57Z","task_type":"session-bootstrap","model_class":"cheap-write","context_bytes":42000,"est_input_tokens":10500,"escalated":0,"estimate":true}
+{"ts":"2026-07-27T09:10:33Z","task_type":"wrap-up","model_class":"cheap-write","context_bytes":96000,"est_input_tokens":24000,"escalated":1,"estimate":true}
