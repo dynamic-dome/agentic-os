@@ -32,11 +32,17 @@ skill are exact thresholds, i.e. code.
 
 ## Step 1: Run the Extractor (extractor-script)
 
-`scripts/extract_patterns.py` owns the whole deterministic pipeline — loading
-errors/iterations/patterns, the Step-2 heuristics, the Step-3 confidence formula,
-the Step-4 Jaccard dedup, the legacy normalization, the Step-5 entry shape and the
-Step-6 `patterns.md` projection. It is the **sole writer** of `patterns.json` and
-`patterns.md`:
+`scripts/extract_patterns.py` is the **sole writer** of `patterns.json` and
+`patterns.md`, and it owns the *error-based* half of the pipeline: reading
+`errors.json` + `patterns.json`, the Step-3 confidence formula, the Step-4 dedup,
+the legacy normalization, the Step-5 entry shape and the Step-6 projection.
+
+**What it does NOT do (yours to judge):** the Step-2 rows that need structured
+iteration history — file hotspots (same file across 3+ iterations), repeated
+successful approaches, fragile test areas, known solutions. `iteration-log.md` is
+prose, so the script cannot cluster it; it reports every unclustered error under
+`unmatched_errors` instead. Read those rows yourself when the report shows a long
+unmatched list.
 
 ```bash
 # apply everything determined; report clusters that still need wording

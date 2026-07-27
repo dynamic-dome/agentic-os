@@ -109,13 +109,28 @@ class PlanError(Exception):
 
 # ---------------------------------------------------------------- io helpers
 
+def canon(rel: str) -> str:
+    """Reduce a memory-relative path to the form the ownership tables use.
+
+    Without this the guard compares raw strings: "iterations/../iterations/
+    errors.json" is not in APPLIER_OWNED, yet resolves to a protected file -
+    a verified bypass of the generic writer (Codex review of 1e5c504). Any
+    path that leaves the memory dir is refused outright.
+    """
+    norm = os.path.normpath(rel.replace("\\", "/")).replace("\\", "/")
+    if norm.startswith("../") or norm == ".." or os.path.isabs(norm):
+        raise PlanError(f"refusing to write {rel}: path escapes the memory dir")
+    return norm
+
+
 def _p(mem: str, rel: str, via: str | None = None) -> str:
-    if rel in FORBIDDEN:
-        raise PlanError(f"refusing to write {rel}: owned by another script")
-    owner = APPLIER_OWNED.get(rel)
+    key = canon(rel)
+    if key in FORBIDDEN:
+        raise PlanError(f"refusing to write {key}: owned by another script")
+    owner = APPLIER_OWNED.get(key)
     if owner and owner != via:
-        raise PlanError(f"refusing to write {rel}: only the '{owner}' applier may touch it")
-    return os.path.join(mem, rel)
+        raise PlanError(f"refusing to write {key}: only the '{owner}' applier may touch it")
+    return os.path.join(mem, key)
 
 
 def load_json(mem: str, rel: str, default, via: str | None = None):
@@ -159,7 +174,7 @@ def write_json(mem: str, rel: str, data, dry: bool, touched: list,
                  dry, touched, via)
 
 
-def next_id(rows, prefix: str, pad: int = 0) -> str:
+def next_id(rows, prefix_arg: str, pad: int = 0) -> str:
     """Continue the id sequence that is ACTUALLY on disk.
 
     The arguments are only a fallback for an empty store. The real files drifted
@@ -183,9 +198,13 @@ def next_id(rows, prefix: str, pad: int = 0) -> str:
         g["hi"] = max(g["hi"], int(digits))
         g["pad"] = max(g["pad"], len(digits) if len(digits) > 1 else 0)
     if not groups:
-        hi = 0
+        prefix, hi = prefix_arg, 0
     else:
-        prefix = max(groups, key=lambda k: (groups[k]["count"], groups[k]["hi"]))
+        # Tie-break on the caller's canonical prefix: with one "D-001" and one
+        # "G-900" the counts are equal and the higher number would win, handing
+        # the sequence to the outlier - the exact opposite of the promise
+        # (Codex review of 1e5c504).
+        prefix = max(groups, key=lambda k: (groups[k]["count"], k == prefix_arg, groups[k]["hi"]))
         pad, hi = groups[prefix]["pad"], groups[prefix]["hi"]
     n = hi + 1
     return f"{prefix}{n:0{pad}d}" if pad else f"{prefix}{n}"
@@ -198,20 +217,51 @@ def norm(text: str) -> str:
 # ------------------------------------------------------------------- steps
 
 def validate_plan(mem, plan):
-    """Reject cross-reference errors BEFORE the first byte is written.
+    """Reject EVERY detectable plan error before the first byte is written.
 
-    A supersedes pointing at a non-existent decision is the one plan error that
-    cannot be detected inside its own applier without having already written
-    earlier sections. Checking it up front keeps a rejected plan from leaving a
-    half-applied iteration log behind.
+    Originally this only checked `supersedes`. That left the other required
+    fields to fail inside their applier - so a plan whose learnings were broken
+    still wrote its iteration log first and exited 2 half-applied (Codex review
+    of 1e5c504). Anything checkable without touching disk belongs here.
     """
+    for it in (plan.get("iterations") or []):
+        if not (it.get("title") or "").strip():
+            raise PlanError("iteration without 'title'")
+    for lrn in (plan.get("learnings") or []):
+        if not (lrn.get("text") or "").strip():
+            raise PlanError("learning without 'text'")
+    for cand in (plan.get("user_candidates") or []):
+        if not (cand.get("key") or "").strip():
+            raise PlanError("user candidate without 'key'")
+    for soul in (plan.get("soul_candidates") or []):
+        if not (soul.get("proposal") or "").strip():
+            raise PlanError("soul candidate without 'proposal'")
+    for task in ((plan.get("open_tasks") or {}).get("add") or []):
+        if not (task.get("title") or "").strip():
+            raise PlanError("open task without 'title'")
+
     sups = [d.get("supersedes") for d in (plan.get("decisions") or []) if d.get("supersedes")]
-    if not sups:
-        return
-    known = {str(r.get("id")) for r in load_json(mem, "context/decisions.json", [], via="decisions")}
-    for sup in sups:
-        if str(sup) not in known:
-            raise PlanError(f"supersedes points at unknown decision {sup}")
+    titles = [(d.get("title") or "").strip() for d in (plan.get("decisions") or [])]
+    for i, title in enumerate(titles):
+        if not title:
+            raise PlanError("decision without 'title'")
+    if sups:
+        known = {str(r.get("id")) for r
+                 in load_json(mem, "context/decisions.json", [], via="decisions")}
+        for sup in sups:
+            if str(sup) not in known:
+                raise PlanError(f"supersedes points at unknown decision {sup}")
+
+
+def iteration_header(it, date) -> str:
+    """The dedup key. Compared as a whole line, never as a substring - otherwise
+    'Fix' matches inside 'Fix extended' and swallows a real second iteration."""
+    title = (it.get("title") or "").strip()
+    if not title:
+        raise PlanError("iteration without 'title'")
+    if it.get("recovered_from"):
+        title += f" (recovered from session {it['recovered_from']})"
+    return f"## {date} — {it.get('type', 'feature')}: {title}\n"
 
 
 def render_iteration(it, date, error_refs):
@@ -222,12 +272,7 @@ def render_iteration(it, date, error_refs):
     template was never followed on disk. Every run re-invented the format from
     the surrounding entries, so it is pinned here once and for all.
     """
-    title = (it.get("title") or "").strip()
-    if not title:
-        raise PlanError("iteration without 'title'")
-    if it.get("recovered_from"):
-        title += f" (recovered from session {it['recovered_from']})"
-    out = [f"## {date} — {it.get('type', 'feature')}: {title}"]
+    out = [iteration_header(it, date).rstrip("\n")]
 
     def field(label, value):
         if value:
@@ -270,6 +315,16 @@ def apply_iterations(mem, plan, date, dry, touched, tally):
     blocks, new_error_ids, wrote_errors = [], [], False
 
     for it in items:
+        # Dedup FIRST. Rendering needs the error ids, but the header does not -
+        # and processing errors before the skip made every re-run count the same
+        # error as another recurrence (occurrences 2 -> 3 -> 4 over three
+        # identical runs, Codex review of 1e5c504). A skipped iteration must
+        # touch nothing at all.
+        header = iteration_header(it, date)
+        if header in log or any(b.startswith(header) for b in blocks):
+            tally["iterations_skipped_duplicate"] += 1
+            continue
+
         refs = []
         for err in (it.get("errors") or []):
             existing = find_recurrence(errors, err)
@@ -304,13 +359,7 @@ def apply_iterations(mem, plan, date, dry, touched, tally):
                 tally["errors_added"] += 1
             wrote_errors = True
 
-        block = render_iteration(it, date, refs)
-        header = block.splitlines()[0]
-        if header in log or any(header in b for b in blocks):
-            # Idempotent re-run: the same iteration must not appear twice.
-            tally["iterations_skipped_duplicate"] += 1
-            continue
-        blocks.append(block)
+        blocks.append(render_iteration(it, date, refs))
         tally["iterations_logged"] += 1
 
     if blocks:
@@ -350,16 +399,22 @@ def apply_decisions(mem, plan, date, dry, touched, tally):
         return
     rows = load_json(mem, "context/decisions.json", [], via="decisions")
     by_id = {str(r.get("id")): r for r in rows}
-    titles = {norm(r.get("title")) for r in rows}
+    # Identity is (title, supersedes), not title alone. Title-only dedup
+    # discarded a legitimate replacement that reused its predecessor's title and
+    # left the old record active (Codex review of 1e5c504); dropping the check
+    # for superseding decisions instead made them non-idempotent - a re-run
+    # appended the same decision again (caught by the smoke run against a copy
+    # of the real store).
+    seen = {(norm(r.get("title")), str(r.get("supersedes") or "")) for r in rows}
 
     for it in items:
         title = (it.get("title") or "").strip()
-        if not title:
-            raise PlanError("decision without 'title'")
-        if norm(title) in titles:
+        sup = it.get("supersedes")
+        key = (norm(title), str(sup or ""))
+        if key in seen:
             tally["decisions_skipped_duplicate"] += 1
             continue
-        titles.add(norm(title))
+        seen.add(key)
         entry = {
             "id": next_id(rows, "D-", pad=3),
             "date": date,
@@ -373,7 +428,6 @@ def apply_decisions(mem, plan, date, dry, touched, tally):
             "supersedes": it.get("supersedes"),
             "tags": list(it.get("tags") or []),
         }
-        sup = it.get("supersedes")
         if sup:
             # validate_plan() already proved the target exists.
             by_id[str(sup)]["status"] = "superseded"
@@ -683,7 +737,18 @@ def apply_consolidation(mem, plan, session_id, dry, touched, tally):
         for name in sorted(os.listdir(work)):
             if not (name.startswith("dirty-") and name.endswith(".json")):
                 continue
-            d = load_json(mem, f"working/{name}", None)
+            # Strict on purpose: the generic loader would quarantine a corrupt
+            # dirty file, return None and let the run finish with a marker -
+            # destroying the only record that work was left un-consolidated
+            # (Codex review of 1e5c504). Un-readable evidence must stop the run.
+            path = os.path.join(work, name)
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    d = json.load(fh)
+            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                raise PlanError(
+                    f"working/{name} is unreadable ({e}); refusing to consolidate over "
+                    f"un-consolidated work - fix or remove the file and re-run") from e
             if not isinstance(d, dict) or not d.get("dirty"):
                 continue
             dirty_files.append((name, d))
@@ -691,16 +756,11 @@ def apply_consolidation(mem, plan, session_id, dry, touched, tally):
             seen_files += len(d.get("touched_files") or [])
 
     now = _dt.datetime.now().astimezone().isoformat(timespec="seconds")
-    write_json(mem, "consolidation-marker.json", {
-        "last_wrapup": now,
-        "consolidated_sessions": sessions or ([session_id] if session_id else []),
-        # Measured first, plan-declared only as a fallback for runs whose
-        # iterations were logged elsewhere (see verify-subagent-tallies).
-        "iterations_logged": tally["iterations_logged"] or int(plan.get("iterations_logged", 0)),
-        "learnings_added": tally["learnings_added"],
-        "touched_files_seen": seen_files,
-    }, dry, touched)
 
+    # Dirty flags FIRST, marker LAST. The marker is the claim "everything below
+    # is consolidated"; publishing it before the flags meant an IO failure while
+    # resetting them left exit 2 WITH a marker - the exact inversion of the
+    # Step 9.5 rule-5 contract.
     for name, d in dirty_files:
         d["dirty"] = False
         d["consolidated_at"] = now
@@ -711,6 +771,16 @@ def apply_consolidation(mem, plan, session_id, dry, touched, tally):
         write_json(mem, f"working/{name}", d, dry, touched)
     tally["dirty_files_consolidated"] = len(dirty_files)
     tally["touched_files_seen"] = seen_files
+
+    write_json(mem, "consolidation-marker.json", {
+        "last_wrapup": now,
+        "consolidated_sessions": sessions or ([session_id] if session_id else []),
+        # Measured first, plan-declared only as a fallback for runs whose
+        # iterations were logged elsewhere (see verify-subagent-tallies).
+        "iterations_logged": tally["iterations_logged"] or int(plan.get("iterations_logged", 0)),
+        "learnings_added": tally["learnings_added"],
+        "touched_files_seen": seen_files,
+    }, dry, touched)
 
 
 # -------------------------------------------------------------------- main

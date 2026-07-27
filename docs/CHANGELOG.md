@@ -55,8 +55,53 @@ in `validate-plugin.sh`.
 Der ersetzte Vorgaenger-Test greppte `invoke ... <skill>` und lief nach dem Umbau
 **false-green** auf `do NOT invoke <skill>`.
 
-**Tests.** +35 in `test-apply-wrapup.py` (55 -> 90), neu `test-extract-patterns.py`
-(46), Eval `gate_linkage.py` auf die neuen Klauseln gezogen. Volle Suite gruen.
+**Codex-Verifier-Runde (Verdikt: rejected, 14 Befunde) — alle behoben:**
+
+- **Idempotenz:** der Header-Dedup lief NACH der Fehlerverarbeitung, ein
+  wiederholter Plan zaehlte denselben Fehler jedes Mal erneut als Recurrence
+  (reproduziert: occurrences 2 -> 3 -> 4). Dedup laeuft jetzt zuerst; eine
+  uebersprungene Iteration fasst nichts mehr an.
+- **Guard umgehbar:** `iterations/../iterations/errors.json` passierte den
+  Ownership-Check als Rohstring und ueberschrieb die geschuetzte Datei. Beide
+  Skripte kanonisieren Pfade jetzt vor der Pruefung und weisen Ausbrueche ab.
+- **Marker-Reihenfolge:** der Konsolidierungs-Marker wurde VOR den Dirty-Flags
+  geschrieben — ein IO-Fehler dabei hinterliess Exit 2 *mit* Marker. Jetzt
+  Flags zuerst, Marker als letzter Schreibvorgang.
+- **Korrupte `dirty-*.json`** wurde quarantaeniert, uebersprungen und der Marker
+  trotzdem geschrieben: die einzige Spur unkonsolidierter Arbeit verschwand.
+  Wird jetzt strikt behandelt und bricht den Lauf ab.
+- **Plan-Validierung** deckt alle Pflichtfelder vorab ab, nicht nur `supersedes`.
+- **Decisions:** Identitaet ist `(title, supersedes)` — Titel-Dedup allein
+  verwarf eine legitime Ablesung, gar kein Dedup machte sie nicht-idempotent
+  (zweites Problem erst vom Smoke-Lauf gegen eine Store-Kopie gefunden).
+- **`match_existing()`** rankt jetzt (exakte Evidenz > Jaccard > Tags) statt
+  Dateireihenfolge, meldet Mehrfachtreffer als `ambiguous_matches`; der
+  Jaccard-Zweig war auf dem `--update`-Pfad toter Code und laeuft jetzt beim
+  `--apply`, wo Wording existiert.
+- **Merge-Rechnung:** occurrences/confidence werden ueber die vereinigte
+  Evidenz neu berechnet — ein Merge konnte die Confidence vorher *senken*.
+- **Legacy-Normalisierung** parkt widerspruechliche Altwerte unter
+  `legacy_values` statt sie zu verwerfen; `--refresh` umgeht den Cold-Start-Guard;
+  doppelte `cluster_key` in einem Plan werden abgewiesen; ID-Tie-Break bevorzugt
+  die kanonische Familie.
+- **Budget-Test** erkennt jetzt auch `call/delegate to/trigger/hands off to` —
+  vorher haette eine so formulierte Delegation das Budget passiert
+  (per Strip-Probe gegengeprueft).
+
+**Ehrlichkeitskorrektur an der Doku:** `extract_patterns.py` implementiert die
+*fehlerbasierte* Haelfte von Step 2. Datei-Hotspots, wiederholte erfolgreiche
+Ansaetze und fragile Testbereiche brauchen strukturierte Iterationsdaten —
+`iteration-log.md` ist Prosa. Der Skill sagt das jetzt, statt die Abdeckung zu
+behaupten (T-019).
+
+**Reihenfolge-Fix (Design):** Step 4 las `errors.json` von der Platte, waehrend
+die geharvesteten Fehler noch im Schreibplan lagen — der Extractor haette nie die
+Fehler der eigenen Session gesehen. Die `iterations`-Sektion wird deshalb frueh
+angewendet (Step 1.5), der Rest in Step 8.5: zwei Batch-Calls statt einem.
+
+**Tests.** `test-apply-wrapup.py` 55 -> 109, neu `test-extract-patterns.py` (64),
+Eval `gate_linkage.py` nachgezogen. Volle Suite gruen. Verifikation zusaetzlich
+per Smoke gegen eine Kopie des echten Stores (3 Laeufe, vollstaendig idempotent).
 
 ---
 

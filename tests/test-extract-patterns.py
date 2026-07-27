@@ -310,5 +310,111 @@ check("P001" in read(mem, "patterns/patterns.md"),
 rc, out = run(os.path.join(tempfile.gettempdir(), "gibt-es-nicht-xyz"), "--update")
 check(rc == 1 and out.get("ok") is False, "missing memory dir exits 1 with JSON")
 
+# === Codex verifier findings on commit 1e5c504 (2026-07-27) ==================
+
+# --- 17. match ranking: exact evidence beats a mere tag overlap -------------
+# match_existing() returned the FIRST hit in file order, so a two-tag match on
+# an early pattern won over an exact evidence match on a later one.
+two_patterns = [
+    {"id": "P001", "type": "anti-pattern", "description": "Nur Tag-Ueberlappung",
+     "evidence": ["err-999"], "confidence": 0.4, "tags": ["python", "circular-import"],
+     "occurrences": 1, "first_seen": "2026-06-01", "last_seen": "2026-06-01",
+     "recommendation": "r1", "skill_candidate": False, "lifecycle": "active"},
+    {"id": "P002", "type": "anti-pattern", "description": "Exakte Evidenz",
+     "evidence": ["err-001", "err-002"], "confidence": 0.4, "tags": ["ganz", "anders"],
+     "occurrences": 2, "first_seen": "2026-06-01", "last_seen": "2026-06-01",
+     "recommendation": "r2", "skill_candidate": False, "lifecycle": "active"},
+]
+mem = make_mem(errors=errors, patterns=two_patterns)
+rc, out = run(mem, "--update")
+pats = {p["id"]: p for p in load(mem, "patterns/patterns.json")}
+check(sorted(pats["P002"]["evidence"]) == ["err-001", "err-002"]
+      and pats["P002"]["confidence"] != 0.4,
+      "the pattern sharing evidence is the one that gets updated")
+check(pats["P001"]["confidence"] == 0.4,
+      "the weaker tag-only match is left alone when a stronger match exists")
+check(out["ambiguous_matches"], "an ambiguous cluster is reported, not silently resolved")
+
+# --- 18. update recomputes over the MERGED evidence -------------------------
+# occurrences used max(old, new) and confidence was overwritten, so a merge
+# could lower the score of a pattern that had just gained evidence.
+strong = [{"id": "P001", "type": "anti-pattern", "description": "Bestand",
+           "evidence": ["err-900", "err-901", "err-902"], "confidence": 0.8,
+           "tags": ["python", "circular-import"], "occurrences": 3,
+           "first_seen": "2026-05-01", "last_seen": "2026-05-01",
+           "recommendation": "r", "skill_candidate": True, "lifecycle": "active"}]
+mem = make_mem(errors=errors, patterns=strong)
+rc, out = run(mem, "--update")
+p = load(mem, "patterns/patterns.json")[0]
+check(len(p["evidence"]) == 5, "merged evidence keeps every distinct id")
+check(p["occurrences"] >= 5, f"occurrences recomputed over the merged set (got {p['occurrences']})")
+check(p["confidence"] >= 0.8, f"a merge never lowers confidence (got {p['confidence']})")
+
+# --- 19. duplicate cluster_key in one --apply plan --------------------------
+mem = make_mem(errors=errors)
+rc, props = run(mem, "--update")
+key = props["proposals"][0]["cluster_key"]
+rc, out = run(mem, "--apply", plan={"patterns": [
+    {"cluster_key": key, "description": "Erste", "recommendation": "r"},
+    {"cluster_key": key, "description": "Zweite", "recommendation": "r"}]})
+check(len(load(mem, "patterns/patterns.json")) <= 1,
+      "the same cluster_key twice in one plan does not create two patterns")
+
+# --- 20. legacy normalization must not silently drop a value ---------------
+conflict = [{"id": "P001", "type": "anti-pattern", "description": "d",
+             "recommendation": "Aktuelle Empfehlung", "solution": "Alte Loesung",
+             "prevention": "Alte Praevention", "evidence": ["err-900"],
+             "confidence": 0.5, "tags": ["x"], "occurrences": 1,
+             "first_seen": "2026-05-01", "last_seen": "2026-05-01",
+             "skill_candidate": False, "lifecycle": "active"}]
+mem = make_mem(errors=errors, patterns=conflict)
+rc, out = run(mem, "--update")
+p = load(mem, "patterns/patterns.json")[0]
+blob = json.dumps(p, ensure_ascii=False)
+check("Aktuelle Empfehlung" in blob, "the canonical value survives normalization")
+check("Alte Loesung" in blob and "Alte Praevention" in blob,
+      "conflicting legacy values are preserved, not popped into nothing")
+
+# --- 21. --refresh works on a cold store too --------------------------------
+# The cold-start guard returned not-enough-data BEFORE the projection, so an
+# explicit refresh on a store with <3 errors still wrote nothing.
+mem = make_mem(errors=[err("err-001", "2026-07-01", "x", ["a"])], patterns=[])
+rc, out = run(mem, "--refresh")
+check(rc == 0 and "patterns/patterns.md" in out["files_written"],
+      "--refresh writes patterns.md even on a store below the cold-start threshold")
+
+# --- 22. this script's guard also survives path traversal ------------------
+import importlib.util as _il
+spec = _il.spec_from_file_location("ep", SCRIPT)
+ep = _il.module_from_spec(spec)
+spec.loader.exec_module(ep)
+mem = make_mem(errors=errors)
+for sneaky in ("patterns/../iterations/errors.json", "iterations\\errors.json",
+               "../outside.json"):
+    try:
+        ep.write_atomic(mem, sneaky, "GEKAPERT", False, [])
+        fail(f"guard bypassed via {sneaky}")
+    except ep.PlanError:
+        pass_(f"guard holds for {sneaky}")
+check(json.loads(read(mem, "iterations/errors.json"))[0]["id"] == "err-001",
+      "no traversal variant reached a foreign file")
+
+# --- 23. pattern id tie-break -----------------------------------------------
+mem = make_mem(errors=errors, patterns=[
+    {"id": "P001", "type": "anti-pattern", "description": "a", "evidence": ["err-900"],
+     "confidence": 0.4, "tags": ["q"], "occurrences": 1, "first_seen": "2026-05-01",
+     "last_seen": "2026-05-01", "recommendation": "r", "skill_candidate": False,
+     "lifecycle": "active"},
+    {"id": "G-900", "type": "anti-pattern", "description": "b", "evidence": ["err-901"],
+     "confidence": 0.4, "tags": ["z"], "occurrences": 1, "first_seen": "2026-05-01",
+     "last_seen": "2026-05-01", "recommendation": "r", "skill_candidate": False,
+     "lifecycle": "active"}])
+rc, props = run(mem, "--update")
+key = props["proposals"][0]["cluster_key"]
+rc, out = run(mem, "--apply", plan={"patterns": [
+    {"cluster_key": key, "description": "Neu", "recommendation": "r"}]})
+new_ids = [p["id"] for p in load(mem, "patterns/patterns.json")]
+check("P002" in new_ids, f"on a frequency tie the P-sequence continues (got {new_ids})")
+
 print(f"=== Results: {PASSED}/{TESTS} passed, {ERRORS} failures ===")
 sys.exit(1 if ERRORS else 0)

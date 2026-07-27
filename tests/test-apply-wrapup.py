@@ -500,6 +500,116 @@ check(aw2.load_json(mem, "context/decisions.json", None, via="decisions") is Non
       and os.path.exists(os.path.join(mem, "context/decisions.json.corrupt.bak")),
       "the owning applier CAN quarantine its own corrupt file")
 
+# === Codex verifier findings on commit 1e5c504 (2026-07-27) ==================
+
+# --- 25. re-running the SAME plan must not inflate error occurrences --------
+# The header dedup ran AFTER the errors were processed, so a repeated plan
+# skipped the iteration but counted its error as a recurrence every time:
+# reproduced occurrences 2 -> 3 -> 4 over three identical runs. Test 18 missed
+# it because its iteration carried no errors.
+mem = make_mem()
+it_with_err = {"type": "bugfix", "title": "Gleiche Iteration", "tags": ["a", "b"],
+               "summary": "s", "errors": [{"category": "import",
+               "tags": ["python", "circular-import", "neu"], "problem": "p",
+               "root_cause": "r", "fix": "f", "severity": "major"}]}
+plan_rep = {"date": "2026-07-27", "iterations": [it_with_err]}
+run(mem, plan_rep)
+occ_after_first = load(mem, "iterations/errors.json")[0]["occurrences"]
+rc, out = run(mem, plan_rep)
+occ_after_second = load(mem, "iterations/errors.json")[0]["occurrences"]
+check(occ_after_second == occ_after_first,
+      f"repeated plan does not re-count the recurrence (was {occ_after_first}, now {occ_after_second})")
+check(out["tally"]["errors_recurred"] == 0 and out["tally"]["iterations_skipped_duplicate"] == 1,
+      "a skipped duplicate iteration reports no error work at all")
+
+# --- 26. the ownership guard survives path traversal ------------------------
+# "iterations/../iterations/errors.json" is not in APPLIER_OWNED as a raw
+# string, but resolves to a protected file - the generic writer accepted it.
+spec = importlib.util.spec_from_file_location("apply_wrapup3", SCRIPT)
+aw3 = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(aw3)
+mem = make_mem()
+before = read(mem, "iterations/errors.json")
+for sneaky in ("iterations/../iterations/errors.json",
+               "iterations\\errors.json",
+               "./iterations/errors.json",
+               "patterns/../patterns/patterns.json"):
+    try:
+        aw3.write_atomic(mem, sneaky, "GEKAPERT", False, [])
+        fail(f"guard bypassed via {sneaky}")
+    except aw3.PlanError:
+        pass_(f"guard holds for {sneaky}")
+check(read(mem, "iterations/errors.json") == before,
+      "no traversal variant reached the protected file")
+try:
+    aw3._p(mem, "../../outside.json")
+    fail("path escaping the memory dir must be refused")
+except aw3.PlanError:
+    pass_("path escaping the memory dir is refused")
+
+# --- 27. the consolidation marker is written LAST ---------------------------
+# It was published before the dirty flags were reset, so a failure while
+# resetting them left exit 2 WITH a marker - the opposite of the contract.
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "consolidate": True})
+files = out["files_written"]
+check("consolidation-marker.json" in files and files[-1] == "consolidation-marker.json",
+      "consolidation marker is the very last write of the run")
+
+# --- 28. a corrupt dirty file must not be swallowed -------------------------
+# It was quarantined, skipped, and the marker written anyway: the only record
+# of un-consolidated work disappeared and the run reported success.
+mem = make_mem()
+write(mem, "working/dirty-sess-A.json", "{ kaputt")
+rc, out = run(mem, {"date": "2026-07-27", "consolidate": True})
+check(rc == 2, "a corrupt dirty file fails the run instead of passing silently")
+check(not os.path.exists(os.path.join(mem, "consolidation-marker.json")),
+      "no marker is written when a dirty file could not be read")
+check(os.path.exists(os.path.join(mem, "working/dirty-sess-A.json")),
+      "the corrupt dirty file stays in place as evidence")
+
+# --- 29. a decision that supersedes must not be dropped as a title duplicate -
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "decisions": [{
+    "type": "architecture-decision", "title": "Alte Entscheidung",
+    "context": "neu bewertet", "decision": "anders", "consequences": "k",
+    "supersedes": "D-001"}]})
+decs = {d["id"]: d for d in load(mem, "context/decisions.json")}
+check(out["tally"]["decisions_added"] == 1,
+      "a superseding decision is recorded even when it reuses the old title")
+check(decs["D-001"]["status"] == "superseded", "the superseded record is still flipped")
+# ...but it must stay idempotent: identity is (title, supersedes), not title
+# alone. Skipping the check entirely for superseding decisions appended the
+# same record on every re-run (found by the smoke run, not by the suite).
+rc, out = run(mem, {"date": "2026-07-27", "decisions": [{
+    "type": "architecture-decision", "title": "Alte Entscheidung",
+    "context": "neu bewertet", "decision": "anders", "consequences": "k",
+    "supersedes": "D-001"}]})
+check(out["tally"]["decisions_added"] == 0 and out["tally"]["decisions_skipped_duplicate"] == 1,
+      "re-applying the same superseding decision does not append it twice")
+check(len(load(mem, "context/decisions.json")) == 2, "decisions.json did not grow on the re-run")
+
+# --- 30. the whole plan is validated before the first write -----------------
+mem = make_mem()
+before_log = read(mem, "iterations/iteration-log.md")
+rc, out = run(mem, {"date": "2026-07-27",
+                    "iterations": [{"type": "feature", "title": "Wird verworfen",
+                                    "tags": ["a"], "summary": "s"}],
+                    "learnings": [{"text": "", "importance": 3}]})
+check(rc == 2, "an empty learning still rejects the plan")
+check(read(mem, "iterations/iteration-log.md") == before_log,
+      "a plan rejected on a LATER section leaves no half-written iteration log")
+
+# --- 31. id sequence: a tie in frequency must not let an outlier win --------
+mem = make_mem()
+put(mem, "context/decisions.json", [{"id": "D-001", "title": "a", "status": "active"},
+                                    {"id": "G-900", "title": "b", "status": "active"}])
+rc, out = run(mem, {"date": "2026-07-27", "decisions": [{
+    "type": "constraint-update", "title": "Neu", "context": "c",
+    "decision": "d", "consequences": "k"}]})
+check(load(mem, "context/decisions.json")[-1]["id"] == "D-002",
+      "on a frequency tie the canonical prefix wins, not the foreign one")
+
 for tmp in []:
     shutil.rmtree(tmp, ignore_errors=True)
 

@@ -1559,14 +1559,20 @@ if [ -f "$WU_SKILL36" ]; then
     # Flatten first: the prohibition spans a line break, so a per-line grep sees
     # "invoke the" and "`iteration-logger`" as unrelated hits.
     WU_FLAT="$(tr -s '[:space:]' ' ' < "$WU_SKILL36")"
-    # Counts "invoke <skill>" minus the negated forms. The negation list has to
-    # cover every way this file says no ("do NOT invoke", "no longer invokes",
-    # "never invoke") - miss one and the test reports a delegation that is not
-    # there. Keep prohibitions in one of those three shapes.
+    # Counts delegation verbs pointing at <skill>, minus the negated forms.
+    # TWO ways this went wrong before, both found by review:
+    #  - only "invoke" was matched, so "call/delegate to/trigger `<skill>`" read
+    #    as zero and would have waved a real delegation through (Codex, 1e5c504);
+    #  - the negation list must cover every way this file says no, or a
+    #    prohibition is counted as a delegation.
+    # Prose regexes stay approximate: keep delegations in the form
+    # "invoke the `<skill>` skill" and prohibitions as "do NOT invoke `<skill>`".
+    VERBS="invokes?|calls?|delegates? to|triggers?|hands? off to"
     positive_invokes() {
-        ALL=$(echo "$WU_FLAT" | grep -oiE "invokes?[^.]{0,60}\`?$1\`?" | wc -l)
+        ALL=$(echo "$WU_FLAT" | grep -oiE "($VERBS)[^.]{0,60}\`?$1\`?" | wc -l)
         NEG=$(echo "$WU_FLAT" \
-              | grep -oiE "(n[o']t|never|no longer)[^.]{0,14}invokes?[^.]{0,60}\`?$1\`?" | wc -l)
+              | grep -oiE "(n[o']t|never|no longer|instead of)[^.]{0,14}($VERBS)[^.]{0,60}\`?$1\`?" \
+              | wc -l)
         echo $((ALL - NEG))
     }
     for FORBIDDEN_CALLEE in iteration-logger context-keeper; do

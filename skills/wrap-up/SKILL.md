@@ -57,7 +57,10 @@ files you actually read this run; Step 9.5 logs that number.
 
 ## Step 0.6: Write-Plan Discipline (write-plan)
 
-Do NOT write `iteration-log.md`, `errors.json`, `working/current-session.json`,
+There are exactly TWO batch calls per run: the early one in Step 1.5 (iterations
+only, so Step 4 can see this session's errors) and the final one in Step 8.5
+(everything else). Do NOT write `iteration-log.md`, `errors.json`,
+`working/current-session.json`,
 `decisions.json`, `learnings.json`/`learnings.md`, `session-summary.md`,
 `open-tasks.json`, `user-candidates.json`, `user-changelog.json`, `user.md`,
 `soul-candidates.md`, `consolidation-marker.json` or the `dirty-*.json` flags
@@ -124,8 +127,22 @@ Do not invent details the files and git history cannot support.
    instead of a new entry), the markdown shape, and the working-memory bookkeeping.
    Judgment stays here: what counts as one iteration, which errors mattered, why.
 3. Trivial session (pure lookup/discussion, no artifacts): skip silently.
-4. The plan is applied in Step 8.5, so Steps 2–4 work from the reconstruction you
-   just made — do not re-read the log to "see" it.
+4. **Apply the iterations NOW (early-apply), not in Step 8.5** — one call with only
+   this section:
+
+   ```bash
+   python "${CLAUDE_PLUGIN_ROOT}/scripts/apply_wrapup.py" .agent-memory \
+     --session-id <session-id> <<'PLAN'
+   {"date": "<today>", "iterations": [ ... ]}
+   PLAN
+   ```
+
+   Why the split: Step 4 reads `errors.json` from disk. If the harvested errors
+   were still sitting in the final plan, the extractor would analyse the state
+   BEFORE this session and never see its own errors — the pattern pipeline would
+   starve exactly as it did before v3.6.0. Leave `iterations` out of the Step 8.5
+   plan afterwards (a repeat is harmless — the header dedup skips it and touches
+   no error counts — but pointless).
 
 ## Step 2: Summarize Work Done
 

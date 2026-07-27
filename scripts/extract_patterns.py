@@ -83,10 +83,23 @@ class PlanError(Exception):
 
 # ---------------------------------------------------------------- io helpers
 
+def canon(rel: str) -> str:
+    """Reduce to the canonical relative form before the ownership check.
+
+    Raw string comparison let "patterns/../iterations/errors.json" pass the
+    prefix test and resolve to a foreign file (Codex review of 1e5c504).
+    """
+    norm = os.path.normpath(rel.replace("\\", "/")).replace("\\", "/")
+    if norm.startswith("../") or norm == ".." or os.path.isabs(norm):
+        raise PlanError(f"refusing to write {rel}: path escapes the memory dir")
+    return norm
+
+
 def _p(mem: str, rel: str) -> str:
-    if not rel.startswith(ALLOWED_PREFIX):
-        raise PlanError(f"refusing to write {rel}: this script only owns {ALLOWED_PREFIX}")
-    return os.path.join(mem, rel)
+    key = canon(rel)
+    if not key.startswith(ALLOWED_PREFIX):
+        raise PlanError(f"refusing to write {key}: this script only owns {ALLOWED_PREFIX}")
+    return os.path.join(mem, key)
 
 
 def load_json(mem: str, rel: str, default):
@@ -150,7 +163,9 @@ def next_pattern_id(rows) -> str:
         g["pad"] = max(g["pad"], len(digits) if len(digits) > 1 else 0)
     if not groups:
         return "P001"
-    prefix = max(groups, key=lambda k: (groups[k]["count"], groups[k]["hi"]))
+    # On a frequency tie prefer the canonical "P" family, otherwise a single
+    # foreign id ("G-900" next to one "P001") captures the sequence.
+    prefix = max(groups, key=lambda k: (groups[k]["count"], k == "P", groups[k]["hi"]))
     pad, hi = groups[prefix]["pad"], groups[prefix]["hi"]
     n = hi + 1
     return f"{prefix}{n:0{pad}d}" if pad else f"{prefix}{n}"
@@ -167,6 +182,11 @@ def normalize_legacy(patterns, tally) -> None:
                 value = p.pop(old)
                 if not p.get(new):
                     p[new] = value
+                elif str(value).strip() and norm_tokens(value) != norm_tokens(p[new]):
+                    # Both shapes carry text and they differ. Popping the legacy
+                    # one lost data silently (Codex review of 1e5c504) - park it
+                    # with provenance instead of deciding for the user.
+                    p.setdefault("legacy_values", {})[old] = value
                 changed = True
         for old in ("name", "title"):
             if old in p:
@@ -294,27 +314,53 @@ def score_confidence(members, occurrences) -> float:
     return round(min(1.0, c), 2)
 
 
-def match_existing(cluster, patterns):
-    """Step 4 dedup: shared evidence, a Jaccard-close description, or the
-    category+tags shortcut. First match wins - a cluster updates ONE pattern."""
+def match_existing(cluster, patterns, wording=""):
+    """Step 4 dedup, RANKED instead of first-in-file-order.
+
+    Two fixes from the Codex review of 1e5c504: (a) file order decided the
+    match, so a weak two-tag hit on an early pattern beat an exact evidence hit
+    on a later one; (b) the Jaccard branch was dead on the --update path,
+    because a cluster has no description until the model supplies wording -
+    hence the optional `wording` argument, passed on the --apply path.
+
+    Returns (best_match, competitors). Competitors are reported rather than
+    silently discarded: two patterns claiming one cluster is a catalog problem
+    a human should see.
+    """
+    scored = []
     for p in patterns:
-        if set(cluster["evidence"]) & set(p.get("evidence") or []):
-            return p
-        if len(set(cluster["tags"]) & set(p.get("tags") or [])) >= 2:
-            return p
-        if jaccard(cluster.get("suggested_description", ""), p.get("description")) >= JACCARD_DUPLICATE:
-            return p
-    return None
+        shared_ev = set(cluster["evidence"]) & set(p.get("evidence") or [])
+        shared_tags = set(cluster["tags"]) & set(p.get("tags") or [])
+        sim = jaccard(wording, p.get("description")) if wording else 0.0
+        if shared_ev:
+            scored.append((3, len(shared_ev), p))
+        elif sim >= JACCARD_DUPLICATE:
+            scored.append((2, sim, p))
+        elif len(shared_tags) >= 2:
+            scored.append((1, len(shared_tags), p))
+    if not scored:
+        return None, []
+    scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
+    best = scored[0][2]
+    competitors = [p.get("id") for _, _, p in scored[1:]]
+    return best, competitors
 
 
 def update_pattern(p, cluster, tally):
     evidence = list(p.get("evidence") or [])
+    added = 0
     for e in cluster["evidence"]:
         if e not in evidence:
             evidence.append(e)
+            added += 1
     p["evidence"] = evidence
-    p["occurrences"] = max(int(p.get("occurrences", 1)), cluster["occurrences"])
-    p["confidence"] = cluster["confidence"]
+    # Recompute over the MERGED set. max(old, new) plus an overwritten
+    # confidence meant a pattern that just GAINED evidence could come out with
+    # a lower score (0.8 -> 0.5 in the reviewed repro) and an occurrence count
+    # that ignored half its own evidence.
+    p["occurrences"] = max(int(p.get("occurrences", 1)) + added, len(evidence))
+    p["confidence"] = max(float(p.get("confidence", 0)),
+                          recompute_confidence(p, cluster))
     p["last_seen"] = max(str(p.get("last_seen") or ""), cluster["last_seen"])
     if not p.get("first_seen"):
         p["first_seen"] = cluster["first_seen"]
@@ -326,6 +372,18 @@ def update_pattern(p, cluster, tally):
     p["skill_candidate"] = is_skill_candidate(p)
     tally["patterns_updated"] += 1
     # description / recommendation are the model's words - never overwritten.
+
+
+def recompute_confidence(p, cluster) -> float:
+    """Score the merged pattern, not just the incoming cluster: the occurrence
+    booster has to see the evidence the pattern already carried."""
+    occurrences = max(int(p.get("occurrences", 1)), len(p.get("evidence") or []))
+    c = BASE_CONFIDENCE + min(0.3, 0.1 * max(0, occurrences - 1))
+    # Keep whatever structural boosters the incoming cluster earned (root_cause
+    # agreement, shared files, consistent prevention, multiple dates).
+    structural = float(cluster["confidence"]) - BASE_CONFIDENCE - min(
+        0.3, 0.1 * max(0, cluster["occurrences"] - 1))
+    return round(min(1.0, c + max(0.0, structural)), 2)
 
 
 def is_skill_candidate(p) -> bool:
@@ -437,7 +495,7 @@ def main() -> int:
     try:
         errors = load_json(args.mem, "iterations/errors.json", [])
         patterns = load_json(args.mem, "patterns/patterns.json", [])
-        if len(errors) < MIN_ERRORS_FOR_COLD_START and not patterns:
+        if len(errors) < MIN_ERRORS_FOR_COLD_START and not patterns and not args.refresh:
             print(json.dumps({"ok": True, "skipped": "not-enough-data", "dry_run": args.dry_run,
                               "proposals": [], "files_written": [], "tally": tally,
                               "unmatched_errors": [], "skill_candidates": []}, indent=2))
@@ -446,26 +504,43 @@ def main() -> int:
         normalize_legacy(patterns, tally)
         clusters, unmatched = cluster_errors(errors)
 
-        matched, proposals = [], []
+        matched, proposals, ambiguous = [], [], []
         for cluster in clusters:
-            existing = match_existing(cluster, patterns)
+            existing, competitors = match_existing(cluster, patterns)
             if existing is not None:
                 update_pattern(existing, cluster, tally)
                 matched.append(cluster["cluster_key"])
+                if competitors:
+                    ambiguous.append({"cluster_key": cluster["cluster_key"],
+                                      "matched": existing.get("id"),
+                                      "also_matched": competitors})
             else:
                 proposals.append(cluster)
 
         if args.apply:
             plan = read_plan(args.plan)
             by_key = {c["cluster_key"]: c for c in proposals}
+            seen_keys = set()
             for spec in (plan.get("patterns") or []):
                 key = spec.get("cluster_key")
+                if key in seen_keys:
+                    # The same key twice in one plan used to create two entries
+                    # with identical evidence (Codex review of 1e5c504).
+                    raise PlanError(f"duplicate cluster_key {key!r} in one plan")
                 if key not in by_key:
                     raise PlanError(f"unknown cluster_key {key!r} - re-run --update for the "
                                     f"current keys ({', '.join(by_key) or 'none'})")
-                entry = new_pattern(by_key[key], spec, patterns)
-                patterns.append(entry)
-                tally["patterns_added"] += 1
+                seen_keys.add(key)
+                cluster = by_key[key]
+                # Only now does wording exist, so this is the first moment the
+                # documented Jaccard description dedup can actually run.
+                twin, _ = match_existing(cluster, patterns, spec.get("description", ""))
+                if twin is not None:
+                    update_pattern(twin, cluster, tally)
+                    matched.append(key)
+                else:
+                    patterns.append(new_pattern(cluster, spec, patterns))
+                    tally["patterns_added"] += 1
                 proposals = [p for p in proposals if p["cluster_key"] != key]
 
         # --refresh forces the projection: "refresh patterns" must actually rewrite
@@ -486,6 +561,7 @@ def main() -> int:
         "dry_run": args.dry_run,
         "proposals": proposals,
         "updated_clusters": matched,
+        "ambiguous_matches": ambiguous,
         "unmatched_errors": unmatched,
         "skill_candidates": [p.get("id") for p in patterns if p.get("skill_candidate")
                              and not p.get("generated_skill")],
