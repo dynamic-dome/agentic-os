@@ -129,10 +129,10 @@
   {
     "id": "T-014",
     "title": "Bug: bridge_projection.py schreibt die Ueberschrift 'Bridge: Offene Tasks (membrain)' hart kodiert (Zeile 75) â€” jedes Projekt bekommt das falsche Label; Projektnamen aus config.json project_id ableiten",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "wrap-up",
     "cross_project": false
   },
@@ -159,10 +159,10 @@
   {
     "id": "T-017",
     "title": "ToolSearch-Buendelung als Kostenregel verankern (26% Rewrite-Wahrscheinlichkeit je Call): in wrap-up Step 3a.2 und session-bootstrap den Atlas-Tool-Load explizit auf EINEN Call pro Lauf festschreiben",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "wrap-up",
     "cross_project": false
   },

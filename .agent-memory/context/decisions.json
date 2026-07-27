@@ -335,7 +335,9 @@
     "evidence_refs": [
       "transcript-analysis-2026-07-27 (7 sessions)",
       "scripts/measure_session_cost.py"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-07-27"
   },
   {
     "id": "D-011",
@@ -377,6 +379,8 @@
       "cost-analysis",
       "ownership",
       "architecture"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-07-27"
   }
 ]
