@@ -119,10 +119,10 @@
   {
     "id": "T-013",
     "title": "Luecke schliessen: apply_wrapup.py setzt kein bridge_status=candidate auf neue Learnings mit importance>=4 â€” wrap-up SKILL.md Step 3d fordert es, das Plan-Schema kennt das Feld nicht (2026-07-27 manuell nachgezogen)",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "wrap-up",
     "cross_project": false
   },
@@ -149,10 +149,10 @@
   {
     "id": "T-016",
     "title": "measure_session_cost.py in den wrap-up-Ablauf haengen: am Ende jedes Laufs --append-trace auf das eigene Transkript, damit cost-trace.jsonl gemessene statt geschaetzter Records bekommt",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "wrap-up",
     "cross_project": false
   },
@@ -179,10 +179,10 @@
   {
     "id": "T-019",
     "title": "extract_patterns.py: Step-2-Heuristiken auf strukturierte Iterationsdaten erweitern (Datei-Hotspots 3+ Iterationen, wiederholte erfolgreiche Ansaetze, fragile Testbereiche) — iteration-log.md ist Prosa, daher aktuell nur die fehlerbasierte Haelfte abgedeckt (Codex-Befund HIGH-5, Doku entsprechend eingegrenzt)",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-27",
     "updated": "2026-07-27",
-    "resolution": null,
+    "resolution": "resolved in wrap-up",
     "source": "codex-review",
     "cross_project": false
   },
@@ -204,6 +204,26 @@
     "updated": "2026-07-27",
     "resolution": "resolved in wrap-up",
     "source": "codex-review",
+    "cross_project": false
+  },
+  {
+    "id": "T-022",
+    "title": "extract_patterns: Evidence-Branch mergt Cluster verschiedener Heuristik-Familien ueber geteilte it:-Refs (hotspot in approach-Pattern P012 beobachtet) - pruefen ob der typ-exempte Evidence-Match einen Familien-Gate braucht",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-023",
+    "title": "P012 (TDD-auf-wrap-up-Stack) ist skill_candidate + 4 rueckfluss_candidates (P010, G-pattern-005, P011, P012) - pattern-extractor Steps 6.5/6.6 gezielt sichten",
+    "status": "open",
+    "created": "2026-07-27",
+    "updated": "2026-07-27",
+    "resolution": null,
+    "source": "wrap-up",
     "cross_project": false
   }
 ]

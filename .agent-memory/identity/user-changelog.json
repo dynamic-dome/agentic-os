@@ -118,5 +118,16 @@
       "session 2026-06-03: Supersession-Vertagung erfolgreich hinterfragt -> Agent revidierte",
       "session 2026-07-06 abends: T-006-AskUserQuestion beantwortet und bewusst GEGEN die Empfehlung entschieden (nur save-session statt beide) — echte Entscheidungen gehoeren dem Owner"
     ]
+  },
+  {
+    "ts": "2026-07-27T14:35:51+02:00",
+    "field": "user.md/Preferences",
+    "old_value": null,
+    "new_value": "Sobald die Richtung geklaert ist, delegiert der User die Ausfuehrung explizit ('mache es so, wie Du fuer richtig haeltst') statt jeden Teilschritt freizugeben â€” will aber den Befund und die Gegenargumente sehen, bevor die Richtung feststeht",
+    "candidate_id": "UC12",
+    "evidence": [
+      "session 2026-07-27: nach der Kosten-Analyse 'Mache es so, wie Du fuer richtig haeltst. Ich denke, jetzt sind wir auf dem richtigen Weg.'",
+      "session 2026-07-27 nachmittags"
+    ]
   }
 ]

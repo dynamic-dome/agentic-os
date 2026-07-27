@@ -77,14 +77,15 @@
     "status": "promoted",
     "signal_type": "preference",
     "confidence": 0.85,
-    "occurrences": 6,
+    "occurrences": 7,
     "evidence": [
       "session 2026-06-12 (abends): T-001/T-002/Context-Refresh als Block delegiert, Verlauf bestaetigt",
       "session 2026-06-12 (spaeter): 'kannst Du gerne die recommended next steps zu Ende ausarbeiten' — erneute Block-Delegation",
       "session 2026-07-06: Pakete A-D als Block genehmigt, Umbau lief autonom mit 4+3 Subagents",
       "session 2026-07-06 abends: 'j, und arbeite die recommended next steps ab' — 4. Block-Delegation, Zwischenfrage nur beim T-006-Owner-Entscheid",
       "session 2026-07-06 (Folge): 'bereine die Ungereimtheiten … könntest Du das gerade übernehmen' — 5. Block-Delegation, lief komplett autonom (SC-4 seither auch in soul.md)",
-      "Session 2026-07-27: Direktauftrag nach Bootstrap-Briefing"
+      "Session 2026-07-27: Direktauftrag nach Bootstrap-Briefing",
+      "session 2026-07-27 nachmittags"
     ],
     "first_seen": "2026-06-12",
     "last_seen": "2026-07-27",
@@ -185,15 +186,17 @@
     "id": "UC12",
     "key": "delegate-execution-after-agreed-direction",
     "observation": "Sobald die Richtung geklaert ist, delegiert der User die Ausfuehrung explizit ('mache es so, wie Du fuer richtig haeltst') statt jeden Teilschritt freizugeben â€” will aber den Befund und die Gegenargumente sehen, bevor die Richtung feststeht",
-    "status": "inferred",
+    "status": "promoted",
     "signal_type": "work-style",
     "confidence": 0.6,
-    "occurrences": 1,
+    "occurrences": 2,
     "evidence": [
-      "session 2026-07-27: nach der Kosten-Analyse 'Mache es so, wie Du fuer richtig haeltst. Ich denke, jetzt sind wir auf dem richtigen Weg.'"
+      "session 2026-07-27: nach der Kosten-Analyse 'Mache es so, wie Du fuer richtig haeltst. Ich denke, jetzt sind wir auf dem richtigen Weg.'",
+      "session 2026-07-27 nachmittags"
     ],
     "first_seen": "2026-07-27",
     "last_seen": "2026-07-27",
-    "trust_source": "conversation"
+    "trust_source": "conversation",
+    "status_after_promotion": "promoted"
   }
 ]

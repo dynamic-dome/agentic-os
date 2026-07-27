@@ -236,5 +236,72 @@
     "occurrences": 1,
     "recurrence_dates": [],
     "last_seen": "2026-07-27"
+  },
+  {
+    "id": "err-012",
+    "date": "2026-07-27",
+    "category": "verification",
+    "tags": [
+      "bash",
+      "exit-code",
+      "pipe",
+      "testing"
+    ],
+    "trigger": "run-all.sh | tail -4 als Suite-Aufruf",
+    "problem": "Suite meldete '1 TEST SUITE(S) FAILED', Pipeline-Exit-Code war trotzdem 0 - der Fehlschlag (zu enges grep -A8-Fenster im validate-skills-Contract) wurde fast uebersehen",
+    "root_cause": "Ohne pipefail liefert eine Bash-Pipe den Exit-Code des LETZTEN Glieds (tail), nicht des Runners; run-all.sh propagiert korrekt exit 1",
+    "fix": "Suite ohne Pipe in Logdatei umleiten, Fazit-Zeile (ALL PASSED / FAILED) lesen statt Exit-Code der Pipe",
+    "failed_approaches": [],
+    "prevention": "Testsuiten nie durch eine Pipe bewerten; Beweiszeilen lesen (G-pattern-005)",
+    "severity": "major",
+    "attempts": 1,
+    "confidence": 3,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-27"
+  },
+  {
+    "id": "err-013",
+    "date": "2026-07-27",
+    "category": "parser",
+    "tags": [
+      "markdown",
+      "parser",
+      "state-machine"
+    ],
+    "trigger": "Legacy-Prosa-Block nach kanonischem Iterations-Block",
+    "problem": "Feldzeilen eines nicht-kanonischen ##-Blocks wurden dem vorherigen kanonischen Block zugeordnet und ueberschrieben dessen Tags/Files",
+    "root_cause": "Parser setzte current nur bei MATCHENDER Ueberschrift neu - fremde ##-Ueberschriften beendeten die Zuordnung nicht",
+    "fix": "Jede nicht-matchende ##-Ueberschrift setzt current=None",
+    "failed_approaches": [],
+    "prevention": "Bei Zeilen-Parsern jeden Abschnittswechsel explizit behandeln, nicht nur den erwarteten",
+    "severity": "major",
+    "attempts": 1,
+    "confidence": 3,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-27"
+  },
+  {
+    "id": "err-014",
+    "date": "2026-07-27",
+    "category": "input-validation",
+    "tags": [
+      "glob",
+      "path-traversal",
+      "python"
+    ],
+    "trigger": "--locate '*' als Session-ID",
+    "problem": "Glob-Syntax in der Session-ID loeste ein beliebiges Transkript erfolgreich auf statt zu scheitern",
+    "root_cause": "args.locate wurde unvalidiert ins Glob-Muster interpoliert",
+    "fix": "Strikte ID-Validierung [A-Za-z0-9-] vor dem Glob, sonst Fail-Soft",
+    "failed_approaches": [],
+    "prevention": "User-Input nie unvalidiert in Glob-/Pfad-Muster interpolieren",
+    "severity": "major",
+    "attempts": 1,
+    "confidence": 3,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-27"
   }
 ]

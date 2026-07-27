@@ -250,3 +250,41 @@ rekonstruieren — Learnings/Decisions dieser Phase sind separat konsolidiert
 (L-Eintraege, D-Records, CLAUDE.md), ein Nachtrag waere Buchhaltung ohne
 Konversations-Ground-Truth. Konsequenz: Datei-Hotspot-Heuristiken (T-019) sehen
 diese Commits nicht. Absichtlich kein Datums-Header — Parser ueberspringt den Block.
+
+## 2026-07-27 — feature: T-013 bridge_status=candidate deterministisch in apply_wrapup.py (4.18.3)
+- **Type:** feature
+- **Tags:** wrap-up, bridge, trust-boundary, python, tdd
+- **Files changed:** scripts/apply_wrapup.py, tests/test-apply-wrapup.py, skills/wrap-up/SKILL.md, skills/wrap-up/references/wrapup-schemas.md
+- **Summary:** Step 3d.1 aus Prosa in den Applier verlegt: bridge_status wird aus importance>=4 abgeleitet, plan-gelieferte Werte verworfen (approved nur via [j/n]-Gate), tally.bridge_candidates liefert store-weite Kandidaten fuer die 3d.2-Promptzeile. Altbestand ohne Feld wird nie backfilled.
+- **Confidence:** 5/5
+- **Tests:** passed (115/115 test-apply-wrapup + volle Suite)
+- **Commits:** cf9d23a
+
+## 2026-07-27 — feature: T-016 gemessener Kostentrace am wrap-up-Ende via --locate
+- **Type:** feature
+- **Tags:** cost-analysis, python, wrap-up, tdd
+- **Files changed:** scripts/measure_session_cost.py, tests/test-measure-session-cost.py, skills/wrap-up/SKILL.md, tests/validate-skills.sh
+- **Summary:** measure_session_cost.py findet das eigene Transkript per --locate <session-id> (Ein-Ebenen-Glob unter ~/.claude/projects, juengste mtime bei Kollision, --projects-root fuer Tests). wrap-up (cost-trace) misst zuerst, cost-trace.sh-Schaetzung nur noch Fallback. validate-skills-Contract nachgezogen.
+- **Confidence:** 5/5
+- **Tests:** passed (18/18 + volle Suite)
+- **Errors:** err-012
+- **Commits:** a35461d
+
+## 2026-07-27 — feature: T-019 strukturierte Iterations-Heuristiken in extract_patterns.py (4.18.4)
+- **Type:** feature
+- **Tags:** patterns, parser, python, heuristics, tdd
+- **Files changed:** scripts/extract_patterns.py, tests/test-extract-patterns.py, skills/pattern-extractor/SKILL.md
+- **Summary:** iteration-log.md-Parser (gepinntes 4.18.0-Renderformat, Prosa-Bloecke werden uebersprungen) + 3 Heuristiken: Datei-Hotspots (>=3 Iterationen), wiederholte erfolgreiche Ansaetze (best-practice), fragile Testbereiche (anti-pattern). Cold-Start-Guard zaehlt Iterationen mit (Starvation-Fix). Typ-Gate in match_existing: Ground-Truth-Probe zeigte 11 stille typfremde Merges, danach 0.
+- **Confidence:** 5/5
+- **Tests:** passed (77/77 + volle Suite)
+- **Commits:** d9445fb
+
+## 2026-07-27 — bugfix: Codex-Verifier-Fixrunde: 4 P0 + 2 P1 + BOM in den drei neuen Write-Paths
+- **Type:** bugfix
+- **Tags:** review, codex, parser, input-validation, tdd
+- **Files changed:** scripts/extract_patterns.py, scripts/measure_session_cost.py, scripts/apply_wrapup.py, tests/test-extract-patterns.py, tests/test-measure-session-cost.py, tests/test-apply-wrapup.py
+- **Summary:** Alle Befunde vor dem Fixen selbst reproduziert, dann TDD. Begruendet abgelehnt: type/severity bleiben plan-setzbar (Klassifikation ist Urteil, Typ-Gate schuetzt Merges). '0 failed'-Semantik, importance-Validierung vor erstem Write, utf-8-sig.
+- **Confidence:** 5/5
+- **Tests:** passed (82/82 + 117/117 + 20 + volle Suite)
+- **Errors:** err-013, err-014
+- **Commits:** 083d304

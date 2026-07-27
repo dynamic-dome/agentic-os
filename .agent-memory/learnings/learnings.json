@@ -669,5 +669,77 @@
       "D-012"
     ],
     "review_after": "2026-10-25"
+  },
+  {
+    "id": "L38",
+    "date": "2026-07-27",
+    "text": "Eine Bash-Pipe ohne pipefail liefert den Exit-Code des LETZTEN Glieds: 'run-all.sh | tail' meldete Exit 0, obwohl der Runner mit '1 TEST SUITE(S) FAILED' exit 1 fuhr. Testsuiten nie durch eine Pipe bewerten - Fazit-Zeile lesen oder ohne Pipe in Logdatei umleiten.",
+    "importance": 4,
+    "tags": [
+      "bash",
+      "pipe",
+      "exit-code",
+      "verification"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-27",
+    "derived_from": [
+      "err-012"
+    ],
+    "review_after": "2026-10-25",
+    "bridge_status": "candidate"
+  },
+  {
+    "id": "L39",
+    "date": "2026-07-27",
+    "text": "Zeilen-Parser ueber gepinnte Markdown-Formate: JEDE nicht-matchende Abschnitts-Ueberschrift muss die Feld-Zuordnung explizit beenden (current=None), sonst schreiben Folgebloecke ihre Felder in den letzten kanonischen Block. Vom eigenen Testset uebersehen, vom Codex-Review als P0 gefunden und vor dem Fix reproduziert.",
+    "importance": 4,
+    "tags": [
+      "parser",
+      "markdown",
+      "state-machine",
+      "python"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-27",
+    "derived_from": [
+      "err-013"
+    ],
+    "review_after": "2026-10-25",
+    "bridge_status": "candidate"
+  },
+  {
+    "id": "L40",
+    "date": "2026-07-27",
+    "text": "Greedy-Anchor-Clustering (paarweiser >=2-Tag-Overlap zum Anker) braucht zusaetzlich eine globale Schnittmengen-Pruefung ueber alle Member - sonst entstehen Ketten-Cluster ohne gemeinsamen Kern und mit leerem Cluster-Key.",
+    "importance": 3,
+    "tags": [
+      "clustering",
+      "heuristics",
+      "patterns"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-27",
+    "derived_from": [],
+    "review_after": "2026-10-25"
+  },
+  {
+    "id": "L41",
+    "date": "2026-07-27",
+    "text": "Pattern-Katalog-Dedup braucht einen Typ-Gate: Tag-/Wording-Aehnlichkeit ueber Typgrenzen (best-practice vs. anti-pattern) ist Koinzidenz und blaeht fremde Eintraege auf; nur identische Evidence bleibt typ-agnostisch. Ground-Truth-Probe am echten Store: 11 stille typfremde Merges vor dem Gate, 0 danach.",
+    "importance": 3,
+    "tags": [
+      "patterns",
+      "dedup",
+      "trust-boundary"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-07-27",
+    "derived_from": [],
+    "review_after": "2026-10-25"
   }
 ]

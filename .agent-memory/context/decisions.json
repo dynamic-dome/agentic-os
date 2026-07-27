@@ -422,5 +422,43 @@
     ],
     "wiki_ref": "wiki/entities/agentic-os-plugin.md",
     "promoted_at": "2026-07-27"
+  },
+  {
+    "id": "D-013",
+    "date": "2026-07-27",
+    "type": "api-contract",
+    "title": "extract_patterns --apply: type/severity bleiben plan-setzbar, Zahlen nie",
+    "status": "active",
+    "context": "Codex-Verifier-P1: type/severity im --apply-Plan widersprachen scheinbar dem 'Modell liefert nur Wording'-Kommentar. Frage: Klassifikationsfelder wie die Zahlen verwerfen oder als Urteil zulassen?",
+    "options_considered": [
+      {
+        "option": "type/severity wie Zahlen verwerfen",
+        "pros": [
+          "engste Trust-Boundary"
+        ],
+        "cons": [
+          "Klassifikation IST das Urteil; ein neutraler Hotspot koennte nie als anti-pattern benannt werden"
+        ]
+      },
+      {
+        "option": "plan-setzbar lassen, Contract im Docstring verankern",
+        "pros": [
+          "Urteil bleibt beim Modell wie description/recommendation",
+          "Typ-Gate verhindert typfremde Merges",
+          "Zahlen bleiben unantastbar"
+        ],
+        "cons": [
+          "Plan kann fehlklassifizieren"
+        ]
+      }
+    ],
+    "decision": "type/severity bleiben setzbar (Klassifikation = Urteil); evidence/occurrences/confidence/dates kommen ausschliesslich aus der Messung. Docstring ist normativ.",
+    "consequences": "Begruendete Ablehnung eines Review-Befunds als dokumentierte API-Entscheidung; Typ-Gate in match_existing schuetzt den Katalog.",
+    "supersedes": null,
+    "tags": [
+      "patterns",
+      "trust-boundary",
+      "api-contract"
+    ]
   }
 ]

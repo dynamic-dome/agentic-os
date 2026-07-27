@@ -1,0 +1,26 @@
+{
+  "session_id": "0f6855c8-8161-4964-8f57-e10ab4203a15",
+  "agent": "claude",
+  "dirty": false,
+  "started": "2026-07-27T13:42:19+02:00",
+  "updated": "2026-07-27T14:24:22+02:00",
+  "touched_files": [
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\test-apply-wrapup.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\apply_wrapup.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\wrap-up\\references\\wrapup-schemas.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\wrap-up\\SKILL.md",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\.claude-plugin\\plugin.json",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\test-measure-session-cost.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\measure_session_cost.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\validate-skills.sh",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\tests\\test-extract-patterns.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\scripts\\extract_patterns.py",
+    "C:\\Users\\domes\\Desktop\\Claude-Plugins-Skills\\agentic-os-plugin\\skills\\pattern-extractor\\SKILL.md"
+  ],
+  "write_count": 35,
+  "consolidated_at": "2026-07-27T14:35:51+02:00",
+  "consolidated_by": "wrap-up",
+  "last_consolidated_at": "2026-07-27T14:35:51+02:00",
+  "last_consolidated_by": "wrap-up",
+  "writes_since_consolidation": 0
+}

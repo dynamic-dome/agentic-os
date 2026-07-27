@@ -1,30 +1,36 @@
 # Pattern Catalog
 
 *Last updated: 2026-07-27*
-*Total patterns: 3 (1 anti-patterns, 2 best practices)*
+*Total patterns: 4 (1 anti-patterns, 3 best practices)*
 
 ## High Confidence Warnings
 
-### P010: Three-role Codex code review (Verifier + Security parallel, Quality-Fixer serial) — Structured post-implementation review with 3 Codex subagent roles: (1) Verifier against spec — diff vs stated contract, finds missing parts / param-order / typos; (2) Security — injection / SSRF / path-traversal / privacy-leak review; (3) Quality-Fixer — reads findings from 1+2 and applies within budget (<=3 files, (confidence: 0.8)
+### G-pattern-005: Exit-Code 0 / ok-Flag beweist keinen inhaltlichen Erfolg — gegen Ground-Truth verifizieren. Ein Tool/Subprozess kann sauber mit Exit 0 / status:done enden, obwohl die Arbeit inhaltlich fehlschlug ODER nur behauptet wurde. (a) agent_smoke --live-external gab EXIT 0, aber Ergebnis-JSON sagte ok:false / worker_timeout. (b) Dual-Bridge Stage-1-Result meldete status:done + Commit-Hash — der Beweis kam erst durch `git show origin/<branch>:<datei>`. (e) 2026-06-03 PreToolUse-Hook-Live-Test: Canary überlebte, aber NICHT weil der Hook blockte, sondern weil das Modell den destruktiven Call nie absetzte (permission_denials:[]); Canary-lebt != Hook-blockte. (f) 2026-06-03 git-Härtung: zwei reale git-Bypass-Lücken nur vom Live-Spotcheck gegen das echte Binary gefunden, nicht von grünen Unit-Tests. (g) 2026-06-03 dual-bridge Hygiene: flaky-Test (#7728) VOR dem Fix deterministisch reproduziert; #7729 NDJSON-Parser brauchte KEINEN Code-Fix — 'Code war schon richtig' ist ein gültiges Verifikations-Ergebnis. (h) 2026-07-27 Modell-Routing: das deklarierte `model:`-Frontmatter eines Skills wird von Claude Code 2.1.215/2.1.220 NICHT angewendet — die Deklaration allein war 3 Monate lang als Wirkung gelesen worden; nur die Transkript-Probe zeigte den No-Op. (i) 2026-07-27 Kostenmessung: die Aggregation ueber Transkript-Records ergab plausible, aber um 2.77x zu hohe Zahlen ($42.87 statt $15.50) — der Fehler war die Einheit (usage pro API-Response, Record pro Content-Block), nicht die Arithmetik. (confidence: 0.92)
 - **Type:** best-practice
-- **Evidence:** 4 occurrences
+- **Evidence:** 10 occurrences (L19, L26, L37, E8, E9, iteration-log 2026-07-06 abends (T-005 nur mit Base-Dir-Beweis geschlossen; UC7-Changelog-Read verhinderte Duplikat; Docs-Drift erst nach CHANGELOG-Check gefixt), err-010, b3c802d, a735be2)
+- **Recommendation:** Nie dem Exit-Code/status/PASS-Print allein glauben: gegen den echten Zustand prüfen (DB-Row-Counts gegen Vorher-Snapshot, geschriebene Artefakt-Dateien, mtimes, Git-Branch-Inhalt, Event-Stream + permission_denials). Eigene adversariale Fälle gegen das echte Binary statt der bestandenen Suite. Gilt auch für Beweis-Skripte und Subagent-Reports. Verwandt mit Verifikation-vor-Aktion (CLAUDE.md §4) und P004.
+- **Tags:** verification, exit-code, ground-truth, honesty, verifikation-vor-aktion, dco, dual-bridge, git, claude-cli
+
+### P010: Three-role Codex code review (Verifier + Security parallel, Quality-Fixer serial) — Structured post-implementation review with 3 Codex subagent roles: (1) Verifier against spec — diff vs stated contract, finds missing parts / param-order / typos; (2) Security — injection / SSRF / path-traversal / privacy-leak review; (3) Quality-Fixer — reads findings from 1+2 and applies within budget (<=3 files, no new imports, no API/schema changes). Verifier + Security run in parallel as background agents; Quality-Fixer waits for both to consolidate. Skip Quality-Fixer when the fix scope is trivial (e.g. 2 string edits) — direct main-model edit is cheaper than subagent overhead (confidence: 0.8)
+- **Type:** best-practice
+- **Evidence:** 4 occurrences (2026-04-22 Visual-Redesign, 2026-04-23 Paket-F, 2026-04-24 Paket-G Phase-5, 2026-04-24 Paket-G full-package)
 - **Recommendation:** After substantive commits: ask user '[1] Verifier [2] Security [3] Quality-Fixer [alle] [keine]'. Default wenn User nicht explizit antwortet: Verifier only. Spawn background agents with focused scope prompts. For multi-phase packages, do a second Verifier-pass over the full package to catch doc/code drift that per-phase review misses
 - **Tags:** workflow, review, codex, subagent, quality-gate
 
-### G-pattern-005: Exit-Code 0 / ok-Flag beweist keinen inhaltlichen Erfolg — gegen Ground-Truth verifizieren. Ein Tool/Subprozess kann sauber mit Exit 0 / status:done enden, obwohl die Arbeit inhaltlich fehlschlug ODER nur behauptet wurde. (a) agent_smoke --live-external gab EXIT 0, aber Ergebnis-JSON sagte ok:false / worker_timeout. (b) Dual-Bridge Stage-1-Result meldete status:done + Commit-Hash — der Beweis kam  (confidence: 0.92)
-- **Type:** best-practice
-- **Evidence:** 10 occurrences
-- **Recommendation:** Nie dem Exit-Code/status/PASS-Print allein glauben: gegen den echten Zustand prüfen (DB-Row-Counts gegen Vorher-Snapshot, geschriebene Artefakt-Dateien, mtimes, Git-Branch-Inhalt, Event-Stream + permission_denials). Eigene adversariale Fälle gegen das echte Binary statt der bestandenen Suite. Gilt auch für Beweis-Skripte und Subagent-Reports. Verwandt mit Verifikation-vor-Aktion (CLAUDE.md §4) und
-- **Tags:** verification, exit-code, ground-truth, honesty, verifikation-vor-aktion, dco, dual-bridge, git, claude-cli
-
 ### P011: Robustheits-Vertraege (fail-soft, always-exit-0, JSONL-Integritaet) ohne Randfall-Regressionstests: Happy-Path-Suiten bleiben gruen, waehrend kaputte Args (argparse sys.exit), trailing Flags (bash shift-Endlosschleife), Kontrollzeichen (JSONL-Zeilenriss) und Non-ASCII auf Windows-cp1252-stdout den Vertrag brechen (confidence: 0.8)
 - **Type:** anti-pattern
-- **Evidence:** 4 occurrences
-- **Recommendation:** Fuer jedes Script mit Robustheits-Vertrag eine Randfall-Matrix testen: (1) malformed/unbekannte Args -> Exit-Code + stdout-Reinheit, (2) Flag als letztes Token ohne Wert -> Terminierung mit timeout-Test, (3) --help -> reiner Help-Text, (4) Kontrollzeichen/Newline-Injection in Feldwerte -> Record-Integritaet (Whitelist-Sanitization), (5) Non-ASCII-Inhalt bei gepipetem stdout auf Windows -> UTF-8-re
+- **Evidence:** 4 occurrences (err-005, err-006, err-007, err-008)
+- **Recommendation:** Fuer jedes Script mit Robustheits-Vertrag eine Randfall-Matrix testen: (1) malformed/unbekannte Args -> Exit-Code + stdout-Reinheit, (2) Flag als letztes Token ohne Wert -> Terminierung mit timeout-Test, (3) --help -> reiner Help-Text, (4) Kontrollzeichen/Newline-Injection in Feldwerte -> Record-Integritaet (Whitelist-Sanitization), (5) Non-ASCII-Inhalt bei gepipetem stdout auf Windows -> UTF-8-reconfigure. Vertrag gilt erst als getestet, wenn alle 5 Klassen rot/gruen verifiziert sind.
 - **Tags:** fail-soft, cli-contract, edge-cases, testing, windows, arg-parsing
+
+### P012: Wrap-up-Mechanik wird testgetrieben umgebaut: Guard-/Contract-Tests erst rot schreiben, dann implementieren - alle vier grossen Umbauten (Session-Bracket, Batch-Writer, Delegations-Umbau, T-013/T-016/T-019) liefen so fehlerarm (confidence: 0.7)
+- **Type:** best-practice
+- **Evidence:** 10 occurrences (it:2026-06-12:Session-Bracket-Coverage (v3.6.0, sessio, it:2026-07-27:wrap-up Batch-Writer scripts/apply_wrapu, it:2026-07-27:T-013 bridge_status=candidate determinis, it:2026-07-27:T-016 gemessener Kostentrace am wrap-up-, it:2026-07-27:Codex-Verifier-Befunde zum Delegations-U, it:2026-03-30:Skill Consolidation v3 (20 → 9 skills), it:2026-07-15:Skill-Verdrahtung wrap-up + session-boot, it:2026-07-27:Kosten-Zahlen korrigiert (2.77x Zaehlfeh, it:2026-07-27:Delegations-Umbau T-015: 3 Skill-Injekti, it:2026-07-27:Kosten-Circuit-Breaker + Pattern-Starvat)
+- **Recommendation:** Bei Aenderungen am wrap-up-Stack (apply_wrapup.py, SKILL.md-Contracts) immer zuerst den Regressionstest schreiben; die Suite-Contracts in validate-skills.sh gehoeren zum Liefergegenstand
+- **Tags:** tdd, wrap-up, python, consolidation, architecture, v3, iteration-logger, context-keeper, coverage, workflow, model-routing, session-bootstrap, escalation, context-diet, batch-writer, trust-boundary, identity, release, cost-analysis, measurement, transcript, docs, refactor, delegation, governance, pattern-pipeline, skill-doc, bridge
 
 ## Skill Candidates
 
-- P010: Three-role Codex code review (Verifier + Security parallel, Quality-Fixer serial) — Structured post-implementation revie
-
-- P011: Robustheits-Vertraege (fail-soft, always-exit-0, JSONL-Integritaet) ohne Randfall-Regressionstests: Happy-Path-Suiten bl
+- P010: Three-role Codex code review (Verifier + Security parallel, Quality-Fixer serial) — Structured post-implementation review with 3 Codex subagent roles: (1) Verifier against spec — diff vs stated contract, finds missing parts / param-order / typos; (2) Security — injection / SSRF / path-traversal / privacy-leak review; (3) Quality-Fixer — reads findings from 1+2 and applies within budget (<=3 files, no new imports, no API/schema changes). Verifier + Security run in parallel as background agents; Quality-Fixer waits for both to consolidate. Skip Quality-Fixer when the fix scope is trivial (e.g. 2 string edits) — direct main-model edit is cheaper than subagent overhead — codex-3-role-review
+- P011: Robustheits-Vertraege (fail-soft, always-exit-0, JSONL-Integritaet) ohne Randfall-Regressionstests: Happy-Path-Suiten bleiben gruen, waehrend kaputte Args (argparse sys.exit), trailing Flags (bash shift-Endlosschleife), Kontrollzeichen (JSONL-Zeilenriss) und Non-ASCII auf Windows-cp1252-stdout den Vertrag brechen — cli-robustness-edge-case-tests
+- P012: Wrap-up-Mechanik wird testgetrieben umgebaut: Guard-/Contract-Tests erst rot schreiben, dann implementieren - alle vier grossen Umbauten (Session-Bracket, Batch-Writer, Delegations-Umbau, T-013/T-016/T-019) liefen so fehlerarm — ready for skill generation
