@@ -10,6 +10,55 @@ Design: `memskillredesign.md` / `memevalharness.md` (membrain). The wrap-up gate
 inventory (`gate_linkage.py`, 27 gates) and `validate-skills.sh` anchors stay in the
 body, never here.
 
+## Write plan (batch writer)
+
+`scripts/apply_wrapup.py` applies every mutation below in ONE pass. Emit this
+object once, pipe it into the script, read the returned tally — do not write
+these files with individual Write/Edit calls (that is what made wrap-up cost
+$42 per run: 70 turns, each re-reading the full session context).
+
+```json
+{
+  "date": "{YYYY-MM-DD}",
+  "learnings":       [ { "text": "...", "importance": 3, "tags": [], "derived_from": [] } ],
+  "user_candidates": [ { "key": "kebab-key", "observation": "...", "signal_type": "preference",
+                         "confidence": 0.5, "evidence": [], "confirmed": false,
+                         "trust_source": "conversation" } ],
+  "soul_candidates": [ { "proposal": "...", "evidence": [] } ],
+  "open_tasks":      { "add": [ { "title": "...", "source": "wrap-up", "cross_project": false } ],
+                       "close": ["T-001"] },
+  "session_summary": { "what_was_done": [], "open_items": [], "next_steps": [],
+                       "statistics": { "iterations": 0, "errors": 0, "new_patterns": 0 },
+                       "warnings": [],
+                       "handoff": { "active_task": "", "current_state": "",
+                                    "active_patterns": "", "open_questions": "" } },
+  "consolidate": true,
+  "iterations_logged": 0
+}
+```
+
+Every key is optional — omit what the session did not produce. The script owns
+all deterministic rules and needs no help with them: id assignment
+(`L{n}` / `UC{n}` / `T-{00n}`), `review_after` = date + 90d, exact-text dedup,
+the `signal_type: mood` block, the promotion rule (`confirmed` OR `inferred`
+AND `occurrences >= 2` AND `confidence >= 0.6`), changelog-before-edit
+ordering, `learnings.md` regeneration, the consolidation marker and the dirty
+flags. Supply judgment only: what is a learning, what is an identity signal,
+how important, which section.
+
+Guarantees worth relying on:
+
+- `trust_source` other than `conversation` is dropped (Step 6.1 boundary).
+- `errors.json`, `patterns.json`, `decisions.json`, `iteration-log.md` and
+  `soul.md` are refused — those belong to other skills.
+- On any error nothing further is written, **the consolidation marker is
+  skipped and dirty flags stay set** (Step 9.5 rule 5). Exit code 2.
+- `--dry-run` reports the full tally without touching a file.
+
+The returned `identity_status_line` is computed from the writes that actually
+happened — use it verbatim for the mandatory Step 6.5 line instead of counting
+by hand.
+
 ## Learning entry (Step 3b)
 
 Append to `learnings/learnings.json`:

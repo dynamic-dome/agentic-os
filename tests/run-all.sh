@@ -161,6 +161,22 @@ fi
 
 echo ""
 
+# Run apply_wrapup batch-writer tests
+echo ">>> Running apply-wrapup batch-writer tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-apply-wrapup.py"; then
+    echo ">>> Apply-wrapup tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Apply-wrapup tests: SKIPPED (no python found)"
+else
+    echo ">>> Apply-wrapup tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run handoff write-guard tests (T-19)
 echo ">>> Running handoff write-guard tests..."
 PY_BIN=""

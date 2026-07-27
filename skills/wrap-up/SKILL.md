@@ -53,6 +53,25 @@ context you already hold. Fall back to targeted lookups ONLY for single
 unresolved points — never a full re-scan. Track roughly how many bytes of
 files you actually read this run; Step 9.5 logs that number.
 
+## Step 0.6: Write-Plan Discipline (write-plan)
+
+Do NOT write `learnings.json`/`learnings.md`, `session-summary.md`,
+`open-tasks.json`, `user-candidates.json`, `user-changelog.json`, `user.md`,
+`soul-candidates.md`, `consolidation-marker.json` or the `dirty-*.json` flags
+with individual Write/Edit calls. Collect the results of Steps 3–7 into ONE
+write plan and hand it to the batch writer in Step 8.5.
+
+Why: a measured run cost $42.87 for 70 assistant turns — 28.8M cache-read and
+4.1M cache-write tokens against only 108k output tokens. Almost all of it was
+one file mutation per turn, each re-reading the full session context. The plan
+collapses that write phase to ~2 turns.
+
+Keep judgment in your head (what is a learning, what is an identity signal, how
+important); leave every mechanical rule to the script — ids, `review_after`,
+dedup, the promotion rule, changelog ordering, `learnings.md` regeneration, the
+marker and the dirty flags. Plan schema: `references/wrapup-schemas.md`
+§Write plan.
+
 ## Step 1: Gather Session Data
 
 1. `.agent-memory/iterations/iteration-log.md` — entries from today
@@ -374,6 +393,33 @@ If there are uncommitted changes:
 3. Show the user what would be committed; **wait for confirmation** — never commit
    without explicit approval.
 
+## Step 8.5: Apply the Write Plan (batch-apply)
+
+Emit the plan collected across Steps 3–7 and apply it in ONE call:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/apply_wrapup.py" .agent-memory \
+  --session-id <session-id> <<'PLAN'
+{ ...write plan... }
+PLAN
+```
+
+Read the returned JSON:
+
+- `tally` — measured counts from the writes that actually happened. Use these
+  numbers for Step 6.5, never a hand count.
+- `identity_status_line` — emit verbatim as the mandatory Step 6.5 line.
+- `files_written` — spot-check one or two if anything looks off.
+- `warnings` — surface them; they are contract violations (e.g. summary over
+  30 lines), not noise.
+
+Exit code 2 means the plan was rejected and **nothing was consolidated**: the
+marker is absent and the dirty flags stay set on purpose. Fix the plan and
+re-run rather than writing the files by hand.
+
+Use `--dry-run` first when unsure — it reports the full tally without touching
+a file.
+
 ## Step 9: Memory Maintenance (Delegated)
 
 Run `bash scripts/memory-thresholds.sh` (plugin root; threshold SSoT shared with
@@ -386,6 +432,11 @@ owns its own report and error handling. Exit 0 → skip entirely.
 This step makes consolidation VERIFIABLE: bootstrap and session-start.sh detect
 crashed sessions by "dirty file exists but no matching marker". It is mandatory
 and runs LAST — only after Steps 1–8 actually completed.
+
+**Execution:** the Step 8.5 batch call performs this when the plan carries
+`"consolidate": true` — it already runs after Steps 1–8 and skips the marker on
+any failure. Points 1–5 below define the contract that call implements; write
+them by hand only if the script is unavailable.
 
 1. Read all `.agent-memory/working/dirty-*.json` with `dirty: true` (their
    `touched_files` were already used as evidence in Steps 1/1.5).
