@@ -168,5 +168,55 @@
     "occurrences": 1,
     "recurrence_dates": [],
     "last_seen": "2026-07-15"
+  },
+  {
+    "id": "err-009",
+    "date": "2026-07-27",
+    "category": "logic",
+    "tags": [
+      "wrap-up",
+      "trust-boundary",
+      "identity",
+      "security",
+      "promotion-gate"
+    ],
+    "trigger": "Review des neuen Batch-Writers apply_wrapup.py (Full-Queue-Re-Review nach Step 6.3)",
+    "problem": "Kandidaten, die bereits in user-candidates.json lagen, konnten ohne trust_source=conversation nach identity/user.md promotet werden — eine vergiftete Queue-Zeile (z.B. aus Web-/Doku-Inhalt) haette die Identitaet erreicht.",
+    "root_cause": "Die Trust-Boundary wurde nur beim ENQUEUE geprueft, nicht beim PROMOTE. Die Full-Queue-Re-Review (bewusst eingefuehrt, damit Promotions nicht verhungern) liest genau die Altbestaende, die nie durch den Enqueue-Check dieser Version liefen.",
+    "fix": "trust_source-Pruefung zusaetzlich auf dem Promotion-Pfad in apply_wrapup.py erzwungen, plus Regressionstest, der einen Alt-Kandidaten ohne conversation-Provenance in die Queue legt und die Nicht-Promotion assertet.",
+    "failed_approaches": [],
+    "prevention": "Bei jeder Sicherheitsgrenze pruefen: gibt es einen ZWEITEN Pfad, der dieselben Daten spaeter erneut anfasst? Ein Gate auf dem Eingang schuetzt nicht, wenn ein Re-Review-Pfad Altbestand ohne dieselbe Pruefung konsumiert.",
+    "severity": "major",
+    "attempts": 1,
+    "confidence": 5,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-27"
+  },
+  {
+    "id": "err-010",
+    "date": "2026-07-27",
+    "category": "logic",
+    "tags": [
+      "measurement",
+      "cost-analysis",
+      "transcript",
+      "ground-truth",
+      "json"
+    ],
+    "trigger": "Nachrechnen der Kosten-Zahlen, die den wrap-up-Batch-Writer begruendet hatten",
+    "problem": "Kosten und Turn-Zahl eines wrap-up-Laufs waren um Faktor 2.77 zu hoch (70 Turns/$42.87 statt 28 API-Calls/$15.50) — eine Architektur-Entscheidung stand auf falschen Messwerten.",
+    "root_cause": "Das usage-Objekt wird pro API-Response berichtet, das Transkript schreibt aber einen Record pro Content-Block (text, thinking, tool_use) und wiederholt dasselbe usage in jedem. Summieren ueber Assistant-Records zaehlt jeden Multi-Block-Turn mehrfach.",
+    "fix": "Aggregation auf message.id deduplizieren; korrigierte Zahlen in Spec, SKILL.md, Schemas und CLAUDE.md als Konvention verankert.",
+    "failed_approaches": [
+      "Summe ueber alle Assistant-Records im Transkript — zaehlt Multi-Block-Turns mehrfach"
+    ],
+    "prevention": "Bei jeder Aggregation ueber Log-/Transkript-Records zuerst fragen, was die EINHEIT des Records ist gegenueber der Einheit der Metrik. Metrik pro API-Call + Record pro Content-Block => Dedup-Key noetig.",
+    "severity": "major",
+    "attempts": 1,
+    "confidence": 5,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-07-27"
   }
 ]

@@ -208,5 +208,84 @@
     ],
     "wiki_ref": "wiki/entities/agentic-os-plugin.md",
     "promoted_at": "2026-07-15"
+  },
+  {
+    "id": "D-008",
+    "date": "2026-07-27",
+    "type": "architecture-decision",
+    "title": "wrap-up-Schreibpfad laeuft ausschliesslich ueber scripts/apply_wrapup.py (Batch-Writer als SSoT)",
+    "status": "active",
+    "context": "wrap-up schrieb jede Memory-Datei mit einem eigenen Write/Edit-Turn. Da das Modell zustandslos ist, kostet jeder zusaetzliche Turn einen vollen Kontext-Resend; ein gemessener Lauf kostete $15.50 bei 28 API-Calls, davon 94% Kontext-Transport. Zugleich lagen die deterministischen Regeln (ID-Vergabe, Dedup, Promotion-Gate, Changelog-Reihenfolge) nur als Prompt-Text vor (vgl. L13).",
+    "options_considered": [
+      {
+        "option": "Status quo: ein Write/Edit-Turn pro Datei",
+        "pros": [
+          "kein neuer Code"
+        ],
+        "cons": [
+          "ein voller Kontext-Resend pro Datei",
+          "Regeln nur als Prompt-Text, nicht testbar"
+        ]
+      },
+      {
+        "option": "Ein Schreibplan -> ein Skript-Pass (apply_wrapup.py)",
+        "pros": [
+          "Schreibphase kollabiert auf ~2 Calls",
+          "Regeln als getestete Funktionen (55 Tests)",
+          "gemessener Tally statt Handzaehlung",
+          "Marker wird bei Fehler ausgelassen -> ehrlicher Dirty-State"
+        ],
+        "cons": [
+          "Schema-Kopplung Plan<->Skript",
+          "Skript muss Fremd-Dateien aktiv verweigern"
+        ]
+      }
+    ],
+    "decision": "Ein Schreibplan geht in apply_wrapup.py, das Skript besitzt alle mechanischen Regeln und gibt einen gemessenen Tally zurueck. Das Modell liefert nur Urteil (was ist ein Learning, wie wichtig). Dateien anderer Skills (errors.json, patterns.json, decisions.json, iteration-log.md, soul.md) werden vom Skript verweigert.",
+    "consequences": "wrap-up-Schreibphase ist deterministisch, testbar und billig; Tally-Zahlen sind gemessen statt geschaetzt. Neue Memory-Dateien muessen ins Plan-Schema aufgenommen werden, sonst sind sie nicht schreibbar.",
+    "supersedes": null,
+    "tags": [
+      "wrap-up",
+      "architecture",
+      "cost",
+      "testability"
+    ]
+  },
+  {
+    "id": "D-009",
+    "date": "2026-07-27",
+    "type": "constraint-update",
+    "title": "skill `model:`-Frontmatter ist ein gemessener No-Op — Kostenannahmen duerfen nicht darauf bauen",
+    "status": "active",
+    "context": "D-005 fuehrte deklaratives Modell-Routing via Frontmatter ein. Eine Transkript-Probe auf Claude Code 2.1.215 und 2.1.220 zeigt: beim Aufruf eines Skills ueber das Skill-Tool bleibt das Session-Modell aktiv, das Frontmatter-Feld wird nicht angewendet.",
+    "options_considered": [
+      {
+        "option": "Frontmatter entfernen",
+        "pros": [
+          "keine falsche Erwartung im Repo"
+        ],
+        "cons": [
+          "verliert die Deklaration/SSoT, falls Claude Code das Feld spaeter respektiert"
+        ]
+      },
+      {
+        "option": "Frontmatter behalten, No-Op dokumentieren",
+        "pros": [
+          "Deklaration bleibt, Erwartung wird an SSoT-Header, CLAUDE.md und Eval-Checkliste (E0-Probe) korrigiert"
+        ],
+        "cons": [
+          "Frontmatter und Realitaet bleiben auseinander — dauerhafte Erklaerungslast"
+        ]
+      }
+    ],
+    "decision": "Frontmatter bleibt als Deklaration; der No-Op ist am SSoT-Header (scripts/model-routing.sh), in CLAUDE.md und als E0-Probe in docs/model-routing-eval-checklist.md dokumentiert. Nie annehmen, ein Skill sei 'auf sonnet gelaufen', wenn ueber Kosten oder Sicherheit argumentiert wird.",
+    "consequences": "Der bidirektionale Konsistenztest prueft weiterhin Frontmatter<->Tabelle, kann den No-Op aber konstruktionsbedingt nicht entdecken — nur die Transkript-Probe kann das. D-005 bleibt formal aktiv, seine Wirksamkeitsannahme ist jedoch widerlegt (siehe ESKALATION im Wrap-up 2026-07-27).",
+    "supersedes": null,
+    "tags": [
+      "model-routing",
+      "constraint",
+      "measurement",
+      "cost"
+    ]
   }
 ]

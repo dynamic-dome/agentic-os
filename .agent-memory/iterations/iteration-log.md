@@ -165,3 +165,29 @@
 - **Confidence:** 5/5
 - **Tests:** passed (Suite komplett, Controller-ground-truth-verifiziert)
 - **Errors:** err-008
+
+## 2026-07-27 — fix: skill `model:`-Frontmatter als gemessener No-Op dokumentiert (Session-Harvest, recovered from session 587b9ab4)
+- **Type:** bugfix
+- **Tags:** model-routing, docs-drift, measurement, claude-code, ground-truth
+- **Files changed:** scripts/model-routing.sh, CLAUDE.md, docs/model-routing-eval-checklist.md, docs/superpowers/specs/2026-07-15-model-routing-design.md, tests/validate-skills.sh
+- **Summary:** Transkript-Probe (Claude Code 2.1.215/2.1.220) zeigt: beim Skill-Aufruf via Skill-Tool bleibt das Session-Modell aktiv — das `model:`-Frontmatter wirkt NICHT. Statt die Frontmatter zu entfernen wurde der No-Op an der SSoT (scripts/model-routing.sh Header) + CLAUDE.md + Eval-Checkliste (E0-Probe) dokumentiert, inkl. der Einsicht, dass der Konsistenztest den No-Op konstruktionsbedingt nicht sehen kann. Commit b3c802d.
+- **Confidence:** 5/5
+- **Tests:** passed (Suite gruen)
+
+## 2026-07-27 — feature: wrap-up Batch-Writer scripts/apply_wrapup.py + Trust-Boundary-Fix (Session-Harvest, recovered from session 587b9ab4)
+- **Type:** feature
+- **Tags:** wrap-up, batch-writer, trust-boundary, identity, tdd, python
+- **Files changed:** scripts/apply_wrapup.py, tests/test-apply-wrapup.py, tests/run-all.sh, skills/wrap-up/SKILL.md, skills/wrap-up/references/wrapup-schemas.md
+- **Summary:** Alle Datei-Mutationen des wrap-up laufen jetzt ueber EINEN Schreibplan -> ein Skript-Pass mit gemessenem Tally (statt ein Write/Edit-Turn pro Datei). Das Skript besitzt die deterministischen Regeln (ID-Vergabe, Dedup, Promotion-Gate, Changelog-vor-Edit, learnings.md-Regeneration, Marker, Dirty-Flags) und ueberspringt den Marker bei jedem Fehler. Review fand einen Trust-Boundary-Bypass: die Full-Queue-Re-Review promotete Alt-Kandidaten ohne `trust_source: conversation` — Grenze jetzt auch auf dem Promotion-Pfad erzwungen. 55 Tests. Commits a698707, 2c29b62.
+- **Confidence:** 5/5
+- **Tests:** passed (55/55, Suite gruen)
+- **Errors:** err-009
+
+## 2026-07-27 — config: Kosten-Zahlen korrigiert (2.77x Zaehlfehler) + Release 4.16.0 (Session-Harvest, recovered from session 587b9ab4)
+- **Type:** config
+- **Tags:** release, cost-analysis, measurement, transcript, docs
+- **Files changed:** docs/superpowers/specs/2026-07-15-model-routing-design.md, scripts/apply_wrapup.py, skills/wrap-up/SKILL.md, skills/wrap-up/references/wrapup-schemas.md, CLAUDE.md, .claude-plugin/plugin.json
+- **Summary:** Die Zahlen, die den Batch-Writer begruendeten, waren um 2.77x aufgeblaeht: `usage` wird pro API-Response berichtet, das Transkript schreibt aber einen Record pro Content-Block (text/thinking/tool_use) mit demselben usage-Objekt. Korrigiert per Dedup auf `message.id`: 28 API-Calls statt 70 Turns, $15.50 statt $42.87 — Richtung (94% Kontext-Transport) haelt, die erwartete Ersparnis schrumpft. Danach Versions-Bump 4.15.0 -> 4.16.0 und beide Konventionen (wrap-up-Schreibpfad, Kosten-Reasoning) in CLAUDE.md verankert. Commits a735be2, 9cd82c9.
+- **Confidence:** 5/5
+- **Tests:** passed (Suite gruen)
+- **Errors:** err-010

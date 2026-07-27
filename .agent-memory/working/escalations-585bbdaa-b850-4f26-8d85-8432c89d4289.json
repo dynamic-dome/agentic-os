@@ -1,0 +1,8 @@
+[
+  {
+    "ts": "2026-07-27T11:10:00+02:00",
+    "task": "wrap-up",
+    "reason": "Aktiver Decision-Record D-005 (deklaratives Modell-Routing via Frontmatter) ist in seiner Wirksamkeitsannahme widerlegt",
+    "detail": "D-009 dokumentiert den gemessenen No-Op. Ob D-005 auf 'superseded' zu setzen oder das Routing anders zu implementieren ist (z.B. Fork/Subagent statt Frontmatter, vgl. offener Task T-010), wurde in diesem Lauf NICHT entschieden."
+  }
+]
