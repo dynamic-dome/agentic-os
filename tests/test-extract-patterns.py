@@ -416,5 +416,142 @@ rc, out = run(mem, "--apply", plan={"patterns": [
 new_ids = [p["id"] for p in load(mem, "patterns/patterns.json")]
 check("P002" in new_ids, f"on a frequency tie the P-sequence continues (got {new_ids})")
 
+# --- 24. iteration heuristics (T-019): the structured half -------------------
+def it_block(date, typ, title, tags=(), files=(), tests="passed (10/10)",
+             confidence="5/5", summary="s", errors_line=None):
+    lines = [f"## {date} — {typ}: {title}",
+             f"- **Type:** {typ}",
+             f"- **Tags:** {', '.join(tags)}",
+             f"- **Files changed:** {', '.join(files)}",
+             f"- **Summary:** {summary}",
+             f"- **Confidence:** {confidence}",
+             f"- **Tests:** {tests}"]
+    if errors_line:
+        lines += ["- **Errors:**", f"- {errors_line}"]
+    return "\n".join(lines) + "\n"
+
+
+def make_log(*blocks):
+    return "# Iteration Log\n\n" + "\n".join(blocks)
+
+
+# 24a. file hotspot: same file in >= 3 iterations
+log = make_log(
+    it_block("2026-07-01", "feature", "A", tags=["x1"], files=["skills/wrap-up/SKILL.md"]),
+    it_block("2026-07-02", "bugfix", "B", tags=["x2"], files=["skills/wrap-up/SKILL.md", "a.py"]),
+    it_block("2026-07-03", "refactor", "C", tags=["x3"], files=["skills/wrap-up/SKILL.md"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+check(rc == 0, "iteration-only store runs without errors.json content")
+hot = [p for p in out["proposals"] if p["cluster_key"] == "hotspot:skills/wrap-up/SKILL.md"]
+check(len(hot) == 1, "file in >=3 iterations becomes a hotspot proposal")
+check(hot and len(hot[0]["evidence"]) == 3 and hot[0]["occurrences"] == 3,
+      "hotspot evidence carries one ref per iteration")
+
+# 24b. two iterations are below the hotspot threshold
+log = make_log(
+    it_block("2026-07-01", "feature", "A", files=["b.py"]),
+    it_block("2026-07-02", "bugfix", "B", files=["b.py"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+check(not any(p["cluster_key"].startswith("hotspot:") for p in out.get("proposals", [])),
+      "2 iterations do not make a hotspot")
+
+# 24c. repeated successful approach: >=3 confident+passing runs, >=2 shared tags
+log = make_log(
+    it_block("2026-07-01", "feature", "A", tags=["tdd", "subagent", "m1"]),
+    it_block("2026-07-02", "feature", "B", tags=["tdd", "subagent", "m2"]),
+    it_block("2026-07-03", "feature", "C", tags=["tdd", "subagent", "m3"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+appr = [p for p in out["proposals"] if p["cluster_key"].startswith("approach:")]
+check(len(appr) == 1 and appr[0]["type"] == "best-practice",
+      "3 passing high-confidence iterations with shared tags propose a best-practice")
+
+# 24d. low confidence or failing tests never count as a successful approach
+log = make_log(
+    it_block("2026-07-01", "feature", "A", tags=["tdd", "subagent"], confidence="2/5"),
+    it_block("2026-07-02", "feature", "B", tags=["tdd", "subagent"], tests="failed (1/10)"),
+    it_block("2026-07-03", "feature", "C", tags=["tdd", "subagent"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+check(not any(p["cluster_key"].startswith("approach:") for p in out.get("proposals", [])),
+      "failed tests / low confidence iterations do not form an approach cluster")
+
+# 24e. fragile test area: >=2 iterations with failing tests and shared tags
+log = make_log(
+    it_block("2026-07-01", "bugfix", "A", tags=["hooks", "windows", "m1"],
+             tests="failed (3/10)"),
+    it_block("2026-07-02", "bugfix", "B", tags=["hooks", "windows", "m2"],
+             tests="1 flaky, passed (9/10) after retry"),
+    it_block("2026-07-03", "feature", "C", tags=["unrelated"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+frag = [p for p in out["proposals"] if p["cluster_key"].startswith("fragile:")]
+check(len(frag) == 1 and frag[0]["type"] == "anti-pattern",
+      "2 iterations with failing/flaky tests and shared tags propose a fragile area")
+
+# 24f. prose/legacy blocks are skipped, never guessed at
+log = make_log(
+    "## Irgendein Prosa-Block ohne Felder\nNur Text, keine Feldzeilen.\n",
+    it_block("2026-07-01", "feature", "A", files=["c.py"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+check(rc == 0, "legacy prose blocks do not break the run")
+
+# 24g. cold-start guard counts iterations too (the starvation fix)
+log = make_log(
+    it_block("2026-07-01", "feature", "A", files=["d.py"]),
+    it_block("2026-07-02", "bugfix", "B", files=["d.py"]),
+    it_block("2026-07-03", "refactor", "C", files=["d.py"]),
+)
+mem = make_mem(errors=[err("err-001", "2026-07-01", "x", ["a"])], log=log)
+rc, out = run(mem, "--update")
+check(out.get("skipped") != "not-enough-data",
+      "3 parseable iterations lift the cold-start guard despite <3 errors")
+
+# 24h. --apply gives an iteration cluster wording but never its numbers
+log = make_log(
+    it_block("2026-07-01", "feature", "A", files=["e.py"]),
+    it_block("2026-07-02", "bugfix", "B", files=["e.py"]),
+    it_block("2026-07-03", "refactor", "C", files=["e.py"]),
+)
+mem = make_mem(log=log)
+rc, out = run(mem, "--update")
+key = [p["cluster_key"] for p in out["proposals"] if p["cluster_key"] == "hotspot:e.py"][0]
+rc, out = run(mem, "--apply", plan={"patterns": [
+    {"cluster_key": key, "description": "e.py ist ein Hotspot",
+     "recommendation": "Vor Aenderungen Tests lesen", "confidence": 0.99,
+     "occurrences": 50}]})
+new = [p for p in load(mem, "patterns/patterns.json") if p["description"] == "e.py ist ein Hotspot"]
+check(len(new) == 1, "--apply writes the iteration cluster as a pattern")
+check(new and new[0]["occurrences"] == 3 and float(new[0]["confidence"]) < 0.99,
+      "plan-supplied numbers are ignored for iteration clusters too")
+
+# 24i. type gate: an iteration cluster never merges into a different-typed
+# pattern via shared tags (a best-practice must not inflate an anti-pattern)
+anti = [{"id": "P001", "type": "anti-pattern", "description": "Bestehendes Anti-Pattern",
+         "evidence": ["err-900"], "confidence": 0.5, "tags": ["tdd", "subagent"],
+         "occurrences": 2, "first_seen": "2026-05-01", "last_seen": "2026-05-01",
+         "recommendation": "r", "skill_candidate": False, "lifecycle": "active"}]
+log = make_log(
+    it_block("2026-07-01", "feature", "A", tags=["tdd", "subagent", "m1"]),
+    it_block("2026-07-02", "feature", "B", tags=["tdd", "subagent", "m2"]),
+    it_block("2026-07-03", "feature", "C", tags=["tdd", "subagent", "m3"]),
+)
+mem = make_mem(patterns=anti, log=log)
+rc, out = run(mem, "--update")
+p001 = [p for p in load(mem, "patterns/patterns.json") if p["id"] == "P001"][0]
+check(p001["occurrences"] == 2 and not any(e.startswith("it:") for e in p001["evidence"]),
+      "best-practice cluster does not inflate a tag-similar anti-pattern")
+check(any(p["cluster_key"].startswith("approach:") for p in out.get("proposals", [])),
+      "the mismatched cluster stays a proposal instead")
+
 print(f"=== Results: {PASSED}/{TESTS} passed, {ERRORS} failures ===")
 sys.exit(1 if ERRORS else 0)

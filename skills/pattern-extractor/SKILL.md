@@ -33,15 +33,20 @@ skill are exact thresholds, i.e. code.
 ## Step 1: Run the Extractor (extractor-script)
 
 `scripts/extract_patterns.py` is the **sole writer** of `patterns.json` and
-`patterns.md`, and it owns the *error-based* half of the pipeline: reading
-`errors.json` + `patterns.json`, the Step-3 confidence formula, the Step-4 dedup,
-the legacy normalization, the Step-5 entry shape and the Step-6 projection.
+`patterns.md`, and it owns BOTH detection halves of the pipeline (T-019): the
+error-based clustering over `errors.json`, and the structured-iteration
+heuristics over `iteration-log.md` — file hotspots (same file across 3+
+iterations), repeated successful approaches (3+ passing high-confidence runs
+with 2+ shared tags), fragile test areas (2+ failing/flaky runs with shared
+tags). The log became parseable when `apply_wrapup.py` pinned the render format
+in 4.18.0; older prose blocks are skipped, never guessed at. It also owns the
+Step-3 confidence formula, the Step-4 dedup (with a type gate: tag/wording
+similarity never merges across pattern types), the legacy normalization, the
+Step-5 entry shape and the Step-6 projection.
 
-**What it does NOT do (yours to judge):** the Step-2 rows that need structured
-iteration history — file hotspots (same file across 3+ iterations), repeated
-successful approaches, fragile test areas, known solutions. `iteration-log.md` is
-prose, so the script cannot cluster it; it reports every unclustered error under
-`unmatched_errors` instead. Read those rows yourself when the report shows a long
+**What it does NOT do (yours to judge):** known solutions that need reading the
+actual summaries, and every unclustered error it reports under
+`unmatched_errors`. Read those rows yourself when the report shows a long
 unmatched list.
 
 ```bash
@@ -57,8 +62,9 @@ PLAN
 Sections 2–6 below document the rules the script implements — read them to judge
 a proposal, not to re-implement them by hand. `--dry-run` previews any run.
 
-**Minimum data guard** (enforced by the script): fewer than 3 error records AND an
-empty `patterns.json` → it reports `skipped: not-enough-data` and writes nothing.
+**Minimum data guard** (enforced by the script): fewer than 3 error records AND
+fewer than 3 parseable iterations AND an empty `patterns.json` → it reports
+`skipped: not-enough-data` and writes nothing.
 
 A "refresh patterns" / "regenerate patterns" request is `--refresh`, which rewrites
 `patterns.md` from `patterns.json` unconditionally. `--update` alone writes nothing

@@ -17,6 +17,11 @@ thresholds - same category AND >= 2 overlapping tags, occurrences >= 3, Jaccard
 needs a model is the WORDING of a newly discovered pattern, and that is the only
 thing this script asks for.
 
+Since T-019 the structured-iteration half is code too: iteration-log.md has a
+pinned render format (apply_wrapup.py, 4.18.0), so file hotspots, repeated
+successful approaches and fragile test areas are clustered here as well.
+Prose-era blocks don't parse and are skipped, never guessed at.
+
 MODES
 -----
     python scripts/extract_patterns.py .agent-memory --update
@@ -68,6 +73,13 @@ MIN_ERRORS_FOR_COLD_START = 3
 SKILL_CANDIDATE_OCCURRENCES = 3
 SKILL_CANDIDATE_CONFIDENCE = 0.7
 RECURRING_ERROR_OCCURRENCES = 3
+
+# T-019: thresholds for the structured-iteration half of Step 2.
+MIN_ITERATIONS_FOR_COLD_START = 3
+HOTSPOT_MIN_ITERATIONS = 3
+APPROACH_MIN_ITERATIONS = 3
+APPROACH_MIN_CONFIDENCE = 4
+FRAGILE_MIN_ITERATIONS = 2
 
 LEGACY_FIELDS = {
     "solution": "recommendation",
@@ -259,6 +271,146 @@ def cluster_errors(errors):
     return clusters, unmatched
 
 
+# T-019: iteration-log.md became parseable when apply_wrapup.py pinned the
+# render format in 4.18.0 (`## {date} — {type}: {title}` + `- **Field:** value`).
+# Older prose blocks simply don't match and are skipped, never guessed at.
+
+ITER_HEADER_RE = re.compile(r"^## (\d{4}-\d{2}-\d{2}) — ([\w-]+): (.+)$")
+ITER_FIELD_RE = re.compile(r"^- \*\*([A-Za-z ]+):\*\* ?(.*)$")
+
+
+def parse_iteration_log(mem):
+    path = os.path.join(mem, "iterations", "iteration-log.md")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError:
+        return []
+    iterations, current = [], None
+    for line in text.splitlines():
+        m = ITER_HEADER_RE.match(line)
+        if m:
+            current = {"date": m.group(1), "type": m.group(2),
+                       "title": m.group(3).strip(), "tags": [], "files": [],
+                       "tests": "", "confidence": None, "has_errors": False}
+            iterations.append(current)
+            continue
+        if current is None:
+            continue
+        fm = ITER_FIELD_RE.match(line)
+        if not fm:
+            continue
+        field, value = fm.group(1).strip().lower(), fm.group(2).strip()
+        if field == "tags":
+            current["tags"] = [t.strip() for t in value.split(",") if t.strip()]
+        elif field in ("files changed", "files created"):
+            current["files"] = [f.strip() for f in value.split(",") if f.strip()]
+        elif field == "tests":
+            current["tests"] = value
+        elif field == "confidence":
+            cm = re.match(r"(\d)", value)
+            if cm:
+                current["confidence"] = int(cm.group(1))
+        elif field.startswith("errors"):
+            current["has_errors"] = True
+    # A block without a single structured field is prose, not an iteration.
+    return [it for it in iterations if it["tags"] or it["files"]]
+
+
+def iter_ref(it) -> str:
+    return f"it:{it['date']}:{it['title'][:40]}"
+
+
+def _tests_failed(it) -> bool:
+    t = it.get("tests", "").lower()
+    return "fail" in t or "flak" in t
+
+
+def _tests_passed(it) -> bool:
+    return "passed" in it.get("tests", "").lower() and not _tests_failed(it)
+
+
+def make_iteration_cluster(key, ctype, severity, members, tags):
+    dates = sorted({m["date"] for m in members})
+    c = BASE_CONFIDENCE + min(0.3, 0.1 * (len(members) - 1))
+    if len(dates) >= 2:
+        c += 0.1
+    return {
+        "cluster_key": key,
+        "type": ctype,
+        "evidence": [iter_ref(m) for m in members],
+        "occurrences": len(members),
+        "tags": list(tags),
+        "severity": severity,
+        "first_seen": dates[0] if dates else "",
+        "last_seen": dates[-1] if dates else "",
+        "confidence": round(min(1.0, c), 2),
+        "sample_root_causes": [],
+        "sample_summaries": [m["title"] for m in members][:3],
+        "categories": [key.split(":", 1)[0]],
+    }
+
+
+def cluster_iterations(iterations):
+    """The structured half of Step 2 (T-019): hotspots, repeated successful
+    approaches, fragile test areas. Same trust rules as cluster_errors -
+    everything here is measured, the model only words the proposals."""
+    clusters = []
+
+    # (d) file hotspot: same file changed in >= 3 iterations
+    by_file = {}
+    for it in iterations:
+        for f in it["files"]:
+            by_file.setdefault(f, []).append(it)
+    for f, members in sorted(by_file.items()):
+        if len(members) >= HOTSPOT_MIN_ITERATIONS:
+            tags = []
+            for m in members:
+                for t in m["tags"]:
+                    if t not in tags:
+                        tags.append(t)
+            clusters.append(make_iteration_cluster(
+                f"hotspot:{f}", "pattern", "info", members, tags))
+
+    # (e) repeated successful approach: confident, passing, >= 2 shared tags
+    good = [it for it in iterations
+            if (it["confidence"] or 0) >= APPROACH_MIN_CONFIDENCE and _tests_passed(it)]
+    clusters += _tag_groups(good, APPROACH_MIN_ITERATIONS,
+                            "approach", "best-practice", "info")
+
+    # (f) fragile test area: failing/flaky tests or logged errors, shared tags
+    shaky = [it for it in iterations if _tests_failed(it) or it["has_errors"]]
+    clusters += _tag_groups(shaky, FRAGILE_MIN_ITERATIONS,
+                            "fragile", "anti-pattern", "minor")
+    return clusters
+
+
+def _tag_groups(candidates, min_members, prefix, ctype, severity):
+    """Greedy >= 2-shared-tags grouping - same rule as cluster_errors (a)."""
+    out, used = [], set()
+    for i, a in enumerate(candidates):
+        ref = iter_ref(a)
+        if ref in used:
+            continue
+        members = [a]
+        for b in candidates[i + 1:]:
+            if iter_ref(b) in used:
+                continue
+            if len(set(a["tags"]) & set(b["tags"])) >= 2:
+                members.append(b)
+        if len(members) < min_members:
+            continue
+        shared = set(members[0]["tags"])
+        for m in members[1:]:
+            shared &= set(m["tags"])
+        for m in members:
+            used.add(iter_ref(m))
+        out.append(make_iteration_cluster(
+            f"{prefix}:{'+'.join(sorted(shared))}", ctype, severity,
+            members, sorted(shared)))
+    return out
+
+
 def make_cluster(key, members):
     dates = sorted({m.get("date") for m in members if m.get("date")})
     for m in members:
@@ -332,11 +484,16 @@ def match_existing(cluster, patterns, wording=""):
         shared_ev = set(cluster["evidence"]) & set(p.get("evidence") or [])
         shared_tags = set(cluster["tags"]) & set(p.get("tags") or [])
         sim = jaccard(wording, p.get("description")) if wording else 0.0
+        # Type gate (T-019): tag/wording similarity across types is
+        # coincidence, not identity - a best-practice approach must never
+        # inflate an anti-pattern's numbers. Shared evidence stays exempt:
+        # the same evidence IS the same catalog entry, whatever its label.
+        same_type = p.get("type", "anti-pattern") == cluster["type"]
         if shared_ev:
             scored.append((3, len(shared_ev), p))
-        elif sim >= JACCARD_DUPLICATE:
+        elif same_type and sim >= JACCARD_DUPLICATE:
             scored.append((2, sim, p))
-        elif len(shared_tags) >= 2:
+        elif same_type and len(shared_tags) >= 2:
             scored.append((1, len(shared_tags), p))
     if not scored:
         return None, []
@@ -495,7 +652,12 @@ def main() -> int:
     try:
         errors = load_json(args.mem, "iterations/errors.json", [])
         patterns = load_json(args.mem, "patterns/patterns.json", [])
-        if len(errors) < MIN_ERRORS_FOR_COLD_START and not patterns and not args.refresh:
+        iterations = parse_iteration_log(args.mem)
+        # T-019: iterations lift the guard too - the error-only check was why
+        # error-free sessions starved the pattern pipeline.
+        if (len(errors) < MIN_ERRORS_FOR_COLD_START
+                and len(iterations) < MIN_ITERATIONS_FOR_COLD_START
+                and not patterns and not args.refresh):
             print(json.dumps({"ok": True, "skipped": "not-enough-data", "dry_run": args.dry_run,
                               "proposals": [], "files_written": [], "tally": tally,
                               "unmatched_errors": [], "skill_candidates": []}, indent=2))
@@ -503,6 +665,7 @@ def main() -> int:
 
         normalize_legacy(patterns, tally)
         clusters, unmatched = cluster_errors(errors)
+        clusters += cluster_iterations(iterations)
 
         matched, proposals, ambiguous = [], [], []
         for cluster in clusters:
