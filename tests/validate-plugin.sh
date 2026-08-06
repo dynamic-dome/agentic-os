@@ -304,16 +304,20 @@ else
 fi
 
 
-# 16. self-improve skill should not silently auto-push (commits must stay local until user decides)
+# 16. self-improve must gate its final push on explicit user confirmation.
+#     A global "Do NOT push automatically" statement is insufficient if the final
+#     executable step still runs git push without first asking and waiting.
 echo ""
 echo "-- self-improve no-auto-push policy --"
 SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
 if [ -f "$SI_SKILL" ]; then
-    # The skill must explicitly state commits stay local / Do NOT push automatically
-    if grep -qi "Do NOT push\|stay local\|no.*push\|not.*push.*auto\|commits stay local" "$SI_SKILL"; then
-        pass "self-improve: explicitly states no auto-push (commits stay local)"
+    FINAL_PUSH_SECTION=$(awk '/^## Step F\.1:/,/^## Step F\.2:/' "$SI_SKILL")
+    if echo "$FINAL_PUSH_SECTION" | grep -q "git push" \
+       && echo "$FINAL_PUSH_SECTION" | grep -qi "explicit user confirmation" \
+       && echo "$FINAL_PUSH_SECTION" | grep -qiE "ask the user|wait for (the )?user|only after.*confirm"; then
+        pass "self-improve: final push requires explicit user confirmation"
     else
-        fail "self-improve: missing no-auto-push policy — Step 6 instructs 'git push' without user confirmation, risking unintended pushes"
+        fail "self-improve: final step must ask and wait for explicit user confirmation before git push"
     fi
 else
     fail "self-improve: SKILL.md not found"

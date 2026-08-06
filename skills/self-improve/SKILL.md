@@ -291,7 +291,7 @@ For each iteration (1 to 4), run Phases 1-4 sequentially. Before each iteration 
 
 ## Step F.1: Final Push
 
-`git log --oneline {BASELINE_SHA}..HEAD` — no new commits → skip push, report "no changes to push". Otherwise: `git push || echo "PUSH FAILED — changes committed locally but not pushed"`.
+`git log --oneline {BASELINE_SHA}..HEAD` — no new commits → skip push, report "no changes to push". Otherwise, ask the user in plain text whether to push and wait for explicit user confirmation. Only after the user confirms, run `git push`; on failure report "PUSH FAILED — changes committed locally but not pushed". Without confirmation, do not push and report "changes committed locally but not pushed".
 
 ## Step F.2: Update State
 

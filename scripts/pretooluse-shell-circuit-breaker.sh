@@ -198,11 +198,11 @@ RULES = [
     ),
     (
         "hard git reset",
-        re.compile(r"(?i)(^|[;&|]\s*)git\s+reset\s+--hard\b"),
+        re.compile(r"(?i)(^|[;&|]\s*)(?:sudo\s+)?git\s+(?:-C\s+\S+\s+)?reset\s+--hard\b"),
     ),
     (
         "forced git clean",
-        re.compile(r"(?i)(^|[;&|]\s*)git\s+clean\b(?=[^;&|]*-[^\s;&|]*f)(?=[^;&|]*-[^\s;&|]*d)"),
+        re.compile(r"(?i)(^|[;&|]\s*)(?:sudo\s+)?git\s+(?:-C\s+\S+\s+)?clean\b(?=[^;&|]*-[^\s;&|]*f)(?=[^;&|]*-[^\s;&|]*d)"),
     ),
     (
         "world-writable recursive chmod",
