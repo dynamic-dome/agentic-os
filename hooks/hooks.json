@@ -1,5 +1,5 @@
 {
-  "description": "Agentic OS Lifecycle Hooks v9: Auto-Init (command), Shell Circuit Breaker (command), Dirty-State Tracker (command), Intent Routing (prompt), Context Preservation (prompt), Wrap-Up Delegation + Identity Verify (prompt), Agent Commit Suggest (prompt)",
+  "description": "Agentic OS Lifecycle Hooks v10: Auto-Init (command), Dirty-State Tracker (command), Intent Routing (prompt), Context Preservation (prompt), Wrap-Up Delegation + Identity Verify (prompt), Agent Commit Suggest (prompt)",
   "hooks": {
     "SessionStart": [
       {
@@ -9,18 +9,6 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/session-start.sh\"",
             "timeout": 15
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/pretooluse-shell-circuit-breaker.sh\"",
-            "timeout": 5
           }
         ]
       }
