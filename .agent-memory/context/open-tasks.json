@@ -230,10 +230,10 @@
   {
     "id": "T-024",
     "title": "wrap-up SKILL.md: Step 7.5 (obsidian-sync) laeuft vor Step 8.5 (Batch-Write) -- Reihenfolge tauschen oder Daten vorab schreiben, damit obsidian-sync frische Learnings/Decisions/Summary sieht",
-    "status": "open",
+    "status": "closed",
     "created": "2026-09-08",
     "updated": "2026-09-08",
-    "resolution": null,
+    "resolution": "Batch-Apply zu Step 7.4 (vor 7.5 obsidian-sync / 7.6 Handoff / 8 Commit-Offer) verschoben; Marker als eigener {\"consolidate\": true}-Call in 9.5, damit Wiki-/Handoff-Writes nicht als Tail-Writes hinter dem Marker landen. 2 Ordnungstests in validate-skills.sh (rot->gruen).",
     "source": "wrap-up",
     "cross_project": false
   },
@@ -250,20 +250,20 @@
   {
     "id": "T-026",
     "title": "Live-Verifikation in neuer Session: /agentic-os:maintain, /agentic-os:log, /agentic-os:sync-context duerfen NICHT in der Skill-Liste erscheinen (Beweis fuer disable-model-invocation-Wirkung auf Command-Dateien)",
-    "status": "open",
+    "status": "closed",
     "created": "2026-09-08",
     "updated": "2026-09-08",
-    "resolution": null,
+    "resolution": "Live verifiziert 2026-09-08 (Session nach 5.0.0-Update): Skill-Liste enthaelt nur agentic-os:init/memory-audit/status; maintain/log/sync-context fehlen -> disable-model-invocation wirkt auf Command-Dateien.",
     "source": "wrap-up",
     "cross_project": false
   },
   {
     "id": "T-027",
     "title": "Gestashter Carry-over klaeren (git stash@{0}, vor V5-Start geparkt): scripts/pretooluse-shell-circuit-breaker.sh sudo/git-Flag-Parsing, unwired seit 4.19.0 -- restore oder verwerfen",
-    "status": "open",
+    "status": "closed",
     "created": "2026-09-08",
     "updated": "2026-09-08",
-    "resolution": null,
+    "resolution": "Nicht restored: Skript seit 4.19.0 unverdrahtet, aktiver Guard ist ~/AI/Hooks-bau/.../block_destructive.py. Beide Stashes als Tags archiviert (archive/stash-circuit-breaker-sudo-git-parsing-2026-08-06, archive/stash-agent-memory-drift-rebase-park); stash drop vom User ausgefuehrt (Hook blockt es fuer Agenten).",
     "source": "wrap-up",
     "cross_project": false
   },

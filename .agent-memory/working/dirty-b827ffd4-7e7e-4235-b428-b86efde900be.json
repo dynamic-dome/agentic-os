@@ -47,5 +47,18 @@
  "consolidated_by": null,
  "last_consolidated_at": "2026-09-08T06:28:45+02:00",
  "last_consolidated_by": "wrap-up",
- "writes_since_consolidation": 6
+ "writes_since_consolidation": 6,
+ "session_end": {
+  "reason": "clear",
+  "ended_at": "2026-09-08T07:07:23+02:00",
+  "consolidated": false,
+  "git": {
+   "dirty_files": 2,
+   "porcelain_sample": [
+    "?? .codegraph/",
+    "?? .pi-glla/"
+   ],
+   "last_commit": "802f22d chore(memory): session 2026-09-08 V5 Portfolio-Schnitt abgeschlossen"
+  }
+ }
 }
