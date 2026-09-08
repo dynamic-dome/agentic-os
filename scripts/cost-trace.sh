@@ -41,6 +41,22 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+# Guard (memory hub, hygiene 2026-09): the nested .agent-memory/.agent-memory
+# stores found in the audit came from here (mkdir -p "$MEM/metrics" below) when
+# cwd was already inside .agent-memory and $MEM stayed the relative default —
+# never create a store inside a store. Resolve $MEM to an absolute path first
+# (it need not exist yet) and check its PARENT for an .agent-memory segment.
+case "$MEM" in
+  /*) RESOLVED_MEM="$MEM" ;;
+  *)  RESOLVED_MEM="$(pwd)/$MEM" ;;
+esac
+case "${RESOLVED_MEM%/*}" in
+  */.agent-memory|*/.agent-memory/*)
+    echo "cost-trace: refusing to create a store inside .agent-memory ($RESOLVED_MEM) — skipping" >&2
+    exit 0
+    ;;
+esac
+
 if [ "$cmd" != "append" ]; then
   echo "usage: cost-trace.sh append --mem DIR --task NAME --class CLASS --context-bytes N --escalated 0|1" >&2
   exit 0  # fail-soft: even usage errors must not break a skill run

@@ -333,6 +333,17 @@ fi
 
 echo ""
 
+# Run session-start nested-store guard tests (memory hub, hygiene 2026-09)
+echo ">>> Running session-start nested-store guard tests..."
+if bash "$SCRIPT_DIR/test-session-start-nested-guard.sh"; then
+    echo ">>> Session-start nested-store guard tests: ALL PASSED"
+else
+    echo ">>> Session-start nested-store guard tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run skill-redesign eval harness (T-35: Schicht 1 signals + gate-linkage)
 echo ">>> Running skill-redesign eval harness..."
 if bash "$SCRIPT_DIR/eval/run-eval.sh"; then

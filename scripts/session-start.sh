@@ -19,6 +19,13 @@ esac
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 MEMORY_DIR="$PROJECT_DIR/.agent-memory"
 
+# Guard (memory hub, hygiene 2026-09): never init a store inside a store.
+case "$PROJECT_DIR" in
+  */.agent-memory|*/.agent-memory/*)
+    echo "[Agentic OS] cwd is inside .agent-memory — skipping auto-init (start the session from the project root)."
+    exit 0 ;;
+esac
+
 # ============================================================
 # PHASE 0: Load the schema Single Source of Truth (scripts/mem-schema.sh)
 # ============================================================
