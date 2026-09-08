@@ -80,11 +80,12 @@
   {
     "id": "T-009",
     "title": "docs/PROJECT.md + ARCHITECTURE.md auf v4.7.0 nachziehen (Docs-Drift: stehen auf v4.0.1-Stand)",
-    "status": "open",
+    "status": "closed",
     "created": "2026-07-15",
-    "updated": "2026-07-15",
+    "updated": "2026-09-08",
     "source": "wrap-up",
-    "cross_project": false
+    "cross_project": false,
+    "resolution": "resolved in wrap-up"
   },
   {
     "id": "T-010",
@@ -243,6 +244,36 @@
     "created": "2026-09-08",
     "updated": "2026-09-08",
     "resolution": "resolved in wrap-up",
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-026",
+    "title": "Live-Verifikation in neuer Session: /agentic-os:maintain, /agentic-os:log, /agentic-os:sync-context duerfen NICHT in der Skill-Liste erscheinen (Beweis fuer disable-model-invocation-Wirkung auf Command-Dateien)",
+    "status": "open",
+    "created": "2026-09-08",
+    "updated": "2026-09-08",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-027",
+    "title": "Gestashter Carry-over klaeren (git stash@{0}, vor V5-Start geparkt): scripts/pretooluse-shell-circuit-breaker.sh sudo/git-Flag-Parsing, unwired seit 4.19.0 -- restore oder verwerfen",
+    "status": "open",
+    "created": "2026-09-08",
+    "updated": "2026-09-08",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-028",
+    "title": "V3: wrap-up in wrap-up-core (Skript) + wrap-up-judge (<=3 Turns) trennen -- superpowers:brainstorming + Spec zuerst; danach V4 Headless-Ausloesung (Reihenfolge V5->V3->V4, V5 erledigt)",
+    "status": "open",
+    "created": "2026-09-08",
+    "updated": "2026-09-08",
+    "resolution": null,
     "source": "wrap-up",
     "cross_project": false
   }

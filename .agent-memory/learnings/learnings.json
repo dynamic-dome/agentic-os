@@ -801,5 +801,261 @@
     "derived_from": [],
     "review_after": "2026-12-07",
     "bridge_status": "approved"
+  },
+  {
+    "id": "L45",
+    "date": "2026-09-08",
+    "text": "Ein Command im Claude-Code-Plugin-System ist NICHT strukturell slash-only, nur weil es kein Skill ist -- das Skill-Tool loest Command-Namen genauso auf und die Description laedt in jeden Prompt. 'Manual-only' braucht in beiden Faellen das explizite disable-model-invocation: true in der Frontmatter.",
+    "importance": 4,
+    "tags": [
+      "plugin-architecture",
+      "claude-code",
+      "disable-model-invocation"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate"
+  },
+  {
+    "id": "L46",
+    "date": "2026-09-08",
+    "text": "Ein Skript, das von mehreren Einstiegspunkten mit unterschiedlichem Scope aufgerufen wird (hier apply_wrapup.py von wrap-up UND vom neuen /agentic-os:log), darf Nebeneffekte anderer Domains (hier: Identity-Promotion) nicht unconditional ausfuehren -- der Aufrufer muss den gewuenschten Scope explizit im Plan markieren (user_candidates-Key/consolidate:true), sonst erbt ein neuer, engerer Einstiegspunkt stillschweigend die volle Wirkung des alten.",
+    "importance": 4,
+    "tags": [
+      "apply-wrapup",
+      "api-design",
+      "identity"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "err-015"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate"
+  },
+  {
+    "id": "L47",
+    "date": "2026-09-08",
+    "text": "sed -i mit \\t im single-quoted -e-Pattern matcht auf Git-Bash/Windows unzuverlaessig gegen echte Tab-Bytes in tab-getrennten Config-Zeilen (0 Treffer, kein Fehler-Exit) -- fuer solche Zeilen einen Python-Read-Replace-Write-Roundtrip mit assert count==1 verwenden statt sed.",
+    "importance": 3,
+    "tags": [
+      "bash",
+      "sed",
+      "windows"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "err-015"
+    ],
+    "review_after": "2026-12-07"
+  },
+  {
+    "id": "L48",
+    "date": "2026-09-08",
+    "text": "Start substantial work RAG-first: check relevant local wiki/memory/skill/tool surfaces before planning or execution, and say what changed the plan.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "feedback",
+      "ad-hoc"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:ab242196"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "feedback"
+  },
+  {
+    "id": "L49",
+    "date": "2026-09-08",
+    "text": "For a terse, ambiguous request such as `update`, clarify the target before making a project, package, or system change.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "feedback"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:3172276f"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "feedback"
+  },
+  {
+    "id": "L50",
+    "date": "2026-09-08",
+    "text": "Treat exact file boundaries, STOP instructions, and forbidden directories as hard constraints; report the checked path, outcome, and remaining work.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "feedback"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:b0af4208"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "feedback"
+  },
+  {
+    "id": "L51",
+    "date": "2026-09-08",
+    "text": "Prefer evidence-bound state changes: define a concrete target artifact, prove it directly, then make the smallest status update.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "feedback"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:7884fdec"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "feedback"
+  },
+  {
+    "id": "L52",
+    "date": "2026-09-08",
+    "text": "For audits, be constructive and critical: “nicht einfach nur abnicken”; show strengths, blind spots, evidence limits, and proposals without treating proposals as implemented.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "feedback"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:a3c7ac29"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "feedback"
+  },
+  {
+    "id": "L53",
+    "date": "2026-09-08",
+    "text": "For list/backlog work, keep an implementation log next to requirements/decisions: concrete change/location, rationale, verification, and publication status.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "feedback",
+      "ad-hoc"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:2d8e6bc4"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "feedback"
+  },
+  {
+    "id": "L54",
+    "date": "2026-09-08",
+    "text": "On this Windows PowerShell host, separate profile noise (`Cannot dot-source...`) from command exit status and useful output; keep commands small when syntax becomes fragile.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "learning"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:c20ac075"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "learning"
+  },
+  {
+    "id": "L55",
+    "date": "2026-09-08",
+    "text": "Verify an installed CLI through its resolved command/shim, installed package, and upstream version—not one signal alone.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "learning"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:c925d7ae"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "learning"
+  },
+  {
+    "id": "L56",
+    "date": "2026-09-08",
+    "text": "Before overwriting an existing screenshot, prove the page loaded and is not `about:blank`; a failed `file:` Playwright run can still replace QA images.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "learning"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:7577e8cc"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "learning"
+  },
+  {
+    "id": "L57",
+    "date": "2026-09-08",
+    "text": "For current project truth, prioritize primary artifacts and observed Git/remote state over handoffs, changelogs, or polished status prose.",
+    "importance": 2,
+    "tags": [
+      "codex-native",
+      "learning"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "codex:memory_summary:9be77d87"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "candidate",
+    "source_agent": "codex",
+    "kind": "learning"
   }
 ]

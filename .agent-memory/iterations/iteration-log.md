@@ -306,3 +306,30 @@ diese Commits nicht. Absichtlich kein Datums-Header — Parser ueberspringt den 
 - **Tests:** passed (bash tests/run-all.sh - ALL TEST SUITES PASSED)
 - **Learnings:** Model-Frontmatter greift beim Slash-Aufruf (4 Transkripte 2.1.263 + dieser Wrap-up-Aufruf lief auf claude-sonnet-5), nicht beim Skill-Tool.
 - **Commits:** dfd2e03
+
+## 2026-09-08 — feature: V5 Portfolio-Schnitt: self-improve archiviert, 3 Skills zu Commands
+- **Type:** feature
+- **Tags:** plugin, refactor, skill-portfolio, agentic-os
+- **Files changed:** .claude-plugin/plugin.json, _archived/skills/self-improve/SKILL.md, _archived/commands/rollback.md, _archived/commands/auto-commit.md, commands/maintain.md, commands/log.md, commands/sync-context.md, skills/DEPENDENCIES.md, scripts/model-routing.sh, README.md, CLAUDE.md
+- **Summary:** 9->5 Skills: self-improve + rollback + auto-commit + improvements/ nach _archived/ verschoben (git mv, reversibel); memory-maintenance/iteration-logger/sync-context zu Slash-Commands mit Skript-Kern konvertiert; wrap-up Step 9 empfiehlt /agentic-os:maintain statt es aufzurufen; Doku (README, CLAUDE.md, CAPABILITIES, DEPENDENCIES, ARCHITECTURE, PROJECT) auf 5.0.0 nachgezogen. Umsetzung ueber Plan docs/superpowers/plans/2026-09-08-v5-portfolio-cut.md, 6 Tasks.
+- **Confidence:** 5/5
+- **Tests:** passed (26/26 suites, tests/run-all.sh)
+- **Errors:** err-015
+- **Commits:** 85f5ae4,c665a93,85f28fa,2963992,48c8886,489a5e3
+
+## 2026-09-08 — bugfix: Codex-Verifier-Funde auf V5 gefixt: disable-model-invocation, Exit-2-Text, Identity-Applier ungegated
+- **Type:** bugfix
+- **Tags:** plugin, code-review, agentic-os, apply-wrapup
+- **Files changed:** commands/maintain.md, commands/log.md, commands/sync-context.md, scripts/apply_wrapup.py, tests/validate-plugin.sh, tests/test-apply-wrapup.py, docs/superpowers/plans/2026-09-08-v5-portfolio-cut.md
+- **Summary:** Codex-Verifier (Rolle 1) fand: (1) die Planannahme 'Commands sind strukturell slash-only' war falsch, das Skill-Tool loest Command-Dateien auf -- gefixt mit disable-model-invocation: true auf allen drei neuen Commands + Invocation-Contract-Test; (2) /agentic-os:log versprach faelschlich 'exit 2 = nichts geschrieben', tatsaechlich kann ein io error nach Teilschreibungen exit 2 liefern -- Text korrigiert; (3) apply_wrapup.py rief apply_user_candidates() fuer JEDEN Plan auf, wodurch ein reiner Iterations-Plan (/agentic-os:log) die Identity-Queue promoten konnte -- main() gated jetzt auf user_candidates-Key oder consolidate:true, Regressionstest 32 ergaenzt.
+- **Confidence:** 5/5
+- **Tests:** passed (120/120 test-apply-wrapup.py + 26/26 run-all.sh)
+- **Commits:** a132a11
+
+## 2026-09-08 — chore: Release agentic-os 5.0.0
+- **Type:** chore
+- **Tags:** release, plugin, deploy, agentic-os
+- **Summary:** feat/v5-portfolio-cut per Fast-Forward nach main gemergt (a132a11), git push origin main, claude plugin update agentic-os (4.21.0->5.0.0), Cache-Inhalt verifiziert: 6 Commands, 5 Skills, _archived/, disable-model-invocation-Flag in allen drei neuen Commands, model-routing.sh listet genau 5 Skills.
+- **Confidence:** 5/5
+- **Tests:** not applicable
+- **Commits:** a132a11

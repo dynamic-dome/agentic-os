@@ -303,5 +303,29 @@
     "occurrences": 1,
     "recurrence_dates": [],
     "last_seen": "2026-07-27"
+  },
+  {
+    "id": "err-015",
+    "date": "2026-09-08",
+    "category": "config",
+    "tags": [
+      "bash",
+      "sed",
+      "windows"
+    ],
+    "trigger": "sync-context-Zeile aus scripts/model-routing.sh (tab-getrennt) per sed -i entfernen",
+    "problem": "sed -i mit \t im single-quoted -e-Pattern matchte auf Git-Bash/Windows 0 Zeilen, die Zeile blieb stehen und der Test 'list has 5 rows' schlug fehl.",
+    "root_cause": "Single-Quote-Escaping von \t in sed-Ausdruecken ist zwischen sed-Implementierungen (GNU vs. das mitgelieferte Git-Bash-sed) nicht verlaesslich portabel.",
+    "fix": "Auf einen Python-Read-Replace-Write-Roundtrip mit exaktem String-Vergleich (assert count==1) umgestellt statt sed fuer die tab-getrennte Zeile.",
+    "failed_approaches": [
+      "sed -i mit \t im Pattern (0 Treffer, kein Fehler-Exit)"
+    ],
+    "prevention": "Fuer tab-getrennte Config-Zeilen in diesem Environment Python-Byte-Replace statt sed verwenden, besonders wenn ein exact-count-Assert die Korrektheit beweisen soll.",
+    "severity": "minor",
+    "attempts": 2,
+    "confidence": 5,
+    "occurrences": 1,
+    "recurrence_dates": [],
+    "last_seen": "2026-09-08"
   }
 ]

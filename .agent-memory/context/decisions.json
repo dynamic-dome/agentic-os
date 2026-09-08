@@ -499,5 +499,79 @@
       "cost",
       "invocation-path"
     ]
+  },
+  {
+    "id": "D-015",
+    "date": "2026-09-08",
+    "type": "architecture-decision",
+    "title": "Mechanische Agentic-OS-Skills werden disable-model-invocation-Commands mit Skript-Kern statt Skills",
+    "status": "active",
+    "context": "Gesamtanalyse 2026-09 F6 fand vier von neun Skills ohne Nutzungsnachweis; memory-maintenance/iteration-logger/sync-context bestanden zu 70-100% aus Mechanik, die apply_wrapup.py/extract_patterns.py/memory-thresholds.sh bereits als Skript-SSoT besassen.",
+    "options_considered": [
+      {
+        "option": "Skills als duenne Wrapper behalten",
+        "pros": [
+          "kein Migrationsaufwand"
+        ],
+        "cons": [
+          "Trigger-Konkurrenz in jedem Prompt",
+          "Skill-Body-Injektion riskiert 41% Prefix-Cache-Rewrite (L34/D-010)"
+        ]
+      },
+      {
+        "option": "Zu Commands mit Skript-Kern konvertieren + disable-model-invocation: true",
+        "pros": [
+          "kein Beschreibungs-Overhead im Modellkontext",
+          "manuell-only strukturell statt per Konvention"
+        ],
+        "cons": [
+          "Command-Dateien sind ohne das Flag trotzdem Skill-Tool-aufloesbar (Codex-Verifier-Fund 2026-09-08)"
+        ]
+      }
+    ],
+    "decision": "memory-maintenance, iteration-logger, sync-context werden Commands mit disable-model-invocation: true und Skript-Kern; self-improve/rollback/auto-commit/improvements/ werden nach _archived/ verschoben statt geloescht (reversibel via git mv).",
+    "consequences": "Portfolio 9->5 Skills, 6 Commands; scripts/model-routing.sh SSoT fuehrt nur noch die 5 echten Urteils-Skills; jede kuenftige rein mechanische Faehigkeit sollte denselben Pfad (Command+Skript, disable-model-invocation) statt eines neuen Skills nehmen.",
+    "supersedes": null,
+    "tags": [
+      "plugin",
+      "architecture",
+      "agentic-os"
+    ]
+  },
+  {
+    "id": "D-016",
+    "date": "2026-09-08",
+    "type": "policy-decision",
+    "title": "apply_wrapup.py gated den Identity-Applier auf Plan-Inhalt",
+    "status": "active",
+    "context": "/agentic-os:log (ex iteration-logger) reicht Plaene ein, die nur 'iterations' tragen, aber apply_wrapup.py rief apply_user_candidates() bisher fuer JEDEN Plan auf -- ein rein mechanisches Logging-Command konnte dadurch stillschweigend Kandidaten aus der Queue nach user.md promoten (Codex-Verifier-Fund 2026-09-08, verletzt DEPENDENCIES.md Prinzip 8).",
+    "options_considered": [
+      {
+        "option": "Unveraendert lassen (Altverhalten aus iteration-logger-Aera)",
+        "pros": [
+          "kein Codeaenderung"
+        ],
+        "cons": [
+          "identity growth ist nicht mehr exklusiv wrap-up Step 6, Prinzip 8 gebrochen"
+        ]
+      },
+      {
+        "option": "main() gated auf user_candidates-Key oder consolidate:true",
+        "pros": [
+          "identity-Mutation bleibt strukturell an wrap-up gebunden"
+        ],
+        "cons": [
+          "ein Plan MUSS jetzt bewusst consolidate:true oder user_candidates setzen, um die Queue zu reviewen"
+        ]
+      }
+    ],
+    "decision": "main() ruft apply_user_candidates() nur noch auf, wenn der Plan einen user_candidates-Key oder consolidate:true traegt.",
+    "consequences": "Mid-Session /agentic-os:log-Aufrufe koennen die Identity-Queue nie mehr mutieren; wrap-up bleibt alleiniger Identity-Producer. Regressionstest 32 in tests/test-apply-wrapup.py pinnt beide Faelle.",
+    "supersedes": null,
+    "tags": [
+      "plugin",
+      "apply_wrapup",
+      "identity"
+    ]
   }
 ]
