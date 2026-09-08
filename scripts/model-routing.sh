@@ -47,7 +47,6 @@ case "$cmd" in
   list)
     printf 'wrap-up\tcheap-write\tsonnet\tmedium\n'
     printf 'session-bootstrap\tcheap-write\tsonnet\tlow\n'
-    printf 'iteration-logger\tcheap-write\tsonnet\tlow\n'
     printf 'sync-context\tcheap-write\tsonnet\tlow\n'
     printf 'obsidian-sync\tcheap-write\tsonnet\tmedium\n'
     printf 'context-keeper\tstandard\t-\t-\n'

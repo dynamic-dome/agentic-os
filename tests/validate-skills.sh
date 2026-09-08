@@ -233,17 +233,6 @@ if [ -f "$PE_FILE" ]; then
 fi
 
 echo ""
-echo "-- iteration-logger trigger language consistency --"
-IL_FILE="$SKILLS_DIR/iteration-logger/SKILL.md"
-if [ -f "$IL_FILE" ]; then
-    if grep -q "Iteration loggen\|Fortschritt festhalten\|was habe ich gemacht\|ich hab gerade einen bug gefixt\|feature ist fertig\|das sollten wir festhalten" "$IL_FILE"; then
-        fail "iteration-logger: description contains German trigger phrases — triggers must use English for consistent auto-matching"
-    else
-        pass "iteration-logger: description trigger phrases use English (no German triggers)"
-    fi
-fi
-
-echo ""
 echo "-- context-keeper trigger language consistency --"
 CK_FILE="$SKILLS_DIR/context-keeper/SKILL.md"
 if [ -f "$CK_FILE" ]; then

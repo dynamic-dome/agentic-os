@@ -22,7 +22,7 @@ for token in \
     ".agent-memory/context/open-tasks.json" \
     ".agent-memory/session-summary.md" \
     "wrap-up" \
-    "iteration-logger" \
+    "agentic-os:log" \
     "context-keeper"
 do
     grep -q "$token" "$README" \

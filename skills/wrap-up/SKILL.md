@@ -25,7 +25,7 @@ After every substantial task or session, consolidate durable knowledge into the
 central .agent-memory/ knowledge base instead of leaving it in the conversation:
 
 - Work iterations → `iterations/iteration-log.md` + `errors.json` (write plan, Step 1.5 —
-  the `iteration-logger` skill stays the entry point for mid-session logging)
+  `/agentic-os:log` is the entry point for mid-session logging)
 - Reusable learnings → `learnings/learnings.json` + `learnings.md`
 - Durable decisions → `context/decisions.json` (write plan, Step 4.5 — the
   `context-keeper` skill stays the entry point outside wrap-up)
@@ -73,11 +73,11 @@ transport and 6% thinking. The model is stateless: every call resends the
 whole conversation, so each additional turn costs another full context. The
 plan collapses the write phase to ~2 calls.
 
-The same arithmetic is why this skill no longer invokes `iteration-logger`,
-`context-keeper` or `pattern-extractor`: loading a skill body was followed by a
+The same arithmetic is why this skill no longer invokes `context-keeper` or
+`pattern-extractor` (mid-session logging is the `/agentic-os:log` command): loading a skill body was followed by a
 full prefix-cache rewrite in 41% of measured cases (L34/D-010), and those three
 bodies were almost entirely mechanical rules that now live in the scripts. The
-skills remain the entry point when a user calls them directly.
+skill and the command remain the entry points when a user calls them directly.
 
 Keep judgment in your head (what is a learning, what is an identity signal, how
 important); leave every mechanical rule to the script — ids, `review_after`,
@@ -101,7 +101,7 @@ Step 5 (skip Steps 2–4). Steps 6/6.x run regardless.
 
 ## Step 1.5: Session-Harvest — Retro-Logging (session-harvest)
 
-Users who run ONLY bootstrap + wrap-up never call iteration-logger mid-session —
+Users who run ONLY bootstrap + wrap-up never run `/agentic-os:log` mid-session —
 without this step the pattern pipeline starves.
 
 **Condition:** no iteration-log entry for today AND the session did substantial work
@@ -119,8 +119,8 @@ Do not invent details the files and git history cannot support.
    **Counting rule:** three failed fixes before the right one are ONE iteration with
    `attempts: 3`, not three iterations. **Tags:** at least 2, lowercase, reusing the
    conventions already in `errors.json` (language/framework · domain · error type).
-2. Put them into the write plan's `iterations` array (Step 8.5). Do **NOT** invoke the
-   `iteration-logger` skill for this and do NOT write `iteration-log.md` /
+2. Put them into the write plan's `iterations` array (Step 8.5). Do **NOT** run
+   `/agentic-os:log` for this and do NOT write `iteration-log.md` /
    `errors.json` / `working/current-session.json` by hand — `apply_wrapup.py` owns
    those writes and their mechanics: id continuation in the format already on disk,
    the recurrence rule (same category AND ≥2 overlapping tags → `occurrences++`

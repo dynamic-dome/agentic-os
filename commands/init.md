@@ -54,7 +54,7 @@ Bootstrap the `.agent-memory/` knowledge system in the current project directory
    Key files the script guarantees (each MANDATORY for a downstream consumer):
    - `context/open-tasks.json` — task SSoT, read by the SessionStart briefing and wrap-up Step 5.5 (canonical location: `context/`)
    - `learnings/learnings.json` — wrap-up dedup/scoring + session-bootstrap salience
-   - `working/current-session.json` — iteration-logger Step 4b appends, wrap-up Step 3.5 consumes + resets
+   - `working/current-session.json` — /agentic-os:log appends (via apply_wrapup.py), wrap-up Step 3.5 consumes + resets
 
 4. **(Markdown stubs are handled by the script.)** See step 3. No manual creation needed.
 

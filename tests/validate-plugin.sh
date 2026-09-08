@@ -483,7 +483,7 @@ fi
 echo ""
 echo "-- DEPENDENCIES.md inter-skill-call accuracy (Principle 4) --"
 if [ -f "$DEPS" ]; then
-    OTHER_SKILLS="pattern-extractor obsidian-sync context-keeper iteration-logger"
+    OTHER_SKILLS="pattern-extractor obsidian-sync context-keeper"
     CALL_DRIFT=""
     for skill_dir in "$PLUGIN_ROOT/skills"/*/; do
         [ -d "$skill_dir" ] || continue
@@ -658,16 +658,16 @@ fi
 #     instructions would search for a non-existent config, causing confusion. The thresholds
 #     should be stated as hardcoded values.
 echo ""
-echo "-- iteration-logger phantom plugin settings reference --"
-IL_FILE="$PLUGIN_ROOT/skills/iteration-logger/SKILL.md"
+echo "-- log phantom plugin settings reference --"
+IL_FILE="$PLUGIN_ROOT/commands/log.md"
 if [ -f "$IL_FILE" ]; then
     if grep -q "configurable via plugin setting" "$IL_FILE"; then
-        fail "iteration-logger: references 'configurable via plugin settings' (max_iterations_log_entries, max_error_log_entries) but no such plugin config exists — agents will look for a non-existent mechanism; remove phantom setting references"
+        fail "log: references 'configurable via plugin settings' (max_iterations_log_entries, max_error_log_entries) but no such plugin config exists — agents will look for a non-existent mechanism; remove phantom setting references"
     else
-        pass "iteration-logger: does not reference phantom plugin settings (log rotation thresholds are hardcoded)"
+        pass "log: does not reference phantom plugin settings (log rotation thresholds are hardcoded)"
     fi
 else
-    fail "iteration-logger: SKILL.md not found"
+    fail "log: commands/log.md not found"
 fi
 
 # test-validator merged into quality-gate — test removed in v3 consolidation
@@ -1013,7 +1013,7 @@ for MANUAL_SKILL in sync-context; do
         fail "skill $MANUAL_SKILL: manual-only skill missing disable-model-invocation: true — description burns context every turn and prose alone cannot prevent auto-invocation"
     fi
 done
-for CALLED_SKILL in iteration-logger context-keeper pattern-extractor obsidian-sync; do
+for CALLED_SKILL in context-keeper pattern-extractor obsidian-sync; do
     FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$PLUGIN_ROOT/skills/$CALLED_SKILL/SKILL.md")
     if echo "$FM" | grep -q "^disable-model-invocation: true"; then
         fail "skill $CALLED_SKILL: has disable-model-invocation but is invoked by wrap-up/self-improve via the Skill tool — the flag would break that delegation"

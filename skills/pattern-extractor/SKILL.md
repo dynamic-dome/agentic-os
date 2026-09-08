@@ -19,7 +19,7 @@ Analyze `.agent-memory/iterations/` to extract recurring patterns into `.agent-m
 
 ## When to Use
 
-- Every 5 iterations (suggested by iteration-logger)
+- Every 5 iterations (suggested by /agentic-os:log)
 - When user explicitly requests pattern analysis
 - When an error occurs for the 3rd+ time
 - When `extract_patterns.py` reports `skill_candidates` or `rueckfluss_candidates`

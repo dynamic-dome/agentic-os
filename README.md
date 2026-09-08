@@ -77,7 +77,7 @@ shared by wrap-up, session-bootstrap, and memory-maintenance.
 
 After each substantial task or session, run `wrap-up` to consolidate the work into
 the central `.agent-memory/` knowledge base. The routine preserves durable facts
-instead of leaving them only in chat: `iteration-logger` records distinct work
+instead of leaving them only in chat: `/agentic-os:log` records distinct work
 iterations in `.agent-memory/iterations/iteration-log.md`, `wrap-up` extracts
 genuine reusable learnings into `.agent-memory/learnings/learnings.json`,
 `context-keeper` records durable decisions in
