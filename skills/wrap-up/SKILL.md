@@ -230,14 +230,16 @@ learnings.json (`bridge_status`); the AGENTS.md block is a projection.
    listing id + first ~10 words each. Source: `tally.bridge_candidates` from the
    apply run — do not re-read learnings.json for this.
 3. **Only on an explicit `j`** (all) or a listed subset (`j L26 L27`): set those
-   entries to `"bridge_status": "approved"`, then run the projection:
+   entries to `"bridge_status": "approved"`, then run BOTH projections:
    `python scripts/bridge_projection.py .agent-memory --agents-md <project-root>/AGENTS.md`
-   (workspace store `~/AI/.agent-memory` → `~/AI/AGENTS.md`). Report its one-line
-   output verbatim.
+   (Codex side; workspace store `~/AI/.agent-memory` → `~/AI/AGENTS.md`) and
+   `python scripts/memory_index_projection.py .agent-memory --project-root <project-root>`
+   (Claude side: managed block in `~/.claude/projects/<hash>/memory/MEMORY.md`;
+   the script derives `<hash>` itself). Report both one-line outputs verbatim.
 4. On `n`/no answer: candidates stay queued — next wrap-up asks again. Never
    promote silently; every line in AGENTS.md costs Codex context on EVERY start.
-5. Rollback: reset `bridge_status`, re-run the projection (block re-renders or
-   disappears).
+5. Rollback: reset `bridge_status`, re-run both projections (blocks re-render or
+   disappear).
 
 ### 3e: Codex memory ingest (codex-ingest)
 
