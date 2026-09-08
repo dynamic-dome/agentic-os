@@ -239,6 +239,26 @@ learnings.json (`bridge_status`); the AGENTS.md block is a projection.
 5. Rollback: reset `bridge_status`, re-run the projection (block re-renders or
    disappears).
 
+### 3e: Codex memory ingest (codex-ingest)
+
+E1 of the memory hub (membrain spec 2026-09-08). Codex writes its own native
+memory (`~/.codex/memories/memory_summary.md`); nobody else reads it. Pull its
+preferences/tips into the hub as candidates so gate 3d can decide:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/ingest_codex_memory.py" .agent-memory
+```
+
+Report its one line verbatim (`codex-ingest: {n} new, {n} dup, ...`). Rules:
+- Runs AFTER 3d so this session's own candidates were already offered; new
+  codex candidates are offered at the NEXT wrap-up (never in the same gate —
+  keeps the [j/n] line short and the origin visible).
+- Never write into `~/.codex/memories`. A missing/odd file yields `skipped` or
+  `0 new` — not an error, do not retry.
+- Entries carry `source_agent: codex`; `bridge_projection.py` excludes them
+  from AGENTS.md (no echo back to Codex), `memory_index_projection.py`
+  includes them for Claude.
+
 ### 3.5: Layer Lifecycle
 
 - short-term older than 30 days: `last_relevant` within 30 days → promote to
