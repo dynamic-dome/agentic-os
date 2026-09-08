@@ -38,7 +38,7 @@ scripts/                   → Hook helpers + SSoT scripts (session-start.sh, me
 - **Analysis** (pattern-extractor): pattern catalog via `scripts/extract_patterns.py`; generates skills from confirmed skill candidates (absorbed skill-generator in v4.0.0).
 - **Knowledge** (obsidian-sync): Write-path to the Obsidian wiki
 
-**Commands with a script core (v5.0.0):** `/agentic-os:maintain` (ex memory-maintenance), `/agentic-os:log` (ex iteration-logger), `/agentic-os:sync-context` (ex sync-context) — slash-only, never model-invoked, never called from wrap-up.
+**Commands with a script core (v5.0.0):** `/agentic-os:maintain` (ex memory-maintenance), `/agentic-os:log` (ex iteration-logger), `/agentic-os:sync-context` (ex sync-context) — slash-only via `disable-model-invocation: true` (a command file is otherwise Skill-tool-resolvable and its description loads into every prompt; a validate-plugin test enforces the flag), never called from wrap-up.
 
 **Removed in v4.0.0:** skills retrospective, research-pipeline, wiki-query, quality-gate, skill-generator (folded into pattern-extractor); agent quality-gate; wrapper commands log, patterns, research, sync, run-loop. Scaling thresholds live ONLY in `scripts/memory-thresholds.sh` (exit 10 = exceeded). **Archived in v5.0.0:** self-improve, rollback, auto-commit, improvements/ → `_archived/`.
 

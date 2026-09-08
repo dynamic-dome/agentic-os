@@ -1,4 +1,4 @@
-# Agentic OS v4 — Claude Code Plugin
+# Agentic OS v5 — Claude Code Plugin
 
 Persistent agent memory system that works across any project.
 

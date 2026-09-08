@@ -993,6 +993,18 @@ for CALLED_SKILL in context-keeper pattern-extractor obsidian-sync; do
         pass "skill $CALLED_SKILL: stays model-invocable (required for skill-to-skill delegation)"
     fi
 done
+# (c) the three script-core commands (v5.0.0) are slash-only. A command file is
+#     still resolvable by the Skill tool and its description loads into context;
+#     only `disable-model-invocation: true` makes "manual-only" mechanical
+#     (Codex Verifier finding, 2026-09-08).
+for MANUAL_CMD in maintain log sync-context; do
+    FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$PLUGIN_ROOT/commands/$MANUAL_CMD.md")
+    if echo "$FM" | grep -q "^disable-model-invocation: true"; then
+        pass "command $MANUAL_CMD: slash-only via disable-model-invocation: true"
+    else
+        fail "command $MANUAL_CMD: missing disable-model-invocation: true — the command would be model-invocable and its description would burn context every turn (prose alone cannot prevent that)"
+    fi
+done
 
 echo ""
 echo "-- memory schema: Single Source of Truth exists and is the only definition --"

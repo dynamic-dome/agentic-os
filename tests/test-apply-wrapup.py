@@ -652,6 +652,22 @@ rc, out = run(mem, {"date": "2026-07-27", "decisions": [{
 check(load(mem, "context/decisions.json")[-1]["id"] == "D-002",
       "on a frequency tie the canonical prefix wins, not the foreign one")
 
+# --- 32. iterations-only plan never touches the identity queue (/agentic-os:log) --
+mem = make_mem()
+before_user = read(mem, "identity/user.md")
+before_queue = read(mem, "working/user-candidates.json")
+rc, out = run(mem, {"date": "2026-07-27", "iterations": [{
+    "type": "feature", "title": "Nur loggen", "tags": ["a", "b"], "summary": "s"}]})
+check(rc == 0 and out["tally"]["iterations_logged"] == 1, "iterations-only plan applies")
+check(out["tally"]["candidates_promoted"] == 0
+      and read(mem, "identity/user.md") == before_user
+      and read(mem, "working/user-candidates.json") == before_queue,
+      "iterations-only plan leaves user.md and the candidate queue untouched (identity growth is wrap-up's)")
+mem = make_mem()
+rc, out = run(mem, {"date": "2026-07-27", "consolidate": True})
+check(out["tally"]["candidates_promoted"] == 1,
+      "a consolidating plan without a user_candidates key still re-reviews the full queue")
+
 for tmp in []:
     shutil.rmtree(tmp, ignore_errors=True)
 

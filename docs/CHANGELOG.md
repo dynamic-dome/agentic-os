@@ -27,7 +27,12 @@ Reihenfolge V5 → V3 → V4 (V5 raeumt V3 den Tisch frei). MAJOR laut VERSIONIN
 - **Bleiben Skills (echter Urteilsanteil):** session-bootstrap, wrap-up, pattern-extractor
   (Steps 6.5/6.6), context-keeper, obsidian-sync. `scripts/model-routing.sh` fuehrt genau
   diese fuenf.
-- Commands jetzt 6: init, status, memory-audit, maintain, log, sync-context.
+- Commands jetzt 6: init, status, memory-audit, maintain, log, sync-context. Die drei neuen
+  tragen `disable-model-invocation: true` — ein Command ist sonst ueber das Skill-Tool
+  aufrufbar und seine Description laedt in jeden Prompt (Codex-Verifier-Finding; Test im
+  Invocation-Contract). `apply_wrapup.py` fuehrt die Identity-Applier nur noch fuer Plaene mit
+  `user_candidates`/`soul_candidates`-Sektion oder `consolidate: true` aus, damit `/agentic-os:log`
+  nie nach `user.md` promotet (Prinzip 8; vorher stille Nebenwirkung des iteration-logger-Pfads).
 - Doku nachgezogen: README, CLAUDE.md, CAPABILITIES, DEPENDENCIES (Lifecycle, Matrix,
   Prinzipien 4/5/6/8/9), references/skill-template + memory-structure, plugin.json-Description.
 

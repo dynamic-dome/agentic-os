@@ -31,10 +31,10 @@ session-bootstrap (read-only)  →  WORK PHASE  →  wrap-up (Handoff + Learning
 - **Aufgabe:** Phase 0 sourct die SSoT; Phase 1 = Auto-Init bei fehlendem Store; Phase 2 = Backfill (heilt partielle Stores) + Kontext-Injection.
 - **Abhaengigkeiten:** `mem-schema.sh`. Schreibt `project-context.md` selbst (Inline-Stack-Detection — bewusst ausserhalb der SSoT).
 
-### Skills (9, geschichtet)
-- **Datei(en):** `skills/*/SKILL.md`
+### Skills (5, geschichtet) + Commands mit Skript-Kern (3)
+- **Datei(en):** `skills/*/SKILL.md` (session-bootstrap, wrap-up, context-keeper, pattern-extractor, obsidian-sync); `commands/{maintain,log,sync-context}.md` (v5.0.0, `disable-model-invocation: true` — nur per Slash)
 - **Aufgabe:** Session-Lifecycle + Memory-Management. Genau ein Schreiber pro Store-Datei.
-- **Abhaengigkeiten:** Strikt azyklisch (`skills/DEPENDENCIES.md`). Entfernt in v4.0.0: retrospective, research-pipeline, wiki-query, quality-gate (Skill + Agent), skill-generator (in pattern-extractor gefaltet); Wrapper-Commands log/patterns/research/sync/run-loop.
+- **Abhaengigkeiten:** Strikt azyklisch (`skills/DEPENDENCIES.md`). v5.0.0: memory-maintenance/iteration-logger/sync-context zu Commands, self-improve + rollback + auto-commit archiviert (`_archived/`). Entfernt in v4.0.0: retrospective, research-pipeline, wiki-query, quality-gate (Skill + Agent), skill-generator (in pattern-extractor gefaltet); Wrapper-Commands log/patterns/research/sync/run-loop (`log` kehrt in v5.0.0 als echter Command zurueck).
 
 ### Threshold-SSoT
 - **Datei(en):** `scripts/memory-thresholds.sh`

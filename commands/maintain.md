@@ -1,6 +1,7 @@
 ---
 name: maintain
 description: Compacts, archives and integrity-checks the .agent-memory/ store. Script core (memory-thresholds.sh, gc_dirty_markers.py, native_memory_audit.py, review_sweep.py, extract_patterns.py --refresh); prose only where a threshold is exceeded. Run on demand or when wrap-up / the SessionStart briefing print THRESHOLD lines.
+disable-model-invocation: true
 allowed_tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 ---
 

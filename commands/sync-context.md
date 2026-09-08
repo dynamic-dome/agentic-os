@@ -2,6 +2,7 @@
 name: sync-context
 description: Manual cross-project sync between local .agent-memory/ and the global ~/.claude-memory/global/ store — privacy pre-filter, promotion gate, provenance schema, recency supersession, pull serves lifecycle:active only. Never auto-triggered.
 argument-hint: "[pull|push|sync]"
+disable-model-invocation: true
 allowed_tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 ---
 

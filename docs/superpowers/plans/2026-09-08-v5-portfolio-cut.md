@@ -960,3 +960,10 @@ Report to the owner (German): commit list, test result line, the smoke results, 
 - **Type/name consistency:** command names `maintain`, `log`, `sync-context` used identically in Tasks 2–5, the CHANGELOG (Task 1) and README/DEPENDENCIES (Task 5). Pinned test tokens listed per task match the bodies written here.
 - **Version pin sequence:** test-model-routing.sh and marketplace.json go 9→8→7→6→5 in Tasks 1–4; each task runs the suite.
 - **Placeholders:** none — every new file's content is in this document; every edit names the exact old and new string.
+
+## Amendment after Codex Verifier review (2026-09-08, verdict FAIL → fixed)
+
+- **Wrong premise in this plan:** a command file is NOT structurally slash-only — the Skill tool resolves command names and their descriptions load into every prompt (the plugin's own `init`/`status`/`memory-audit` appear in the model's skill list). "Manual-only" is mechanical only via `disable-model-invocation: true`. All three new commands now carry the flag; the invocation-contract test in `validate-plugin.sh` enforces it.
+- `/agentic-os:log` Step 3 wrongly claimed "exit 2 → nothing written". `apply_wrapup.py` reports `files_written` on `io error`; only `plan rejected` writes nothing. Text corrected.
+- `apply_wrapup.py` ran `apply_user_candidates` for every plan, so an iterations-only `/agentic-os:log` plan could promote queued candidates into `user.md` (pre-existing behaviour of the iteration-logger path, violates Principle 8). `main()` now runs the identity applier only for plans with a `user_candidates` key or `consolidate: true`; test 32 in `tests/test-apply-wrapup.py` pins it.
+- README title and `docs/ARCHITECTURE.md` "Skills (9)" block were still v4; fixed.

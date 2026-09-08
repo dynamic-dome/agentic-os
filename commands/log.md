@@ -2,6 +2,7 @@
 name: log
 description: Log one coding iteration (feature, bugfix, refactor, config, docs, test) with its errors, tags and learnings into .agent-memory/iterations/ through scripts/apply_wrapup.py — the single writer of iteration-log.md, errors.json and working/current-session.json.
 argument-hint: "[one-line summary of the iteration]"
+disable-model-invocation: true
 allowed_tools: ["Read", "Bash", "Glob", "Grep"]
 ---
 
@@ -68,8 +69,14 @@ Iteration logged: {type} — {title}
 ```
 
 `tally.iterations_logged == 0` with `iterations_skipped_duplicate == 1` → say "already
-logged (identical header)". Exit code 2 → print the script's JSON error verbatim; nothing
-was written.
+logged (identical header)". Exit code 2 → print the script's JSON error verbatim and read
+its `files_written` list: `plan rejected` means nothing was written; `io error` means the
+files listed there WERE written before the failure (the script stops there, the
+consolidation marker is skipped and dirty flags stay set — nothing to undo by hand).
+
+This command never touches the identity queue: `apply_wrapup.py` runs the
+`user_candidates` / `soul_candidates` appliers only for plans that carry those sections or
+`consolidate: true` — identity growth stays wrap-up Step 6's job.
 
 Then: `n=$(grep -c '^## ' .agent-memory/iterations/iteration-log.md)` — if `n % 5 == 0`,
 suggest `python "${CLAUDE_PLUGIN_ROOT}/scripts/extract_patterns.py" .agent-memory --update`

@@ -853,7 +853,10 @@ def main() -> int:
         apply_iterations(args.mem, plan, date, args.dry_run, touched, tally)
         apply_decisions(args.mem, plan, date, args.dry_run, touched, tally)
         apply_learnings(args.mem, plan, date, args.dry_run, touched, tally)
-        apply_user_candidates(args.mem, plan, date, args.dry_run, touched, tally)
+        if "user_candidates" in plan or plan.get("consolidate"):
+            # Identity growth is wrap-up Step 6's job: an iterations-only plan
+            # (/agentic-os:log) must not re-review the queue and promote to user.md.
+            apply_user_candidates(args.mem, plan, date, args.dry_run, touched, tally)
         apply_soul_candidates(args.mem, plan, date, args.dry_run, touched, tally)
         apply_open_tasks(args.mem, plan, date, args.dry_run, touched, tally)
         apply_session_summary(args.mem, plan, args.dry_run, touched, tally)

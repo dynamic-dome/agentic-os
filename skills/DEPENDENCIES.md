@@ -129,7 +129,7 @@ SESSION END (manual: /agentic-os:wrap-up — no hook can trigger it; a skipped
 
 - **memory-maintenance → /agentic-os:maintain** — 12 KB body for mechanics that never ran; the scripts own the writes, the command wraps them.
 - **iteration-logger → /agentic-os:log** — 70 % mechanics already in `apply_wrapup.py`; no usage evidence as a skill.
-- **sync-context → /agentic-os:sync-context** — was already `disable-model-invocation`; manual-only is now structural.
+- **sync-context → /agentic-os:sync-context** — keeps `disable-model-invocation: true`; all three commands carry the flag (a command file is otherwise Skill-tool-resolvable), enforced by the invocation-contract test.
 - **self-improve, /rollback, /auto-commit, improvements/ → `_archived/`** — silent since 2026-06-21; reversible via `git mv` (see `_archived/README.md`).
 
 ### Removed in v4.0.0 (with reason)
