@@ -9,7 +9,7 @@ model: sonnet
 effort: medium
 metadata:
   author: agentic-os
-  version: '4.4'
+  version: '4.5'
   part-of: agentic-os
   layer: core
 ---
@@ -57,15 +57,16 @@ files you actually read this run; Step 9.5 logs that number.
 
 ## Step 0.6: Write-Plan Discipline (write-plan)
 
-There are exactly TWO batch calls per run: the early one in Step 1.5 (iterations
-only, so Step 4 can see this session's errors) and the final one in Step 8.5
-(everything else). Do NOT write `iteration-log.md`, `errors.json`,
+There are exactly THREE batch calls per run: the early one in Step 1.5 (iterations
+only, so Step 4 can see this session's errors), the main one in Step 7.4
+(everything else, before wiki sync and handoff) and the marker-only one in Step 9.5
+(`{"consolidate": true}`). Do NOT write `iteration-log.md`, `errors.json`,
 `working/current-session.json`,
 `decisions.json`, `learnings.json`/`learnings.md`, `session-summary.md`,
 `open-tasks.json`, `user-candidates.json`, `user-changelog.json`, `user.md`,
 `soul-candidates.md`, `consolidation-marker.json` or the `dirty-*.json` flags
 with individual Write/Edit calls. Collect the results of Steps 1.5–7 into ONE
-write plan and hand it to the batch writer in Step 8.5.
+write plan and hand it to the batch writer in Step 7.4.
 
 Why: a measured run cost $15.50 for 28 API calls — 11.8M cache-read and 1.38M
 cache-write tokens against only 39k output tokens. That is 94% context
@@ -119,7 +120,7 @@ Do not invent details the files and git history cannot support.
    **Counting rule:** three failed fixes before the right one are ONE iteration with
    `attempts: 3`, not three iterations. **Tags:** at least 2, lowercase, reusing the
    conventions already in `errors.json` (language/framework · domain · error type).
-2. Put them into the write plan's `iterations` array (Step 8.5). Do **NOT** run
+2. Put them into the write plan's `iterations` array (Step 7.4). Do **NOT** run
    `/agentic-os:log` for this and do NOT write `iteration-log.md` /
    `errors.json` / `working/current-session.json` by hand — `apply_wrapup.py` owns
    those writes and their mechanics: id continuation in the format already on disk,
@@ -127,7 +128,7 @@ Do not invent details the files and git history cannot support.
    instead of a new entry), the markdown shape, and the working-memory bookkeeping.
    Judgment stays here: what counts as one iteration, which errors mattered, why.
 3. Trivial session (pure lookup/discussion, no artifacts): skip silently.
-4. **Apply the iterations NOW (early-apply), not in Step 8.5** — one call with only
+4. **Apply the iterations NOW (early-apply), not in Step 7.4** — one call with only
    this section:
 
    ```bash
@@ -140,7 +141,7 @@ Do not invent details the files and git history cannot support.
    Why the split: Step 4 reads `errors.json` from disk. If the harvested errors
    were still sitting in the final plan, the extractor would analyse the state
    BEFORE this session and never see its own errors — the pattern pipeline would
-   starve exactly as it did before v3.6.0. Leave `iterations` out of the Step 8.5
+   starve exactly as it did before v3.6.0. Leave `iterations` out of the Step 7.4
    plan afterwards (a repeat is harmless — the header dedup skips it and touches
    no error counts — but pointless).
 
@@ -315,7 +316,7 @@ choices, storage/format changes, ownership/policy decisions ("X is SSoT", "no au
 Trust boundary: conversation + repo evidence only. One-off implementation details are
 NOT decisions — when in doubt, skip. None found: skip silently.
 
-If found: put them into the write plan's `decisions` array (Step 8.5) — do **NOT**
+If found: put them into the write plan's `decisions` array (Step 7.4) — do **NOT**
 invoke the `context-keeper` skill for this and never edit `decisions.json` by hand.
 `apply_wrapup.py` owns the mechanics: id continuation in the on-disk format, the
 append-only rule, and the supersede flip (`supersedes: "D-00n"` sets the old record
@@ -426,6 +427,37 @@ wrap-up, even when nothing was found:
 If `.agent-memory/knowledge/notebook-registry.md` lists a notebook AND 3+ meaningful
 learnings were extracted: offer sync via the `notebooklm` user-skill. Otherwise skip.
 
+## Step 7.4: Apply the Write Plan (batch-apply)
+
+Emit the plan collected across Steps 3–7 and apply it in ONE call — BEFORE the wiki
+sync (7.5), the central handoff (7.6) and the commit offer (8): all three read the
+freshly written learnings, decisions and session-summary from disk (L44). Leave
+`consolidate` OUT of this plan — the marker is Step 9.5's own call, so the wiki note
+and handoff files never land after the marker as tail writes.
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/apply_wrapup.py" .agent-memory \
+  --session-id <session-id> <<'PLAN'
+{ ...write plan... }
+PLAN
+```
+
+Read the returned JSON:
+
+- `tally` — measured counts from the writes that actually happened. Use these
+  numbers for Step 6.5, never a hand count.
+- `identity_status_line` — emit verbatim as the mandatory Step 6.5 line.
+- `files_written` — spot-check one or two if anything looks off.
+- `warnings` — surface them; they are contract violations (e.g. summary over
+  30 lines), not noise.
+
+Exit code 2 means the plan was rejected and **nothing was consolidated**: the
+marker is absent and the dirty flags stay set on purpose. Fix the plan and
+re-run rather than writing the files by hand.
+
+Use `--dry-run` first when unsure — it reports the full tally without touching
+a file.
+
 ## Step 7.5: Obsidian Wiki Sync (Conditional)
 
 Delegates to the `obsidian-sync` skill — do NOT duplicate its logic.
@@ -493,33 +525,6 @@ If there are uncommitted changes:
 3. Show the user what would be committed; **wait for confirmation** — never commit
    without explicit approval.
 
-## Step 8.5: Apply the Write Plan (batch-apply)
-
-Emit the plan collected across Steps 3–7 and apply it in ONE call:
-
-```bash
-python "${CLAUDE_PLUGIN_ROOT}/scripts/apply_wrapup.py" .agent-memory \
-  --session-id <session-id> <<'PLAN'
-{ ...write plan... }
-PLAN
-```
-
-Read the returned JSON:
-
-- `tally` — measured counts from the writes that actually happened. Use these
-  numbers for Step 6.5, never a hand count.
-- `identity_status_line` — emit verbatim as the mandatory Step 6.5 line.
-- `files_written` — spot-check one or two if anything looks off.
-- `warnings` — surface them; they are contract violations (e.g. summary over
-  30 lines), not noise.
-
-Exit code 2 means the plan was rejected and **nothing was consolidated**: the
-marker is absent and the dirty flags stay set on purpose. Fix the plan and
-re-run rather than writing the files by hand.
-
-Use `--dry-run` first when unsure — it reports the full tally without touching
-a file.
-
 ## Step 9: Memory Maintenance (Delegated)
 
 Run `bash scripts/memory-thresholds.sh` (plugin root; threshold SSoT shared with
@@ -544,12 +549,23 @@ never here.
 
 This step makes consolidation VERIFIABLE: bootstrap and session-start.sh detect
 crashed sessions by "dirty file exists but no matching marker". It is mandatory
-and runs LAST — only after Steps 1–8 actually completed.
+and runs LAST — only after Steps 1–9 actually completed.
 
-**Execution:** the Step 8.5 batch call performs this when the plan carries
-`"consolidate": true` — it already runs after Steps 1–8 and skips the marker on
-any failure. Points 1–5 below define the contract that call implements; write
-them by hand only if the script is unavailable.
+**Execution:** one more batch call with a marker-only plan, after Steps 1–9:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/apply_wrapup.py" .agent-memory \
+  --session-id <session-id> <<'PLAN'
+{"consolidate": true}
+PLAN
+```
+
+It skips the marker on any failure. From its output only `dirty_files_consolidated`
+matters — the identity line was already emitted from Step 7.4. The main plan (7.4)
+must NOT carry `consolidate`: the wiki note and handoff files (7.5/7.6) would land
+after the marker as tail writes and trip the next bootstrap's recovery check.
+Points 1–5 below define the contract that call implements; write them by hand only
+if the script is unavailable.
 
 1. Read all `.agent-memory/working/dirty-*.json` with `dirty: true` (their
    `touched_files` were already used as evidence in Steps 1/1.5).
@@ -631,7 +647,7 @@ patterns / Open questions). Template: `references/wrapup-schemas.md` §Handoff M
 ## What NOT to Do
 
 - Do NOT write `errors.json`, `iteration-log.md` or `decisions.json` with Write/Edit —
-  they go through the write plan (Step 8.5); `patterns.json`/`patterns.md` belong to
+  they go through the write plan (Step 7.4); `patterns.json`/`patterns.md` belong to
   `scripts/extract_patterns.py` and are refused by the batch writer
 - Do NOT write soul.md — ever (candidates only; the write is bootstrap's [j/n] gate)
 - Do NOT skip Step 6 or its status line — identity growth must be visible

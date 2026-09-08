@@ -1,5 +1,5 @@
 {
   "name": "agentic-os",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Agent memory system for Claude Code: per-project .agent-memory/ store (learnings, decisions, tasks, patterns, identity), session-bootstrap + wrap-up as the supported two-call bracket, deterministic scripts for every store write, five judgment skills plus three commands with a script core (maintain, log, sync-context), and two command hooks (SessionStart briefing via additionalContext, PostToolUse dirty-state tracker). Invoke skills via their slash commands (/agentic-os:wrap-up) — that is the path where the skill's model class applies."
 }

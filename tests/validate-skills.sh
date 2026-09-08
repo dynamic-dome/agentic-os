@@ -706,6 +706,34 @@ if [ -f "$SB_MR_FILE" ]; then
     fi
 fi
 
+# --- wrap-up: batch-apply runs BEFORE wiki sync / handoff; marker is its own final call (T-024, L44) ---
+# obsidian-sync (7.5) and the central handoff (7.6) read learnings/decisions/session-summary
+# from DISK. When the main batch write came after them (old Step 8.5) they saw the state
+# BEFORE this session. The marker must NOT ride on that main call, or the wiki/handoff
+# writes land after it as tail writes and trip bootstrap's recovery detection.
+echo ""
+echo "-- wrap-up: (batch-apply) precedes wiki sync + handoff; (consolidation-marker) has its own call --"
+WU_ORD_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
+if [ -f "$WU_ORD_FILE" ]; then
+    BA_LINE=$(grep -n "(batch-apply)" "$WU_ORD_FILE" | head -1 | cut -d: -f1)
+    WS_LINE=$(grep -n "^## Step.*Obsidian Wiki Sync" "$WU_ORD_FILE" | head -1 | cut -d: -f1)
+    HO_LINE=$(grep -n "^## Step.*Central Cross-Project Handoff" "$WU_ORD_FILE" | head -1 | cut -d: -f1)
+    if [ -n "$BA_LINE" ] && [ -n "$WS_LINE" ] && [ -n "$HO_LINE" ] \
+       && [ "$BA_LINE" -lt "$WS_LINE" ] && [ "$BA_LINE" -lt "$HO_LINE" ]; then
+        pass "wrap-up: (batch-apply) step comes before Obsidian Wiki Sync and Central Handoff (they read the written state)"
+    else
+        fail "wrap-up: (batch-apply) must precede the Obsidian Wiki Sync and Central Handoff steps — otherwise obsidian-sync reads learnings/decisions/summary from BEFORE this session (L44)"
+    fi
+    BA_BLOCK=$(awk '/\(batch-apply\)/{f=1; print; next} f && /^## /{exit} f' "$WU_ORD_FILE")
+    CM_BLOCK=$(awk '/\(consolidation-marker\)/{f=1; print; next} f && /^## /{exit} f' "$WU_ORD_FILE")
+    if echo "$CM_BLOCK" | grep -q "apply_wrapup.py" && echo "$CM_BLOCK" | grep -q '"consolidate": true' \
+       && ! echo "$BA_BLOCK" | grep -q '"consolidate": true'; then
+        pass "wrap-up: (consolidation-marker) is a separate marker-only apply_wrapup call; main (batch-apply) plan carries no consolidate"
+    else
+        fail "wrap-up: (consolidation-marker) must run its own apply_wrapup.py call with {\"consolidate\": true} AFTER wiki/handoff, and the (batch-apply) plan must not set consolidate (tail-write false recoveries)"
+    fi
+fi
+
 echo ""
 echo "=== Results: $PASSED/$TESTS passed, $ERRORS failures ==="
 [ "$ERRORS" -eq 0 ]

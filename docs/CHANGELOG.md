@@ -4,6 +4,28 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-09-08] Release v5.0.1 — wrap-up: Batch-Write vor Wiki-Sync/Handoff, Marker als eigener Call (T-024, L44)
+
+PATCH laut VERSIONING: „verhaelt sich jetzt korrekt", keine neue Faehigkeit.
+
+- **Step 8.5 → Step 7.4 (batch-apply):** der Haupt-Batch-Write (learnings, decisions,
+  session-summary, open-tasks, identity) laeuft jetzt VOR obsidian-sync (7.5), dem zentralen
+  Handoff (7.6) und dem Commit-Angebot (8). Vorher las obsidian-sync bei jedem regulaeren Lauf
+  den Stand VOR der Session (L44: 0 statt 2 substanzielle Learnings gesehen), und der
+  Memory-Commit wurde angeboten, bevor die Dateien existierten.
+- **Step 9.5 ist ein eigener Marker-Call** (`{"consolidate": true}` an `apply_wrapup.py`), der
+  Hauptplan traegt kein `consolidate` mehr. Sonst landen Wiki-Note und Handoff-Dateien als
+  Tail-Writes hinter dem Marker und loesen im naechsten Bootstrap RECOVERY-Fehlalarme aus
+  (heute live: 6 Tail-Writes, Downgrade-Schwelle 5). Drei Batch-Calls pro Lauf: 1.5
+  (iterations), 7.4 (Rest), 9.5 (Marker).
+- **Tests:** 2 Ordnungs-Assertions in `validate-skills.sh` (batch-apply vor Wiki-Sync +
+  Handoff; consolidation-marker hat eigenen Call, batch-apply-Plan ohne consolidate),
+  erst rot, dann gruen. Bekannte Einschraenkung: der Marker-Call kennt den Tally des
+  Hauptlaufs nicht, `learnings_added` im Marker ist daher 0 (informativ, Bootstrap liest
+  nur `last_wrapup` + `consolidated_sessions`).
+- **T-026 geschlossen:** Live-Verifikation in neuer Session — maintain/log/sync-context
+  fehlen in der Skill-Liste, `disable-model-invocation: true` wirkt auf Command-Dateien.
+
 ## [2026-09-08] Release v5.0.0 — Portfolio-Schnitt: 9 Skills → 5, mechanische Skills werden Commands
 
 Owner-Entscheid aus der Gesamtanalyse (`~/AI/membrain/memgesamtanalyse-2026-09.md`, F6/V5),
