@@ -610,7 +610,9 @@
     "tags": [
       "wrap-up",
       "ordering"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-09-08"
   },
   {
     "id": "D-018",
@@ -656,6 +658,8 @@
       "wrap-up",
       "architecture",
       "v3"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-09-08"
   }
 ]
