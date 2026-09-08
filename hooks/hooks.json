@@ -1,5 +1,5 @@
 {
-  "description": "Agentic OS Lifecycle Hooks v10: Auto-Init (command), Dirty-State Tracker (command), Intent Routing (prompt), Context Preservation (prompt), Wrap-Up Delegation + Identity Verify (prompt), Agent Commit Suggest (prompt)",
+  "description": "Agentic OS Lifecycle Hooks v11: SessionStart (command: auto-init + briefing via hookSpecificOutput.additionalContext) and PostToolUse (command: mechanical dirty-state tracker). The former prompt hooks (UserPromptSubmit, PreCompact, SessionEnd) were removed in 4.21.0 — measured dead: SessionEnd hooks cannot invoke skills, PreCompact output is compacted away, a UserPromptSubmit prompt hook costs one model call per prompt and injects nothing on approve.",
   "hooks": {
     "SessionStart": [
       {
@@ -21,42 +21,6 @@
             "type": "command",
             "command": "python \"${CLAUDE_PLUGIN_ROOT}/scripts/posttooluse-dirty-tracker.py\"",
             "timeout": 5
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Advisory only — never block or delay. Add a brief internal hint only if the prompt clearly signals: completed work → 'log via iteration-logger'; a tech/architecture decision → 'record via context-keeper'; a recurring problem → 'run pattern-extractor'. Otherwise nothing. Return 'approve'.",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Context is about to be compressed. If `.agent-memory/` exists, OUTPUT a compact survival summary (this text persists after compression):\n1. `session-summary.md` → 'LAST SESSION: {1 line}'\n2. `context/project-context.md` → 'PROJECT: {name} | STACK: {compact}'\n3. `context/open-tasks.json` → 'OPEN TASKS: {every open/blocked task, ID + title}' — CRITICAL, none may be dropped.\n4. `identity/soul.md` → 'IDENTITY: {language}, {brevity}'\n5. Current git branch → 'BRANCH: {name}'\nProduce a readable text block, not silent reads. Return 'approve'.",
-            "timeout": 15
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Session is ending. If `.agent-memory/` does not exist, return 'approve'.\n1. TASK GUARD (mandatory): every open/blocked task in `context/open-tasks.json` must appear in session-summary.md's Open Items — add missing ones. If a stray `.agent-memory/open-tasks.json` exists at root, merge it into context/open-tasks.json and delete the root copy.\n2. If wrap-up has NOT run today (session-summary.md Date line ≠ today): invoke `agentic-os:wrap-up` — it owns summary, learnings, identity growth (Step 6) and wiki sync.\n3. If wrap-up DID run: verify it emitted its mandatory 'Identity:' status line; if not, run wrap-up Step 6 now. WIKI-VERIFY (sessionend-wiki-verify): if `config.json` has `sync_enabled: true` and the session was substantial, verify a `{today}-session-{project_id}*.md` note exists under `{wiki_root}/wiki/queries/` — if missing, invoke `agentic-os:obsidian-sync` and report in one line.\nReturn 'approve'.",
-            "timeout": 15
           }
         ]
       }

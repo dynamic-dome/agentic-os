@@ -23,7 +23,9 @@ bekannte Hochrisiko-Shell-Muster deterministisch mit Exit-Code `2`.
 - Disk-/Systemoperationen (`mkfs`, `diskpart`, raw `dd of=/dev/*`, shutdown/reboot)
 - rekursive Rechte-/Owner-Aenderungen (`chmod -R 777`, `chown -R`)
 
-## session-end.sh / pre-compact.sh (DEPRECATED)
+## session-end.sh / pre-compact.sh (entfernt)
 
-Diese Skripte wurden durch **prompt-basierte Hooks** in `hooks/hooks.json` ersetzt.
-`SessionEnd`, `PreCompact` und `Stop` unterstuetzen alle Prompt-Hooks.
+Erst durch Prompt-Hooks ersetzt, diese in 4.21.0 gestrichen: SessionEnd-Hooks koennen
+keine Skills aufrufen, PreCompact-Output wird wegkomprimiert. Das SessionStart-Briefing
+(`session-start.sh`, `hookSpecificOutput.additionalContext`) ist der einzige Hook-Kanal,
+den das Modell sieht; es feuert auch nach `/compact` erneut.

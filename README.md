@@ -7,7 +7,7 @@ Self-improving agent memory system that works across any project.
 - **Project Memory** (`.agent-memory/`): Per-project knowledge — iterations, patterns, decisions, learnings
 - **Identity Growth**: wrap-up harvests user/agent traits into gated candidate queues (`user.md`, `soul-candidates.md`); bootstrap surfaces them via explicit `[j/n]` gates — mandatory status line, no silent starvation
 - **Session Lifecycle**: Auto-bootstrap at start, user-driven during work, wrap-up at end (the two-skill bracket is the supported minimal workflow)
-- **Lean Hook Surface**: 7 hooks (SessionStart, PreToolUse, PostToolUse, UserPromptSubmit, PreCompact, SessionEnd, SubagentStop); the only per-edit hook is the mechanical fail-soft dirty-tracker (no LLM, bookkeeping only)
+- **Lean Hook Surface**: 2 command hooks (SessionStart briefing via `additionalContext`, PostToolUse dirty-tracker); no prompt hooks — they cannot invoke skills or survive compaction (removed 4.21.0). The only per-edit hook is the mechanical fail-soft dirty-tracker (no LLM, bookkeeping only)
 - **Wiki / Knowledge Layer**: `obsidian-sync` writes session results into the Obsidian wiki
 - **Optional Cross-Project Sync**: Manual pattern sharing via `sync-context` skill
 
@@ -45,16 +45,16 @@ pattern-extractor). See `skills/DEPENDENCIES.md` for the dependency graph.
 |-------|-------|------|
 | `context-detective` | sonnet | Auto-detect project context from repo analysis |
 
-## Hooks (6)
+## Hooks (2)
 
 | Event | Timeout | Type | Action |
 |-------|---------|------|--------|
-| `SessionStart` | 15s | command | Auto-init `.agent-memory/`, inject briefing + soul/user identity extract, dirty-recovery check |
-| `PreToolUse` | 5s | command | Deterministic shell circuit breaker for dangerous `Bash` commands; blocks with exit code 2 |
+| `SessionStart` | 15s | command | Auto-init `.agent-memory/`; briefing via `hookSpecificOutput.additionalContext` (the only field the model sees): branch, counters, top-3 open tasks from `context/open-tasks.json`, central-handoff head, RECOVERY + root-drift lines, slash-path hint. Fires again after `/compact`. |
 | `PostToolUse` | 5s | command | Dirty-state tracker: records un-consolidated work per session in `working/dirty-<sid>.json` (fail-soft, mechanical) |
-| `UserPromptSubmit` | 10s | prompt | Advisory-only context hint (short) |
-| `PreCompact` | 15s | prompt | Emit survival summary before context compaction |
-| `SessionEnd` | 15s | prompt | Task guard, delegate to wrap-up, identity + wiki-note verify |
+
+Invoke the bracket skills as slash commands (`/agentic-os:session-bootstrap`,
+`/agentic-os:wrap-up`): measured on 2.1.263, only that path applies the skill's
+`model: sonnet` class; the Skill tool keeps the session model.
 
 ## Memory Structure
 
@@ -88,12 +88,11 @@ genuine reusable learnings into `.agent-memory/learnings/learnings.json`,
 ## Session Lifecycle
 
 ```
-Start:  SessionStart hook reads context silently (15s, command)
+Start:  SessionStart hook injects the compact briefing (15s, command, model-visible)
 Work:   User-driven — log iterations, record decisions
-        PreToolUse (5s) blocks destructive Bash commands with exit code 2
-        UserPromptSubmit (10s) injects context-hints, advisory-only
-        PreCompact (15s) emits survival summary if context fills
-End:    SessionEnd hook (15s) delegates to wrap-up (incl. identity growth)
+        PostToolUse (5s) tracks un-consolidated edits mechanically
+End:    /agentic-os:wrap-up (manual, slash command) — no hook can trigger it;
+        a skipped wrap-up shows up as a RECOVERY line at the next SessionStart
 ```
 
 No LLM-triggering per-edit overhead. The single per-edit hook (dirty-tracker) is pure

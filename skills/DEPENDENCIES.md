@@ -70,10 +70,11 @@ WORK PHASE (user-driven, no auto-triggers on code changes)
         └── policy: single-cluster, no-self-mod, rollback-tagged, circuit breaker
   │
   ▼
-SESSION END (SessionEnd hook → wrap-up)
+SESSION END (manual: /agentic-os:wrap-up — no hook can trigger it; a skipped
+             wrap-up shows as a RECOVERY line at the next SessionStart)
   │
   ▼
-  wrap-up (MANUAL-ONLY — the hook only *suggests* it)
+  wrap-up (MANUAL-ONLY — invoke as slash command; that path applies model: sonnet)
   │  ├── reads: iteration-log.md, errors.json, learnings.json,
   │  │     working/current-session.json, working/user-candidates.json,
   │  │     context/open-tasks.json, skills/wrap-up/references/handoff-template.md
@@ -169,7 +170,7 @@ stays deliberately on-demand:
 | Covered by the bracket (automatic) | How |
 |---|---|
 | Context restore, health checks, salience learnings, wiki context, Sharepoint pull | bootstrap (learnings_top.py / Atlas-RAG, memory-thresholds.sh) |
-| Auto-init, PreCompact survival, SessionEnd task guard, intent hints | hooks |
+| Auto-init, model-visible start briefing (tasks SSoT, recovery, root-drift, handoff head; re-fires after /compact), dirty-state tracking | hooks (2 command hooks; prompt hooks removed 4.21.0) |
 | Iteration logging | wrap-up Step 1.5 session-harvest → write plan → `scripts/apply_wrapup.py` |
 | Pattern extraction | wrap-up Step 4 (3+ iterations, fed by harvest) → `scripts/extract_patterns.py` |
 | Skill-candidate generation, rueckfluss drafts | wrap-up Step 4 → pattern-extractor Steps 6.5/6.6 (only when the extractor reports candidates) |

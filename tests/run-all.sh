@@ -344,6 +344,17 @@ fi
 
 echo ""
 
+# Run session-start briefing contract tests (4.21.0: additionalContext, counters, tasks SSoT)
+echo ">>> Running session-start briefing tests..."
+if bash "$SCRIPT_DIR/test-session-start-briefing.sh"; then
+    echo ">>> Session-start briefing tests: ALL PASSED"
+else
+    echo ">>> Session-start briefing tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run skill-redesign eval harness (T-35: Schicht 1 signals + gate-linkage)
 echo ">>> Running skill-redesign eval harness..."
 if bash "$SCRIPT_DIR/eval/run-eval.sh"; then

@@ -17,7 +17,7 @@
 ├── context/
 │   ├── project-context.md              # Cache of docs/ (stack, architecture, constraints)
 │   ├── decisions.json                  # Architecture decisions (append-only)
-│   └── open-tasks.json                 # Open tasks (SessionEnd task guard)
+│   └── open-tasks.json                 # Open tasks (SSoT; rendered into the SessionStart briefing + summary)
 │
 ├── iterations/
 │   ├── iteration-log.md                # Chronological iteration entries

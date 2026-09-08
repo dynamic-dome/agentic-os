@@ -53,18 +53,28 @@ if [ -f "$HOOKS" ]; then
     else
         fail "hooks.json is not valid JSON"
     fi
-    # All prompt hooks must have timeout >= 10 to avoid silent failures
-    min_timeout=$(node -e "
-      const h = JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
-      const hooks = Object.values(h.hooks).flat().flatMap(g => g.hooks || []);
-      const prompts = hooks.filter(h => h.type === 'prompt' && h.timeout !== undefined);
-      console.log(Math.min(...prompts.map(h => h.timeout)));
-    " "$HOOKS" 2>/dev/null)
-    if [ -n "$min_timeout" ] && [ "$min_timeout" -ge 10 ]; then
-        pass "hooks.json: all prompt hooks have timeout >= 10s (min: ${min_timeout}s)"
+    # No prompt-type hooks (4.21.0). Measured/documented dead: SessionEnd hooks
+    # cannot invoke skills or take further actions, PreCompact hook output is
+    # compacted away, and a UserPromptSubmit prompt hook is one extra model call
+    # per prompt whose output is discarded on approve. Only command hooks remain.
+    prompt_count=$(python3 -c "
+import json, sys
+h = json.load(open(sys.argv[1], encoding='utf-8'))
+hooks = [x for g in h['hooks'].values() for e in g for x in (e.get('hooks') or [])]
+print(sum(1 for x in hooks if x.get('type') != 'command'))
+" "$HOOKS" 2>/dev/null || echo "?")
+    if [ "$prompt_count" = "0" ]; then
+        pass "hooks.json: command hooks only (no prompt/agent hooks — they cannot invoke skills or survive compaction)"
     else
-        fail "hooks.json: prompt hook timeout too low (min: ${min_timeout}s) — risk of silent failure"
+        fail "hooks.json: $prompt_count non-command hook(s) — prompt hooks were removed in 4.21.0 (dead by construction, see CHANGELOG)"
     fi
+    for ev in UserPromptSubmit PreCompact SessionEnd; do
+        if grep -q "\"$ev\"" "$HOOKS"; then
+            fail "hooks.json: $ev hook re-added — it cannot do what its prompt promised (4.21.0)"
+        else
+            pass "hooks.json: no $ev hook"
+        fi
+    done
 else
     fail "hooks.json not found"
 fi
@@ -1135,12 +1145,13 @@ if [ -f "$SS_SCRIPT" ]; then
     else
         fail "session-start.sh: output is not valid JSON"
     fi
-    # Check that systemMessage field exists
-    HAS_MSG=$(echo "$SS_OUTPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print('yes' if 'systemMessage' in d else 'no')" 2>/dev/null || echo "no")
+    # The briefing must travel in hookSpecificOutput.additionalContext (model-visible);
+    # a top-level systemMessage is user-only (measured 2.1.263, 4.21.0).
+    HAS_MSG=$(echo "$SS_OUTPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); h=d.get('hookSpecificOutput') or {}; print('yes' if h.get('hookEventName')=='SessionStart' and h.get('additionalContext') and 'systemMessage' not in d else 'no')" 2>/dev/null || echo "no")
     if [ "$HAS_MSG" = "yes" ]; then
-        pass "session-start.sh: JSON output contains systemMessage field"
+        pass "session-start.sh: JSON output carries hookSpecificOutput.additionalContext (no systemMessage)"
     else
-        fail "session-start.sh: JSON output missing systemMessage field"
+        fail "session-start.sh: JSON output must carry hookSpecificOutput.additionalContext and no top-level systemMessage (the model never sees systemMessage)"
     fi
     rm -rf "$TMPDIR_TEST"
 fi
@@ -1190,39 +1201,34 @@ if [ -f "$SS_SCRIPT" ]; then
     rm -rf "$TMPDIR_TEST"
 fi
 
-# 67. SessionEnd prompt hook delegates to wrap-up (no duplicate logic)
+# 67. SessionStart briefing reaches the MODEL (4.21.0)
+#     A SessionStart hook's top-level "systemMessage" is shown to the user only; the
+#     transcript records it as hook_system_message and the model context never
+#     contains it (measured 2026-09-08, Claude Code 2.1.263). The briefing must ship
+#     as hookSpecificOutput.additionalContext. The former SessionEnd prompt hook
+#     ("delegate to wrap-up", "wiki verify") was removed: SessionEnd hooks cannot
+#     invoke skills; the RECOVERY line at the next SessionStart is the backstop.
 echo ""
-echo "-- SessionEnd hook delegates to wrap-up --"
-SE_PROMPT=$(python3 -c "import json,sys; h=json.load(open(sys.argv[1])); print(h['hooks']['SessionEnd'][0]['hooks'][0]['prompt'])" "$PLUGIN_ROOT/hooks/hooks.json" 2>/dev/null || echo "")
-if [ -n "$SE_PROMPT" ]; then
-    if echo "$SE_PROMPT" | grep -q "wrap-up"; then
-        pass "SessionEnd: prompt hook delegates to wrap-up skill"
+echo "-- SessionStart briefing contract (additionalContext) --"
+SS_HOOK="$PLUGIN_ROOT/scripts/session-start.sh"
+if [ -f "$SS_HOOK" ]; then
+    if grep -q "hookSpecificOutput" "$SS_HOOK" && grep -q "additionalContext" "$SS_HOOK"; then
+        pass "session-start.sh: emits hookSpecificOutput.additionalContext (model-visible)"
     else
-        fail "SessionEnd: prompt hook does not delegate to wrap-up — risk of duplicate logic"
+        fail "session-start.sh: must emit hookSpecificOutput.additionalContext — systemMessage is user-only"
     fi
-    # Should NOT contain detailed summary update instructions (that's wrap-up's job)
-    if echo "$SE_PROMPT" | grep -qE "What was done.*bullet points|Keep under 30 lines"; then
-        fail "SessionEnd: prompt hook contains detailed summary logic that duplicates wrap-up skill"
+    if grep -qE '^[[:space:]]*"systemMessage"' "$SS_HOOK"; then
+        fail "session-start.sh: still emits a top-level systemMessage (invisible to the model)"
     else
-        pass "SessionEnd: prompt hook is lean (no duplicate summary logic)"
+        pass "session-start.sh: no top-level systemMessage"
     fi
-fi
-
-# 67b. SessionEnd hook verifies the wiki session-note actually landed (sessionend-wiki-verify)
-#      Wiki-sync hardening (2026-06-27): wrap-up Step 7.5 is a *prompt* path that can be
-#      missed on autonomous/aborted sessions. The SessionEnd hook is the backstop — for a
-#      substantial, sync-enabled project it must confirm a today wiki session-note exists
-#      and invoke obsidian-sync if it doesn't. Still a delegation (no duplicate write logic).
-echo ""
-echo "-- SessionEnd hook: wiki-sync verify backstop --"
-if [ -n "$SE_PROMPT" ]; then
-    if echo "$SE_PROMPT" | grep -q "sessionend-wiki-verify" \
-       && echo "$SE_PROMPT" | grep -q "wiki/queries" \
-       && echo "$SE_PROMPT" | grep -q "obsidian-sync"; then
-        pass "SessionEnd: (sessionend-wiki-verify) — confirms today's wiki note exists, invokes obsidian-sync as backstop"
+    if grep -q "/agentic-os:wrap-up" "$SS_HOOK"; then
+        pass "session-start.sh: briefing names the slash path /agentic-os:wrap-up (applies model: frontmatter; the Skill tool does not)"
     else
-        fail "SessionEnd: missing (sessionend-wiki-verify) — hook must check for a today wiki/queries session-note and invoke obsidian-sync when sync_enabled and the session is substantial"
+        fail "session-start.sh: briefing must name /agentic-os:wrap-up — the slash path is the only one where the skill's model class applies (measured 2.1.263)"
     fi
+else
+    fail "session-start.sh: not found"
 fi
 
 # 68. Dead script cleanup — session-end.sh and pre-compact.sh should not exist
@@ -1456,25 +1462,18 @@ else
     fail "a project-context.md writer does not honor docs-as-source-of-truth — cache can silently diverge from docs/"
 fi
 
-# --- SessionEnd open-tasks drift trigger (Audit-Hebel #6, 2026-06-03) ---
-# memory-maintenance already heals the root-vs-context open-tasks.json drift, but it is
-# threshold-gated and rarely runs. The SessionEnd hook (which reads context/open-tasks.json
-# anyway) must also catch the drift so it gets healed reliably at session end.
+# --- open-tasks root-drift surfaced at SessionStart (Audit-Hebel #6, moved 4.21.0) ---
+# memory-maintenance heals the root-vs-context open-tasks.json drift but is threshold-gated.
+# The SessionEnd prompt hook that used to promise the heal could not act (SessionEnd hooks
+# take no further actions); the drift is now flagged mechanically in the SessionStart
+# briefing, which the model actually sees. Behaviour is pinned by test-session-start-briefing.sh.
 echo ""
-echo "-- SessionEnd hook: open-tasks root-drift check --"
-SE_HOOKS="$PLUGIN_ROOT/hooks/hooks.json"
-if [ -f "$SE_HOOKS" ]; then
-    # The SessionEnd prompt must mention the root-level open-tasks.json drift and merging it
-    # into the canonical context/ path (not just reading context/open-tasks.json).
-    SE_PROMPT=$(awk '/"SessionEnd"/,/"SubagentStop"|"UserPromptSubmit"/' "$SE_HOOKS")
-    # Require the full heal action (detect root + merge + delete), not just a mention (Codex MINOR).
-    if echo "$SE_PROMPT" | grep -qiE "open-tasks\.json at (the )?root|root-level open-tasks|ROOT" \
-       && echo "$SE_PROMPT" | grep -qiE "merge" \
-       && echo "$SE_PROMPT" | grep -qiE "delete (the )?root"; then
-        pass "SessionEnd hook: detects root open-tasks drift AND merges into context/ AND deletes root copy"
-    else
-        fail "SessionEnd hook: missing open-tasks root-drift heal — must detect a stray root .agent-memory/open-tasks.json, MERGE it into context/open-tasks.json, and DELETE the root copy (memory-maintenance is threshold-gated and rarely runs)"
-    fi
+echo "-- session-start.sh: open-tasks root-drift check --"
+if grep -q 'MEMORY_DIR/open-tasks.json' "$PLUGIN_ROOT/scripts/session-start.sh" \
+   && grep -qi "root drift" "$PLUGIN_ROOT/scripts/session-start.sh"; then
+    pass "session-start.sh: flags a stray root .agent-memory/open-tasks.json (root drift) in the briefing"
+else
+    fail "session-start.sh: must flag a stray root .agent-memory/open-tasks.json as 'root drift' in the briefing"
 fi
 
 # --- /memory-audit command (Audit-Hebel #5, 2026-06-03) ---

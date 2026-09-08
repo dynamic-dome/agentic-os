@@ -4,6 +4,41 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-09-08] Release v4.21.0 — Hook-Schicht ehrlich: Briefing erreicht das Modell, tote Prompt-Hooks entfernt
+
+Befund aus der Gesamtanalyse (`~/AI/membrain/memgesamtanalyse-2026-09.md`, F1/F2/V8):
+
+- **SessionStart-Briefing war fürs Modell unsichtbar.** `session-start.sh` gab
+  `{"systemMessage": ...}` aus; das Transkript (Claude Code 2.1.263, Session 15c40732)
+  führt das als `hook_system_message` — nur der User sah es, der Modellkontext nie.
+  Nur `hookSpecificOutput.additionalContext` kommt an (`hook_additional_context`).
+  Jetzt: additionalContext-Kontrakt, kein systemMessage mehr. Test:
+  `tests/test-session-start-briefing.sh` (registriert in run-all.sh).
+- **Zähler repariert:** `^## Iteration` zählte auf jedem realen Store 0 (Format auf Platte
+  ist `## {date} — {type}: {title}`); `grep -c '"id"'` zählte Zeilen statt Treffer.
+- **Next steps aus dem SSoT:** Top-3 offene/blockierte Tasks plus Gesamtzahl direkt aus
+  `context/open-tasks.json` (blocked zuerst), nicht mehr per Regex aus session-summary.md.
+  Fallback auf die Summary nur ohne Python.
+- **Neu im Briefing:** Kopf des zentralen Handoffs (Projekt/Datum/Agent), Warnung bei
+  Root-Drift von `open-tasks.json`, und der Hinweis auf den Slash-Pfad (unten).
+  UTF-8 auf stdin UND stdout erzwungen (Windows-cp1252-Mojibake, err-008-Klasse).
+- **Drei Prompt-Hooks entfernt** (UserPromptSubmit, PreCompact, SessionEnd). Laut Doku
+  (hooks.md, 2026-09-08): „SessionEnd hooks cannot invoke skills or take further actions",
+  „Hook output is not preserved after compaction"; ein UserPromptSubmit-Prompt-Hook ist ein
+  eigener Modell-Call pro Prompt, dessen Output bei `ok` verworfen wird. Die versprochenen
+  Wirkungen („invoke wrap-up", „survival summary", „Task-Guard") waren nie möglich. Ersatz:
+  Task↔Summary-Abgleich lebt deterministisch in `apply_wrapup.py` (Step 5.5 rendert Open
+  Items aus open-tasks.json); Recovery/Drift kommen mechanisch im SessionStart-Briefing,
+  das nach `/compact` erneut feuert. Tests 2/67/67b/Drift in validate-plugin.sh ersetzt.
+- **Modell-Frontmatter: Aufrufweg entscheidet (gemessen, 2.1.263, 4 Transkripte):**
+  `/agentic-os:wrap-up` als Slash-Command → Calls auf `claude-sonnet-5` (2/2);
+  `Skill(agentic-os:wrap-up)` über das Skill-Tool → Calls bleiben auf `claude-fable-5-1`
+  (2/2); kein `/model`-Befehl in den Transkripten. Der No-Op-Befund D-009 gilt damit nur
+  für den Skill-Tool-Pfad. Konsequenz: Klammer-Skills immer per Slash aufrufen; das
+  Briefing sagt es, CLAUDE.md dokumentiert es.
+- plugin.json-`description` auf einen Absatz gekürzt; README/CLAUDE.md/DEPENDENCIES/
+  scripts-README auf zwei Hooks nachgezogen.
+
 ## [2026-09-08] Release v4.20.0 — Memory-Hub: Codex→Claude-Kante, MEMORY.md-Projektion, Review-Sweep
 
 Spec: membrain/docs/2026-09-08-memory-hub-kreislauf-spec.md. learnings.json bleibt Hub;

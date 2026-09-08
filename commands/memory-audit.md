@@ -24,7 +24,7 @@ Detect divergences between where data IS and where it SHOULD be:
 
 1. **open-tasks root drift** — does `.agent-memory/open-tasks.json` exist at the ROOT?
    Canonical is `context/open-tasks.json` only. If the root copy exists → flag
-   "open-tasks root drift — SessionEnd hook / memory-maintenance will merge it".
+   "open-tasks root drift — the SessionStart briefing flags it; wrap-up / memory-maintenance merge it".
 2. **patterns schema drift** — read `patterns/patterns.json`. Flag any entry that does NOT use
    the canonical fields (`description`/`recommendation`/`evidence`) — i.e. legacy
    `name`/`solution`/`source_errors` or `title`/`prevention`/`error_ids`. Name them by `id`.

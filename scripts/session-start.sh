@@ -181,10 +181,14 @@ if [ -d "$MEMORY_DIR" ]; then
     [ -n "$STACK" ] && context="$context\nStack: $STACK"
   fi
 
-  # Statistics (tr -d removes whitespace/newlines from grep -c)
-  ERR_COUNT=$(grep -c '"id"' "$MEMORY_DIR/iterations/errors.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
-  ITER_COUNT=$(grep -c "^## Iteration" "$MEMORY_DIR/iterations/iteration-log.md" 2>/dev/null | tr -d '[:space:]' || echo "0")
-  PAT_COUNT=$(grep -c '"id"' "$MEMORY_DIR/patterns/patterns.json" 2>/dev/null | tr -d '[:space:]' || echo "0")
+  # Statistics. `grep -o | wc -l` counts MATCHES (grep -c counts lines — a one-line
+  # JSON array reported 1 regardless of entries). Iteration headers are counted in
+  # the on-disk format `## {date} — {type}: {title}` (4.18.0) AND the legacy
+  # `## Iteration #n`; the old `^## Iteration`-only grep reported 0 on every real store.
+  ERR_COUNT=$(grep -o '"id"' "$MEMORY_DIR/iterations/errors.json" 2>/dev/null | wc -l | tr -d '[:space:]')
+  ITER_COUNT=$(grep -E -c '^## ([0-9]{4}-[0-9]{2}-[0-9]{2}|Iteration)' "$MEMORY_DIR/iterations/iteration-log.md" 2>/dev/null | tr -d '[:space:]')
+  PAT_COUNT=$(grep -o '"id"' "$MEMORY_DIR/patterns/patterns.json" 2>/dev/null | wc -l | tr -d '[:space:]')
+  ERR_COUNT="${ERR_COUNT:-0}"; ITER_COUNT="${ITER_COUNT:-0}"; PAT_COUNT="${PAT_COUNT:-0}"
   context="$context | Stats: ${ITER_COUNT} iter, ${ERR_COUNT} errors, ${PAT_COUNT} patterns"
 
   [ "${ERR_COUNT:-0}" -gt 15 ] 2>/dev/null && context="$context\nNote: Many errors logged — consider running pattern-extractor."
@@ -201,20 +205,67 @@ if [ -n "${INIT_MSG:-}" ]; then
   context="$INIT_MSG\n\n$context"
 fi
 
-# Session briefing: open items and next steps from session-summary.md
+# Session briefing. Next steps come from the SSoT context/open-tasks.json
+# (open/blocked only, max 3, plus the total) — never from a regex over
+# session-summary.md, whose "Next Steps" is only a rendering of that file.
+# Fail-soft: no python or unreadable JSON -> fall back to the summary section.
 BRIEFING=""
-if [ -f "$MEMORY_DIR/session-summary.md" ]; then
-  # Extract next steps
+PY=""
+command -v python3 > /dev/null 2>&1 && PY=python3
+[ -z "$PY" ] && command -v python > /dev/null 2>&1 && PY=python
+NEXT_STEPS=""
+if [ -n "$PY" ] && [ -f "$MEMORY_DIR/context/open-tasks.json" ]; then
+  NEXT_STEPS=$("$PY" - "$MEMORY_DIR/context/open-tasks.json" 2>/dev/null <<'PYEOF'
+import json, sys
+try:
+    with open(sys.argv[1], encoding="utf-8") as f:
+        data = json.load(f)
+except Exception:
+    sys.exit(0)
+tasks = data.get("tasks", data) if isinstance(data, dict) else data
+rows = [t for t in tasks if isinstance(t, dict) and t.get("status") in ("open", "blocked")]
+if not rows:
+    sys.exit(0)
+def key(t):
+    return (0 if t.get("status") == "blocked" else 1, str(t.get("updated") or t.get("created") or ""))
+rows.sort(key=key)
+parts = []
+for t in rows[:3]:
+    title = str(t.get("title", "")).replace("\n", " ")
+    if len(title) > 90:
+        title = title[:87] + "..."
+    flag = " [blocked]" if t.get("status") == "blocked" else ""
+    parts.append(f"{t.get('id', '?')}{flag}: {title}")
+out = f"{len(rows)} open — " + "; ".join(parts)
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+print(out)
+PYEOF
+)
+fi
+if [ -z "$NEXT_STEPS" ] && [ -f "$MEMORY_DIR/session-summary.md" ]; then
   NEXT_STEPS=$(sed -n '/## Next Steps/,/^## /{ /^## Next Steps/d; /^## /d; p; }' "$MEMORY_DIR/session-summary.md" 2>/dev/null | head -5 | tr '\n' ' ' || true)
-  [ -n "$NEXT_STEPS" ] && BRIEFING="Next steps: $NEXT_STEPS"
+fi
+[ -n "$NEXT_STEPS" ] && BRIEFING="Next steps: $NEXT_STEPS"
 
-  # Extract open items
-  OPEN_ITEMS=$(sed -n '/## Open Items/,/^## /{ /^## Open Items/d; /^## /d; p; }' "$MEMORY_DIR/session-summary.md" 2>/dev/null | head -3 | tr '\n' ' ' || true)
-  [ -n "$OPEN_ITEMS" ] && BRIEFING="$BRIEFING | Open: $OPEN_ITEMS"
-
-  # Extract active warnings
+# Active warnings still come from the summary (wrap-up renders them there).
+if [ -f "$MEMORY_DIR/session-summary.md" ]; then
   WARNINGS=$(sed -n '/## Active Warnings/,/^## /{ /^## Active Warnings/d; /^## /d; /^$/d; p; }' "$MEMORY_DIR/session-summary.md" 2>/dev/null | head -3 | tr '\n' ' ' || true)
-  [ -n "$WARNINGS" ] && BRIEFING="$BRIEFING | Warnings: $WARNINGS"
+  [ -n "$WARNINGS" ] && BRIEFING="${BRIEFING:+$BRIEFING | }Warnings: $WARNINGS"
+fi
+
+# Root open-tasks drift: canonical location is context/. This used to be a promise
+# of the SessionEnd prompt hook, which could not act on it (SessionEnd hooks take
+# no further actions). Surface it here; wrap-up/memory-maintenance merge it.
+if [ -f "$MEMORY_DIR/open-tasks.json" ]; then
+  BRIEFING="${BRIEFING:+$BRIEFING | }DRIFT: stray .agent-memory/open-tasks.json at root (root drift) — merge into context/open-tasks.json and delete the root copy"
+fi
+
+# Central handoff head (cross-project, read-only): which project was worked on
+# last and when. Missing file -> skip silently.
+CENTRAL_HANDOFF="${AGENTIC_OS_CENTRAL_HANDOFF:-$HOME/AI/.agent-memory/session-summary.md}"
+HANDOFF_LINE=""
+if [ -f "$CENTRAL_HANDOFF" ]; then
+  HANDOFF_LINE=$(head -6 "$CENTRAL_HANDOFF" 2>/dev/null | grep -E '^\*(Datum|Date|Projekt|Project|Agent):' | sed 's/^\*//; s/\*$//' | tr '\n' ' ' | sed 's/  */ /g')
 fi
 
 # Mechanical recovery check (dirty-tracker): un-consolidated sessions.
@@ -263,22 +314,31 @@ if [ -n "$INIT_LINE" ] && [ -n "$BRIEF_LINE" ]; then
 elif [ -n "$BRIEF_LINE" ]; then
   OPT_LINES="$BRIEF_LINE"
 fi
-context="[AGENTIC OS SESSION BRIEFING] At your FIRST response in this session, begin with a compact briefing block:\n---\nAgentic OS active | Branch: ${BRANCH:-?} | ${ITER_COUNT:-0} iterations, ${ERR_COUNT:-0} errors, ${PAT_COUNT:-0} patterns\n${OPT_LINES}\n---\nThen respond normally to the user's question.\n\n$context"
+HANDOFF_BLOCK=""
+[ -n "$HANDOFF_LINE" ] && HANDOFF_BLOCK="Central handoff: ${HANDOFF_LINE}\n"
+context="[AGENTIC OS SESSION BRIEFING] Begin your FIRST response with this compact block (adapt, do not dump files):\n---\nAgentic OS active | Branch: ${BRANCH:-?} | ${ITER_COUNT:-0} iterations, ${ERR_COUNT:-0} errors, ${PAT_COUNT:-0} patterns\n${OPT_LINES}\n---\nThen answer the user. Full briefing on request: /agentic-os:session-bootstrap. To end the session use the slash command /agentic-os:wrap-up (the slash path applies the skill's cheaper model class; invoking it via the Skill tool keeps the session model — measured 2.1.263).\n\n${HANDOFF_BLOCK}$context"
 
-# Generate JSON output (python3 for safe escaping, fallback without)
-if command -v python3 > /dev/null 2>&1; then
-  escaped=$(printf '%s' "$context" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
-elif command -v python > /dev/null 2>&1; then
-  escaped=$(printf '%s' "$context" | python -c "import sys,json; print(json.dumps(sys.stdin.read()))")
+# Output contract: hookSpecificOutput.additionalContext. A top-level
+# "systemMessage" is shown to the USER only — the model context never contains
+# it (measured 2026-09-08, Claude Code 2.1.263: transcript records it as
+# hook_system_message, while additionalContext arrives as hook_additional_context).
+# The briefing was invisible to the agent for months because of this field name.
+if [ -n "$PY" ]; then
+  # The template joins lines with a literal two-character "\n"; turn them into real
+  # newlines so the model reads a block, not backslash-n soup (the old systemMessage
+  # shipped them literally). stdout is forced to UTF-8: on Windows python defaults to
+  # cp1252 and the em-dashes in this text would raise UnicodeEncodeError (err-008).
+  printf '%s' "$context" | "$PY" -c "import sys,json; sys.stdin.reconfigure(encoding='utf-8', errors='replace'); sys.stdout.reconfigure(encoding='utf-8', errors='replace'); print(json.dumps({'continue': True, 'hookSpecificOutput': {'hookEventName': 'SessionStart', 'additionalContext': sys.stdin.read().replace('\\\\n', '\n')}}, ensure_ascii=False))"
 else
   # Fallback: simple escaping
   safe=$(printf '%s' "$context" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g' | tr '\n' ' ')
-  escaped="\"$safe\""
-fi
-
-cat << EOJSON
+  cat << EOJSON
 {
   "continue": true,
-  "systemMessage": $escaped
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "$safe"
+  }
 }
 EOJSON
+fi
