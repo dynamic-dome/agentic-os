@@ -1,0 +1,8 @@
+[
+  {
+    "ts": "2026-09-08T04:45:00+02:00",
+    "task": "wrap-up",
+    "reason": "active decision record would be replaced",
+    "detail": "D-009 ('model: frontmatter is a measured no-op') was scoped in its own text to the Skill-tool invocation path, but CLAUDE.md/README/wrap-up docs generalized it to 'the frontmatter is a no-op' without that qualifier. 4 transcripts (2.1.263) plus this very wrap-up run (invoked via /agentic-os:wrap-up slash command, executing on claude-sonnet-5 per the session model header) show the slash-command path DOES apply the declared model class. Proposed: new decision D-014 supersedes D-009, wording: 'model: frontmatter applies only via the slash-command invocation path (/agentic-os:<skill>); the Skill tool keeps the session model regardless of frontmatter. D-009's no-op finding holds for the Skill-tool path only.' Needs owner confirmation before writing (decision replacement is escalation-gated)."
+  }
+]

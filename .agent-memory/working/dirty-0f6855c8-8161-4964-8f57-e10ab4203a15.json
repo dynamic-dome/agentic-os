@@ -23,5 +23,17 @@
  "consolidated_by": null,
  "last_consolidated_at": "2026-07-27T14:35:51+02:00",
  "last_consolidated_by": "wrap-up",
- "writes_since_consolidation": 1
+ "writes_since_consolidation": 1,
+ "session_end": {
+  "reason": "other",
+  "ended_at": "2026-07-27T14:41:51+02:00",
+  "consolidated": false,
+  "git": {
+   "dirty_files": 1,
+   "porcelain_sample": [
+    "?? .agent-memory/working/session-end-6c857459-1569-4e7a-8384-ebfd8ff241c9.md"
+   ],
+   "last_commit": "9ccca47 chore(bridge): L38+L39 approved und nach AGENTS.md projiziert"
+  }
+ }
 }

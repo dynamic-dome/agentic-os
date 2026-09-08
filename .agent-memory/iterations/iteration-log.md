@@ -288,3 +288,21 @@ diese Commits nicht. Absichtlich kein Datums-Header — Parser ueberspringt den 
 - **Tests:** passed (82/82 + 117/117 + 20 + volle Suite)
 - **Errors:** err-013, err-014
 - **Commits:** 083d304
+
+## 2026-09-08 — docs: Gesamtanalyse agentic-os: Integration ins Gedaechtnissystem, Kosten, Nutzen
+- **Type:** docs
+- **Tags:** agentic-os, cost-analysis, hooks, audit
+- **Summary:** Eigene Ground-Truth-Aufnahme (Plugin-Struktur, Store, Testsuite, Transkript dieser Session) plus 4 Sonnet-Subagenten (Hook-Doku-Semantik, Kostenmessung aus 7 echten Transkripten via attributionSkill-Feld, Nutzwert-Audit der 7 Nicht-Kern-Skills, Store-Konsum-Audit). Ergebnis unter ~/AI/membrain/memgesamtanalyse-2026-09.md: Befunde F1-F8 (SessionStart-Injektion erreicht Modell nicht, 3 Prompt-Hooks strukturell wirkungslos, wrap-up-Gewohnheit riss im August, gemessene Kosten 2-23 USD/Lauf, Store-Konsum-Ungleichgewicht) und Vorschlaege V1-V8. TODOs persistiert (DCO #9191, wiki/todos).
+- **Confidence:** 5/5
+- **Tests:** n/a (Analyse, kein Code)
+- **Learnings:** Stichproben-Pflicht bei Subagent-Tallies eingehalten (P004/P006 tote Refs, Mojibake, Store-Mtime gegengeprueft).
+
+## 2026-09-08 — feature: SessionStart-Briefing auf hookSpecificOutput.additionalContext umgestellt, 3 tote Prompt-Hooks entfernt (4.21.0)
+- **Type:** feature
+- **Tags:** hooks, session-start, bash, python
+- **Files changed:** scripts/session-start.sh, hooks/hooks.json, tests/validate-plugin.sh, tests/run-all.sh, tests/test-session-start-briefing.sh, .claude-plugin/plugin.json, docs/CHANGELOG.md, README.md, CLAUDE.md, skills/DEPENDENCIES.md, scripts/README.md, references/memory-structure.md, commands/init.md, commands/memory-audit.md
+- **Summary:** session-start.sh gab systemMessage aus (Doku/Transkript-Beleg: nur User-sichtbar, Modell sieht es nie) - umgestellt auf hookSpecificOutput.additionalContext, Zaehler auf das reale Log-Format korrigiert (zaehlte vorher immer 0), Next-Steps aus context/open-tasks.json (SSoT) statt Regex auf session-summary.md, Root-Drift- und Handoff-Zeile ergaenzt, UTF-8 auf stdin+stdout erzwungen (cp1252-Mojibake). UserPromptSubmit/PreCompact/SessionEnd entfernt (Doku-belegt: koennen ihre Aufgabe strukturell nicht erfuellen). TDD: neuer Test war vor dem Fix rot.
+- **Confidence:** 5/5
+- **Tests:** passed (bash tests/run-all.sh - ALL TEST SUITES PASSED)
+- **Learnings:** Model-Frontmatter greift beim Slash-Aufruf (4 Transkripte 2.1.263 + dieser Wrap-up-Aufruf lief auf claude-sonnet-5), nicht beim Skill-Tool.
+- **Commits:** dfd2e03
