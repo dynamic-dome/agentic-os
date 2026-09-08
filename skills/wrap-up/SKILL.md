@@ -527,6 +527,18 @@ memory-maintenance). Exit 10 (thresholds exceeded) or explicit user request ("cl
 memory", "prune patterns") → invoke the `memory-maintenance` skill after Step 8; it
 owns its own report and error handling. Exit 0 → skip entirely.
 
+Then run the decay report (memory hub spec §4, report only):
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/review_sweep.py" .agent-memory \
+  --native-memory "$(python "${CLAUDE_PLUGIN_ROOT}/scripts/memory_index_projection.py" --print-native-dir .)" \
+  --report .agent-memory/working/review-sweep.md
+```
+
+Emit its one line verbatim. Any count > 0 → name the report path; decisions
+(keep / supersede / retire) are the owner's and happen via memory-maintenance,
+never here.
+
 ## Step 9.5: Consolidation Marker + Dirty Reset (consolidation-marker)
 
 This step makes consolidation VERIFIABLE: bootstrap and session-start.sh detect

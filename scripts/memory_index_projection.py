@@ -92,6 +92,10 @@ def write_atomic(path, text):
 
 
 def main(argv):
+    if argv[:1] == ["--print-native-dir"]:
+        home = argv[argv.index("--home") + 1] if "--home" in argv else None
+        print(os.path.dirname(native_memory_md(argv[1], home)))
+        return 0
     ap = argparse.ArgumentParser(prog="memory_index_projection.py")
     ap.add_argument("mem_dir")
     g = ap.add_mutually_exclusive_group(required=True)

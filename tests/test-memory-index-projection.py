@@ -133,6 +133,11 @@ def main():
         check("invalid json exit 1", run([mem, "--memory-md", md], cwd=tmp).returncode == 1)
         check("usage exit 2", run([mem], cwd=tmp).returncode == 2)
 
+    # 6. --print-native-dir prints the dirname of the derived native MEMORY.md path
+    with tempfile.TemporaryDirectory() as tmp:
+        p = run(["--print-native-dir", tmp, "--home", tmp], cwd=tmp)
+        check("print-native-dir", p.returncode == 0 and p.stdout.strip().endswith(os.path.join("memory")), p.stdout)
+
     n = len(FAILURES)
     print(f"=== {n} failure{'s' if n != 1 else ''} ===")
     return 1 if FAILURES else 0
