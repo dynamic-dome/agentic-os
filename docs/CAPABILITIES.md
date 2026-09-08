@@ -23,20 +23,19 @@ Status-Werte: `aktiv`, `experimentell`, `geplant`, `deprecated`, `entfernt`
 - **Standalone:** nur `.agent-memory/`, ohne Wiki/NotebookLM.
 - **Wiki-verbunden:** `config.json` mit `sync_enabled` → obsidian-sync + Wiki-ADR-Writeback aktiv.
 
-## Skills (9)
+## Skills (5)
 
-Core: session-bootstrap, iteration-logger, pattern-extractor (inkl. Skill-Candidate-Generation), context-keeper, wrap-up, sync-context, memory-maintenance.
-Self-improve: self-improve. Knowledge: obsidian-sync.
+Core: session-bootstrap, wrap-up, context-keeper. Analysis: pattern-extractor (inkl. Skill-Candidate-Generation). Knowledge: obsidian-sync.
 
-Entfernt in v4.0.0: retrospective, research-pipeline, wiki-query, quality-gate, skill-generator (gefaltet in pattern-extractor).
+Zu Commands mit Skript-Kern gemacht in v5.0.0: memory-maintenance → maintain, iteration-logger → log, sync-context → sync-context. Archiviert in v5.0.0 (`_archived/`): self-improve. Entfernt in v4.0.0: retrospective, research-pipeline, wiki-query, quality-gate, skill-generator (gefaltet in pattern-extractor).
 
-## Agents (3)
+## Agents (1)
 
-context-detective, improvement-agent, research-agent. (quality-gate entfernt in v4.0.0.)
+context-detective. (improvement-agent, research-agent entfernt 4.15.0; quality-gate v4.0.0.)
 
-## Commands (5)
+## Commands (6)
 
-init, status, rollback, auto-commit, memory-audit. (log, patterns, research, sync, run-loop entfernt in v4.0.0.)
+init, status, memory-audit, maintain, log, sync-context. (rollback, auto-commit archiviert v5.0.0; log, patterns, research, sync, run-loop entfernt in v4.0.0 — `log` kehrt als echter Command mit Skript-Kern zurueck, nicht als Wrapper.)
 
 ## Einschraenkungen
 

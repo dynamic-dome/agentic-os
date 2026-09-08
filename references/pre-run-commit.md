@@ -1,8 +1,8 @@
 # Pre-Run Commit (backup light)
 
-Shared snapshot procedure for skills that mutate `.agent-memory/`
-(memory-maintenance, obsidian-sync). Gives every mutating run a one-command
-rollback. The invoking skill supplies its own commit message.
+Shared snapshot procedure for skills and commands that mutate `.agent-memory/`
+(/agentic-os:maintain, obsidian-sync). Gives every mutating run a one-command
+rollback. The invoking skill or command supplies its own commit message.
 
 1. `git -C {project_root} rev-parse --is-inside-work-tree` fails → skip silently
    (optionally one hint line: "Store unversioniert — kein Pre-Run-Snapshot möglich").

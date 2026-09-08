@@ -488,7 +488,7 @@ If there are uncommitted changes:
 2. Suggest TWO separate commits where applicable:
    - **Code commit** — conventional message (feat/fix/refactor/test/chore).
    - **Memory commit** — `.agent-memory/` changes (`chore(memory): session {date}`).
-     The auto-commit command excludes `.agent-memory/` by design; without this offer,
+     Code commits leave `.agent-memory/` out by convention; without this offer,
      memory growth silently accumulates as uncommitted drift for weeks.
 3. Show the user what would be committed; **wait for confirmation** — never commit
    without explicit approval.

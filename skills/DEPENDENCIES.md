@@ -1,10 +1,10 @@
-# Skill Dependency Graph — Agentic OS v4
+# Skill Dependency Graph — Agentic OS v5
 
-> Reflects v4.0.0. The local store schema is owned by `scripts/mem-schema.sh`
+> Reflects v5.0.0. The local store schema is owned by `scripts/mem-schema.sh`
 > (see `references/memory-structure.md`); the **global** layer's pure logic
 > (provenance, promotion gate, decay, privacy denylist) lives in `scripts/global-schema.sh`.
 > All scaling/archiving threshold NUMBERS live in `scripts/memory-thresholds.sh`
-> (threshold SSoT — read by session-bootstrap Step 3, wrap-up Step 9, memory-maintenance Step 3).
+> (threshold SSoT — read by session-bootstrap Step 3, wrap-up Step 9, /agentic-os:maintain Step 1).
 > When this graph disagrees with a skill's own SKILL.md, the SKILL.md wins.
 
 ## Session Lifecycle (Execution Order)
@@ -32,12 +32,10 @@ SESSION START (SessionStart hook → session-bootstrap)
   ▼
 WORK PHASE (user-driven, no auto-triggers on code changes)
   │
-  ├── iteration-logger (after fixes/features)
-  │     ├── reads: errors.json, iteration-log.md, working/current-session.json
-  │     ├── writes (via scripts/apply_wrapup.py, `iterations` plan section — never by hand):
-  │     │     iteration-log.md, errors.json, working/current-session.json
-  │     │     (append-only; rotation is memory-maintenance's job, thresholds in memory-thresholds.sh)
-  │     └── suggests (no invoke): pattern-extractor every 5th iteration
+  ├── /agentic-os:log (command, mid-session, on request)
+  │     └── writes via scripts/apply_wrapup.py (`iterations` plan section — never by hand):
+  │           iteration-log.md, errors.json, working/current-session.json
+  │           (append-only; rotation is /agentic-os:maintain's job, thresholds in memory-thresholds.sh)
   │
   ├── context-keeper (on architecture/stack decisions)
   │     ├── reads: docs/PROJECT.md+ARCHITECTURE.md+CAPABILITIES.md (SoT, Step 1.5),
@@ -52,22 +50,12 @@ WORK PHASE (user-driven, no auto-triggers on code changes)
   │           pattern with skill_candidate=true, conf≥0.7, occ≥3 →
   │           writes generated-skills/<name>/SKILL.md + back-ref in patterns.json
   │
-  ├── sync-context (MANUAL ONLY, explicit request)
+  ├── /agentic-os:sync-context (command, MANUAL ONLY)
   │     └── reads/writes: ~/.claude-memory/global/{patterns,learnings,projects}.json ↔ local
   │           (privacy pre-filter → promotion gate → provenance schema; pull serves lifecycle:active only)
   │
-  ├── obsidian-sync (wiki write-path; also mid-session on request)
-  │     └── see matrix — session notes, entity updates, synthesis, promotion_status
-  │
-  └── self-improve (scheduled/manual, all pipeline phases inline)
-        ├── reads: improvements/state.json, skills/*/SKILL.md (Glob),
-        │     patterns.json, iteration-log.md, errors.json, ARCHITECTURE.md
-        ├── invokes: pattern-extractor (Phase 2.1, via Skill tool)
-        ├── writes: skills/*/SKILL.md (Edit), research/research-cache.json,
-        │     improvements/iterations-{batch_start:03d}-{batch_end:03d}.md,
-        │     improvements/state.json, improvements/evals/*.eval.json (lever 6)
-        ├── commits: git tags self-improve-<cluster>-<iter>-<ts>
-        └── policy: single-cluster, no-self-mod, rollback-tagged, circuit breaker
+  └── obsidian-sync (wiki write-path; also mid-session on request)
+        └── see matrix — session notes, entity updates, synthesis, promotion_status
   │
   ▼
 SESSION END (manual: /agentic-os:wrap-up — no hook can trigger it; a skipped
@@ -99,8 +87,8 @@ SESSION END (manual: /agentic-os:wrap-up — no hook can trigger it; a skipped
   │  ├── Step 7.6 → writes cross-project: ~/AI/.agent-memory/session-summary.md
   │  │     (prepend handoff), ~/AI/cross-project-status.md, Sharepoint (optional)
   │  │     — templates + dedup rules in skills/wrap-up/references/handoff-template.md
-  │  └── Step 9   → runs scripts/memory-thresholds.sh; exit 10 or explicit request
-  │        → invokes memory-maintenance
+  │  └── Step 9   → runs scripts/memory-thresholds.sh + review_sweep.py; exit 10
+  │        → prints THRESHOLD lines and recommends /agentic-os:maintain (never invoked)
 ```
 
 ## Dependency Matrix
@@ -108,32 +96,41 @@ SESSION END (manual: /agentic-os:wrap-up — no hook can trigger it; a skipped
 | Skill | Reads From | Writes To | Invokes |
 |-------|-----------|-----------|---------|
 | session-bootstrap | local: session-summary.md, soul.md, user.md, soul-candidates.md, user-candidates.json, project-context.md, patterns.md, quality-score.json (legacy), errors.json (tail), working/current-session.json, context/open-tasks.json (SSoT for next steps), config.json · learnings via Atlas-RAG or `scripts/learnings_top.py` · health via `scripts/memory-thresholds.sh` · cross-project: ~/AI/.agent-memory/session-summary.md, cross-project-status.md, SESSION-WORKFLOW.md · wiki (optional): entity + entrypoints | (read-only) EXCEPT the user-confirmed identity gates in Step 6.5 → soul.md + user.md, user-changelog.json, soul-candidates.md / user-candidates.json (only on explicit `j`). Staleness display (`[STALE? …]`) is DISPLAY-ONLY, never a write. | — |
-| iteration-logger | errors.json, iteration-log.md, working/current-session.json | iteration-log.md, errors.json, working/current-session.json — **written only through `scripts/apply_wrapup.py`** (`iterations` plan section; the script owns id continuation, the recurrence rule and the markdown shape), append-only, rotation belongs to memory-maintenance | — (suggests pattern-extractor) |
 | pattern-extractor | errors.json, iteration-log.md, patterns.json (all via `scripts/extract_patterns.py`) | patterns.json — **written only through `scripts/extract_patterns.py`** (sole writer; the skill keeps schema ownership and the judgment-bound Steps 6.5/6.6; authorized field-GAIN exceptions: obsidian-sync → promotion metadata, implementing/validating main session → implemented_by/validated_by + dates per Step 6.6), patterns.md, generated-skills/<name>/SKILL.md (Step 6.5 skill-candidate generation, former skill-generator), context/open-tasks.json (Step 6.6 delta-draft tasks; decisions route via context-keeper, never written directly) | context-keeper (Step 6.6 architecture-level delta drafts) |
 | context-keeper | docs/PROJECT.md+ARCHITECTURE.md+CAPABILITIES.md (SoT), project-context.md, decisions.json, config.json | project-context.md (cache, own write), decisions.json — new records **only through `scripts/apply_wrapup.py`** (`decisions` plan section; Step 3.5 wiki_ref/promoted_at stays a direct field extension), ~/wiki/wiki/entities/<id>.md (optional) | — |
-| wrap-up | iteration-log.md, errors.json, learnings.json, working/current-session.json, working/user-candidates.json, context/open-tasks.json, skills/wrap-up/references/handoff-template.md | session-summary.md, learnings.json + learnings.md, user.md (via queue promotion, changelog first), user-candidates.json (queue), user-changelog.json (audit), soul-candidates.md (propose — never soul.md), working/current-session.json (reset), context/open-tasks.json (Step 5.5 SSoT); cross-project handoff (max 1 block per project, next steps as pointer + `[cross-project]` only) + status-board + Sharepoint | pattern-extractor (Step 4, ONLY for skill/rueckfluss candidates), obsidian-sync (Step 7.5), memory-maintenance (Step 9, threshold-script exit 10 or explicit request). Step 1.5 session-harvest and Step 4.5 decision-scan route through the write plan instead of invoking iteration-logger/context-keeper (T-015) |
-| memory-maintenance | all .agent-memory/ files, scripts/memory-thresholds.sh (threshold SSoT), improvements/state.json (precondition); Step 4b: global store + scripts/global-schema.sh (apply_decay) | archives/*, repaired JSON, compacted session-summary.md + learnings.md, working/ scratch cleanup (Step 3b — deletes stale *.py/*.tmp/*.bak, exempts current-session.json + user-candidates.json); global: decayed confidence + lifecycle:archived in ~/.claude-memory/global/* (never hard-delete) | pattern-extractor (patterns.md refresh) |
-| sync-context | local patterns/learnings, ~/.claude-memory/global/*; scripts/global-schema.sh (is_denied, compute_scope, passes_promotion_gate) + scripts/mem-schema.sh (MEM_GLOBAL_DENY_TAGS) | local + ~/.claude-memory/global/{patterns,learnings,projects}.json with provenance schema (G-<type>-<n>, scope, valid_from, lifecycle); privacy-filter before gate; promotion gate; pull serves only lifecycle:active | — |
+| wrap-up | iteration-log.md, errors.json, learnings.json, working/current-session.json, working/user-candidates.json, context/open-tasks.json, skills/wrap-up/references/handoff-template.md | session-summary.md, learnings.json + learnings.md, user.md (via queue promotion, changelog first), user-candidates.json (queue), user-changelog.json (audit), soul-candidates.md (propose — never soul.md), working/current-session.json (reset), context/open-tasks.json (Step 5.5 SSoT); cross-project handoff (max 1 block per project, next steps as pointer + `[cross-project]` only) + status-board + Sharepoint | pattern-extractor (Step 4, ONLY for skill/rueckfluss candidates), obsidian-sync (Step 7.5). Step 9 only recommends /agentic-os:maintain. Step 1.5 session-harvest and Step 4.5 decision-scan route through the write plan instead of invoking iteration-logger/context-keeper (T-015) |
 | obsidian-sync | config.json, session-summary.md, iteration-log.md, learnings.json/.md, patterns.json/.md, decisions.json, ~/wiki/{index.md,log.md,entities,synthesis} | ~/wiki/wiki/queries/*.md, ~/wiki/{index.md,log.md}, entity + synthesis (append), patterns.json (promotion_status + promotion_scope only) | — |
-| self-improve | improvements/state.json, skills/*/SKILL.md, patterns.json, iteration-log.md, errors.json | skills/*/SKILL.md, research/research-cache.json, improvements/iterations-{batch_start:03d}-{batch_end:03d}.md, state.json, improvements/evals/*.eval.json (lever 6) | pattern-extractor (Phase 2.1) |
+
+### Commands with a script core (v5.0.0)
+
+| Command | Script core | Writes |
+|---|---|---|
+| /agentic-os:maintain | memory-thresholds.sh, gc_dirty_markers.py, native_memory_audit.py, review_sweep.py, extract_patterns.py --refresh, global-schema.sh (apply_decay) | archives/*, repaired JSON, compacted session-summary.md + learnings.md, working/ scratch cleanup, global decayed confidence + lifecycle:archived (never hard-delete) |
+| /agentic-os:log | apply_wrapup.py (`iterations` section) | iteration-log.md, errors.json, working/current-session.json |
+| /agentic-os:sync-context | global-schema.sh (is_denied, compute_scope, passes_promotion_gate), mem-schema.sh (MEM_GLOBAL_DENY_TAGS) | local + ~/.claude-memory/global/{patterns,learnings,projects}.json with provenance schema; privacy-filter before gate; pull serves lifecycle:active only |
 
 ## Agents
 
 | Agent | Used By | Reads / Writes | Purpose |
 |-------|---------|----------------|---------|
 | context-detective | /agentic-os:init (optional) | reads manifests + docs/ (docs-first); writes project-context.md | Auto-detect project stack |
-| improvement-agent | self-improve (one per iteration) | invokes the self-improve skill; returns structured result | Run a single improvement iteration |
-| research-agent | self-improve research phase (optional) | WebSearch/WebFetch; writes nothing (returns JSON) | Deep web + NotebookLM research |
 
-## Skills (v4.0.0)
+## Skills (v5.0.0)
 
-9 active skills, grouped by layer (see `references/skill-template.md` Layer Guide):
+5 active skills, grouped by layer (see `references/skill-template.md` Layer Guide):
 
 | Layer | Skills | Note |
 |-------|--------|------|
-| core | session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, sync-context, memory-maintenance | pattern-extractor absorbed skill-generator (Step 6.5) in v4.0.0 |
+| core | session-bootstrap, wrap-up, context-keeper | session lifecycle + decisions of record |
+| analysis | pattern-extractor | absorbed skill-generator (Step 6.5) in v4.0.0 |
 | knowledge | obsidian-sync | write-path to the Obsidian wiki |
-| self-improve | self-improve | all pipeline phases inline, policy-gated |
+
+### Converted to commands / archived in v5.0.0
+
+- **memory-maintenance → /agentic-os:maintain** — 12 KB body for mechanics that never ran; the scripts own the writes, the command wraps them.
+- **iteration-logger → /agentic-os:log** — 70 % mechanics already in `apply_wrapup.py`; no usage evidence as a skill.
+- **sync-context → /agentic-os:sync-context** — was already `disable-model-invocation`; manual-only is now structural.
+- **self-improve, /rollback, /auto-commit, improvements/ → `_archived/`** — silent since 2026-06-21; reversible via `git mv` (see `_archived/README.md`).
 
 ### Removed in v4.0.0 (with reason)
 
@@ -142,24 +139,20 @@ SESSION END (manual: /agentic-os:wrap-up — no hook can trigger it; a skipped
 - **wiki-query** — a plain wiki lookup needs no skill; the wiki MCP / direct Read covers it without a trigger-phrase surface.
 - **quality-gate** (skill + agent) — review/test/TDD enforcement moved to user-level skills and the test suite itself; the in-plugin score pipeline had no consumer.
 - **skill-generator** — not deleted but FOLDED into pattern-extractor Step 6.5 (single writer of patterns.json generates the skills its candidates describe).
-- Wrapper commands **/log, /patterns, /research, /sync, /run-loop** — thin wrappers around directly-invocable skills (and shadow-risk, L17); 5 commands remain (init, status, rollback, auto-commit, memory-audit).
+- Wrapper commands **/log, /patterns, /research, /sync, /run-loop** — thin wrappers around directly-invocable skills (and shadow-risk, L17). Commands now (v5.0.0): init, status, memory-audit, maintain, log, sync-context — `log` returned as a real command with a script core, not a wrapper.
 
-Removed agents (2026-04-30): `improvement-scout`, `fix-reviewer` → use `improvement-agent` + `self-improve`.
+Removed agents: `improvement-scout`, `fix-reviewer` (2026-04-30); `improvement-agent`, `research-agent` (4.15.0).
 
 ## Key Design Principles
 
 1. **No circular dependencies** — DAG only.
-2. **No auto-triggers on code changes** — user/CLAUDE.md driven (the only hook-driven skills are session-bootstrap on start and wrap-up on end).
+2. **No auto-triggers on code changes** — user/CLAUDE.md driven (the only hook-driven skill is session-bootstrap on start; wrap-up is a manual slash command).
 3. **session-bootstrap is read-only** — never writes during startup, with ONE exception: the user-confirmed identity gates (Step 6.5) write soul.md/user.md + user-changelog.json + the queues, but only on an explicit `j` from the user (never autonomously).
-4. **Skills that invoke other skills:** `wrap-up` (pattern-extractor only for skill/rueckfluss candidates, obsidian-sync, memory-maintenance via the threshold script — iteration-logger/context-keeper are NOT invoked since T-015), `self-improve` (pattern-extractor), `memory-maintenance` (pattern-extractor). All other skills are leaf nodes.
-5. **sync-context is manual-only** — no auto-sync.
-6. **self-improve has all pipeline phases inline** — only pattern-extractor is delegated.
-7. **P9 safety: git revert over git stash pop** — stash may already be dropped.
-8. **Max 20% mutation per skill per iteration** — prevents scope creep.
-9. **Circuit breaker stops on diminishing returns** — adaptive scheduling built into self-improve.
-10. **docs/ is the source of truth for project-context.md** — context-keeper (and context-detective, /init) read docs first; project-context.md is a cache (Regel 13 / L9).
-11. **Thresholds live in ONE script** — `scripts/memory-thresholds.sh` is the only place scaling numbers exist; skills reference it, never restate the numbers.
-12. **Identity growth is producer/consumer split** — wrap-up Step 6 is the only PRODUCER of identity observations (queues + promotions + mandatory status line); session-bootstrap Step 6.5 is the CONSUMER (gates + starvation check). Nothing else touches identity files.
+4. **Skills that invoke other skills:** `wrap-up` (pattern-extractor only for skill/rueckfluss candidates, obsidian-sync — iteration-logger/context-keeper are NOT invoked since T-015, memory-maintenance not since v5.0.0; Step 9 only recommends /agentic-os:maintain). All other skills are leaf nodes.
+5. **/agentic-os:sync-context is manual-only** — a command, no auto-sync.
+6. **docs/ is the source of truth for project-context.md** — context-keeper (and context-detective, /init) read docs first; project-context.md is a cache (Regel 13 / L9).
+7. **Thresholds live in ONE script** — `scripts/memory-thresholds.sh` is the only place scaling numbers exist; skills and commands reference it, never restate the numbers.
+8. **Identity growth is producer/consumer split** — wrap-up Step 6 is the only PRODUCER of identity observations (queues + promotions + mandatory status line); session-bootstrap Step 6.5 is the CONSUMER (gates + starvation check). Nothing else touches identity files.
 
 ## Session-Bracket Coverage
 
@@ -177,12 +170,11 @@ stays deliberately on-demand:
 | Decisions of record | wrap-up Step 4.5 decision-scan → write plan → `scripts/apply_wrapup.py` |
 | Identity growth (user.md, soul candidates) + gates | wrap-up Step 6 (producer) + bootstrap Step 6.5 (consumer) |
 | Learnings, open-tasks SSoT | wrap-up Steps 3-5.5 |
-| Wiki sync, central handoff, status board, maintenance trigger | wrap-up Steps 7-9 (handoff-template.md, memory-thresholds.sh) |
+| Wiki sync, central handoff, status board, maintenance recommendation | wrap-up Steps 7-9 (handoff-template.md, memory-thresholds.sh) |
 
 | Deliberately on-demand (NOT in the bracket) | Why |
 |---|---|
-| sync-context | Design Principle 5: manual-only, no auto cross-project sync |
-| self-improve | policy-gated (see Self-Improve Policy); never runs implicitly |
+| /agentic-os:sync-context | Design Principle 5: manual-only command, no auto cross-project sync |
 | obsidian-sync (manual mid-session) | reactive; the bracket already covers the end-of-session sync |
-| memory-maintenance (full run) | threshold-gated via memory-thresholds.sh; not part of every wrap-up |
-| /memory-audit, /rollback, /status | inspection/recovery commands |
+| /agentic-os:maintain | threshold-gated via memory-thresholds.sh (wrap-up only recommends it); not part of every wrap-up |
+| /memory-audit, /status, /log | inspection / mid-session logging commands |

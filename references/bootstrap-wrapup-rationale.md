@@ -31,7 +31,7 @@ instead of reading `learnings.json` into context (it can be 2k+ words).
 
 ### Step 2 — why the staleness annotation is display-only
 Marking `[STALE? …]` is a read-time annotation. Decaying/writing `confidence` or
-`last_relevant` is memory-maintenance's job; bootstrap is strictly read-only, so it only
+`last_relevant` is /agentic-os:maintain's job; bootstrap is strictly read-only, so it only
 marks, never mutates.
 
 ### Step 6.5 — why the identity gates exist

@@ -74,8 +74,8 @@
 
 ## Archiving Thresholds
 
-> **Authoritative source:** `skills/memory-maintenance/SKILL.md` Step 3.
-> Archiving runs only when `memory-maintenance` is invoked (on demand or when
+> **Authoritative source:** `commands/maintain.md` Step 3.
+> Archiving runs only when `/agentic-os:maintain` is run (on demand or when
 > wrap-up detects an exceeded threshold) — it is never part of the normal
 > end-of-session flow.
 

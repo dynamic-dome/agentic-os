@@ -192,7 +192,7 @@ else
 fi
 
 
-# 8. sync-context skill has error handling guidance
+# 8. sync-context command has error handling guidance
 echo ""
 echo "-- sync-context error handling --"
 SYNC_SKILL="$PLUGIN_ROOT/commands/sync-context.md"
@@ -362,7 +362,7 @@ if [ "$NB_FAIL" -eq 0 ]; then
 fi
 
 
-# 35. sync-context skill must not reference AskUserQuestion (nonexistent Claude Code tool)
+# 35. sync-context command must not reference AskUserQuestion (nonexistent Claude Code tool)
 #     AskUserQuestion is not a real tool in Claude Code. When the skill instructs the agent
 #     to "Use AskUserQuestion", execution fails or the agent hallucinates the tool.
 #     The correct approach is to output a question as plain text and wait for user response.

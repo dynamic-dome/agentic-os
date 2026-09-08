@@ -15,7 +15,7 @@ session-bootstrap (read-only)  →  WORK PHASE  →  wrap-up (Handoff + Learning
         ▲ liest Store + zentralen Handoff           │ schreibt session-summary, learnings,
                                                      │ zentralen Handoff (prepend), Status-Board
    Skills schreiben je EINE Datei:
-   iteration-logger→iterations/  context-keeper→context/
+   /agentic-os:log→iterations/  context-keeper→context/
    pattern-extractor→patterns/ + generated-skills/ (Skill-Candidate-Generation)
 ```
 
@@ -39,7 +39,7 @@ session-bootstrap (read-only)  →  WORK PHASE  →  wrap-up (Handoff + Learning
 ### Threshold-SSoT
 - **Datei(en):** `scripts/memory-thresholds.sh`
 - **Aufgabe:** EINZIGE Definition aller Skalierungs-/Archiv-Schwellen; exit 10 bei Ueberschreitung.
-- **Abhaengigkeiten:** Konsumiert von session-bootstrap (Step 3), wrap-up (Step 9), memory-maintenance (Step 3). Skill-Bodies nennen keine Zahlen.
+- **Abhaengigkeiten:** Konsumiert von session-bootstrap (Step 3), wrap-up (Step 9), /agentic-os:maintain (Step 1). Skill-Bodies nennen keine Zahlen.
 
 ### Salience-Ranking
 - **Datei(en):** `scripts/learnings_top.py`

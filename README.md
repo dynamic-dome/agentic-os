@@ -1,6 +1,6 @@
 # Agentic OS v4 — Claude Code Plugin
 
-Self-improving agent memory system that works across any project.
+Persistent agent memory system that works across any project.
 
 ## Features
 
@@ -17,25 +17,25 @@ Self-improving agent memory system that works across any project.
 |---------|-------------|
 | `/agentic-os:init` | Bootstrap `.agent-memory/` in current project |
 | `/agentic-os:status` | Show memory system health |
-| `/agentic-os:rollback` | Roll back the last self-improve commit |
-| `/agentic-os:auto-commit` | Stage + commit current changes (used by self-improve) |
 | `/agentic-os:memory-audit` | Read-only drift/provenance/staleness report over `.agent-memory/` |
+| `/agentic-os:maintain` | Compaction, archiving, dirty-marker GC, native-store audit, decay report (script core) |
+| `/agentic-os:log "<summary>"` | Log one iteration through `apply_wrapup.py` (mid-session) |
+| `/agentic-os:sync-context [pull\|push\|sync]` | Manual cross-project sync with privacy filter + promotion gate |
 
-## Skills (9)
+## Skills (5)
 
 | # | Skill | Layer | Purpose |
 |---|-------|-------|---------|
 | 1 | `session-bootstrap` | core | Restores context at session start, health checks, briefing, identity gates |
-| 2 | `iteration-logger` | core | Logs features/bugfixes/refactors with duplicate detection |
-| 3 | `pattern-extractor` | core | Extracts recurring patterns; generates skills from confirmed skill candidates |
+| 2 | `wrap-up` | core | Session end: summary, learnings, identity growth, handoff |
+| 3 | `pattern-extractor` | analysis | Extracts recurring patterns; generates skills from confirmed skill candidates |
 | 4 | `context-keeper` | core | Maintains project context and architecture decisions |
-| 5 | `wrap-up` | core | Session end: summary, learnings, identity growth, handoff |
-| 6 | `sync-context` | core | Manual cross-project pattern sync (optional) |
-| 7 | `memory-maintenance` | core | Compaction, archiving, integrity checks for `.agent-memory/` |
-| 8 | `self-improve` | self-improve | 4-iteration improvement loop with circuit breaker, rollback, NotebookLM research |
-| 9 | `obsidian-sync` | knowledge | Writes session results into the Obsidian wiki (sessions, entities, patterns) |
+| 5 | `obsidian-sync` | knowledge | Writes session results into the Obsidian wiki (sessions, entities, patterns) |
 
-Removed in v4.0.0 (never exercised or externally duplicated): `quality-gate`,
+Converted to commands in v5.0.0 (mechanics, no judgment share): `memory-maintenance` →
+`/agentic-os:maintain`, `iteration-logger` → `/agentic-os:log`, `sync-context` →
+`/agentic-os:sync-context`. Archived in v5.0.0 under `_archived/` (reversible):
+`self-improve`, `/rollback`, `/auto-commit`. Removed in v4.0.0: `quality-gate`,
 `retrospective`, `research-pipeline`, `wiki-query`, `skill-generator` (folded into
 pattern-extractor). See `skills/DEPENDENCIES.md` for the dependency graph.
 
@@ -71,7 +71,7 @@ Invoke the bracket skills as slash commands (`/agentic-os:session-bootstrap`,
 ```
 
 Scaling thresholds live ONLY in `scripts/memory-thresholds.sh` (exit 10 = exceeded) —
-shared by wrap-up, session-bootstrap, and memory-maintenance.
+shared by wrap-up, session-bootstrap, and /agentic-os:maintain.
 
 ## Long-Term Memory Routine
 

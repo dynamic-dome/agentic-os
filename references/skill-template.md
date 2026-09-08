@@ -69,15 +69,17 @@ description: >
 
 ## Layer Guide
 
-The 14 active skills, grouped by layer. (Trigger phrases in frontmatter MUST be English — tests enforce this.)
+The 5 active skills, grouped by layer. (Trigger phrases in frontmatter MUST be English — tests enforce this.)
 
 | Layer | Purpose | Skills |
 |-------|---------|--------|
-| core | Memory, logging, context, session lifecycle | session-bootstrap, iteration-logger, pattern-extractor, context-keeper, wrap-up, skill-generator, sync-context, memory-maintenance |
-| quality | Code review + test validation + TDD (one skill) | quality-gate |
-| knowledge | External research + wiki read/write | research-pipeline, wiki-query, obsidian-sync |
-| self-improve | Multi-iteration improvement loop (policy-gated) | self-improve |
+| core | Memory, context, session lifecycle | session-bootstrap, wrap-up, context-keeper |
+| analysis | Pattern detection, skill generation | pattern-extractor |
+| knowledge | Wiki write-path | obsidian-sync |
 
-> Note: `code-reviewer`, `test-validator`, and `tdd` were merged into the single
-> `quality-gate` skill (v3.x). The deprecated agents `improvement-scout` and
-> `fix-reviewer` were removed (2026-04-30) — use `improvement-agent` + `self-improve`.
+> Note: `code-reviewer`, `test-validator`, and `tdd` were merged into `quality-gate` (v3.x), which
+> was removed in v4.0.0 together with research-pipeline, wiki-query, retrospective and
+> skill-generator (folded into pattern-extractor). The deprecated agents `improvement-scout` and
+> `fix-reviewer` were removed (2026-04-30), `improvement-agent`/`research-agent` in 4.15.0;
+> `self-improve` was archived in v5.0.0 (`_archived/`). memory-maintenance, iteration-logger and
+> sync-context became commands with a script core in v5.0.0 (maintain, log, sync-context).
