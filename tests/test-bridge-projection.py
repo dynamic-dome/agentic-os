@@ -280,6 +280,19 @@ def main():
         check("label-fallback: project dir name",
               f"Offene Tasks ({expected})" in content, f"expected ({expected})")
 
+    # 19. codex-sourced approved learnings must NOT be projected back to Codex (loop guard)
+    with tempfile.TemporaryDirectory() as tmp:
+        rows = [learning("L1", "2026-09-01", "Claude insight", bridge="approved")]
+        codex_row = learning("L2", "2026-09-02", "Codex tip echoed", bridge="approved")
+        codex_row["source_agent"] = "codex"
+        rows.append(codex_row)
+        mem, agents = setup(tmp, rows, agents_body="# Rules\n")
+        p = run([mem, "--agents-md", agents], cwd=tmp)
+        txt = open(agents, encoding="utf-8").read()
+        check("loop guard: claude learning projected", "[L1]" in txt, txt)
+        check("loop guard: codex learning excluded", "[L2]" not in txt and "Codex tip echoed" not in txt, txt)
+        check("loop guard: count line says 1 approved", "1 approved" in p.stdout, p.stdout)
+
     n = len(FAILURES)
     print(f"=== {n} failure(s) ===" if n else "=== all tests passed ===")
     return 1 if n else 0

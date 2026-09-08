@@ -44,7 +44,8 @@ def load_approved(mem_dir):
     entries = data if isinstance(data, list) else data.get("learnings", [])
     approved = [e for e in entries if isinstance(e, dict)
                 and e.get("bridge_status") == "approved"
-                and not e.get("superseded_by")]
+                and not e.get("superseded_by")
+                and e.get("source_agent", "claude") != "codex"]   # loop guard (hub spec E3)
     approved.sort(key=lambda e: (str(e.get("date", "")),
                                  int(e.get("importance", 0))), reverse=True)
     return approved
