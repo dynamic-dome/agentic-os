@@ -255,7 +255,7 @@ fi
 
 # Root open-tasks drift: canonical location is context/. This used to be a promise
 # of the SessionEnd prompt hook, which could not act on it (SessionEnd hooks take
-# no further actions). Surface it here; wrap-up/memory-maintenance merge it.
+# no further actions). Surface it here; wrap-up / /agentic-os:maintain merge it.
 if [ -f "$MEMORY_DIR/open-tasks.json" ]; then
   BRIEFING="${BRIEFING:+$BRIEFING | }DRIFT: stray .agent-memory/open-tasks.json at root (root drift) — merge into context/open-tasks.json and delete the root copy"
 fi

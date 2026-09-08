@@ -11,7 +11,7 @@ because a manual audit measured a stale clone of the store and drew two phantom-
 conclusions — this command always reads the live files, so its numbers are ground truth.
 
 **Never write, edit, or repair anything here.** If the audit finds drift, it reports it and
-names the skill that heals it (`memory-maintenance`, `wrap-up`, etc.) — it does not act.
+names the skill that heals it (`/agentic-os:maintain`, `wrap-up`, etc.) — it does not act.
 
 ## Step 0: Preconditions
 
@@ -24,7 +24,7 @@ Detect divergences between where data IS and where it SHOULD be:
 
 1. **open-tasks root drift** — does `.agent-memory/open-tasks.json` exist at the ROOT?
    Canonical is `context/open-tasks.json` only. If the root copy exists → flag
-   "open-tasks root drift — the SessionStart briefing flags it; wrap-up / memory-maintenance merge it".
+   "open-tasks root drift — the SessionStart briefing flags it; wrap-up / /agentic-os:maintain merge it".
 2. **patterns schema drift** — read `patterns/patterns.json`. Flag any entry that does NOT use
    the canonical fields (`description`/`recommendation`/`evidence`) — i.e. legacy
    `name`/`solution`/`source_errors` or `title`/`prevention`/`error_ids`. Name them by `id`.
@@ -63,7 +63,7 @@ Report age-based risks (the dimension the manual audit got wrong from old data):
    - Count `active` global entries with `|source_projects| < 2` → "promotion-gate violation"
      (should be `candidate`, not `active`).
    - Count entries with `confidence <= 0.3` AND `lifecycle != archived` older than 365d →
-     "decay-due" (heals via `memory-maintenance` Step 4b).
+     "decay-due" (heals via `/agentic-os:maintain` Step 4b).
 
 ## Step 3.4: Backflow Completeness (rueckfluss-audit)
 
@@ -154,7 +154,7 @@ FINDINGS (one line per flagged item — GAP CLASS from Step 3.5)
   e.g. P3 ready, no impl | feedback-loop-gap | heals via pattern-extractor delta gate
 
 VERDICT: {clean | N drift items, M staleness items, K backflow items — see above}
-Heals via: {memory-maintenance | wrap-up | pattern-extractor | migrate-global-schema-4A.sh | none needed}
+Heals via: {/agentic-os:maintain | wrap-up | pattern-extractor | migrate-global-schema-4A.sh | none needed}
 ```
 
 Keep the blocks terse — one line per metric, IDs inline. Report only — never mutate. End by

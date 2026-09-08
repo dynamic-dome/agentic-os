@@ -24,7 +24,7 @@ or non-string value yields None and simply disables rule 3 for that marker — i
 never a reason to delete.
 
 Default is dry-run (lists candidates, deletes nothing). Pass --apply to delete.
-Called by memory-maintenance; safe to run from a hook.
+Called by /agentic-os:maintain; safe to run from a hook.
 
 Usage: python gc_dirty_markers.py [path-to-.agent-memory] [--apply]
 Exit 0 always (fail-soft); a parse/type error on one marker skips that marker only.

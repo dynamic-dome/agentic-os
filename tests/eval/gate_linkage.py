@@ -233,7 +233,7 @@ WRAPUP_GATES = [
     {"name": "thresholds", "clauses": [
         ["memory-thresholds.sh"],                        # trigger: SSoT script
         ["Exit 10"],                                     # trigger: scaling signal
-        ["memory-maintenance"],                          # action: delegate cleanup
+        ["/agentic-os:maintain"],                        # action: recommend cleanup command
     ]},
     {"name": "escalation-rules", "clauses": [
         ["escalations-<session-id>.json"],               # action: append record

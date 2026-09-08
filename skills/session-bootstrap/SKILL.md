@@ -9,7 +9,7 @@ model: sonnet
 effort: low
 metadata:
   author: agentic-os
-  version: '3.2'
+  version: '3.3'
   part-of: agentic-os
   layer: core
 ---
@@ -154,7 +154,7 @@ Prefix the briefing section header with `(heuristic fallback)`. (Ranking formula
 
 **Staleness wrap (staleness-wrap) — display only, never a write.** Annotate entries with
 `now − last_relevant > 90 days` as `[STALE? last relevant {date}] {text}`.
-Do NOT decay/write confidence or last_relevant — that is memory-maintenance's job;
+Do NOT decay/write confidence or last_relevant — that is /agentic-os:maintain's job;
 bootstrap is strictly read-only.
 
 ## Step 2.5: Wiki Context Loading (optional)
@@ -204,7 +204,7 @@ For each JSON file loaded: if parse fails → rename to `{file}.corrupt.bak`, cr
 ### Scaling Guards (delegated to threshold SSoT)
 Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/memory-thresholds.sh" .agent-memory`. Exit 10 →
 include its `THRESHOLD:` lines under HEALTH in the briefing. Exit 0 → no scaling warnings.
-(Thresholds live ONLY in that script — shared with wrap-up Step 9 and memory-maintenance.)
+(Thresholds live ONLY in that script — shared with wrap-up Step 9 and /agentic-os:maintain.)
 
 ### Recovery Detection (recovery-detect) — read-only
 

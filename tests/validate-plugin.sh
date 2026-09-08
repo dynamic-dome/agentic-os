@@ -483,7 +483,7 @@ fi
 echo ""
 echo "-- DEPENDENCIES.md inter-skill-call accuracy (Principle 4) --"
 if [ -f "$DEPS" ]; then
-    OTHER_SKILLS="pattern-extractor obsidian-sync memory-maintenance context-keeper iteration-logger"
+    OTHER_SKILLS="pattern-extractor obsidian-sync context-keeper iteration-logger"
     CALL_DRIFT=""
     for skill_dir in "$PLUGIN_ROOT/skills"/*/; do
         [ -d "$skill_dir" ] || continue
@@ -1013,7 +1013,7 @@ for MANUAL_SKILL in sync-context; do
         fail "skill $MANUAL_SKILL: manual-only skill missing disable-model-invocation: true — description burns context every turn and prose alone cannot prevent auto-invocation"
     fi
 done
-for CALLED_SKILL in iteration-logger context-keeper pattern-extractor obsidian-sync memory-maintenance; do
+for CALLED_SKILL in iteration-logger context-keeper pattern-extractor obsidian-sync; do
     FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$PLUGIN_ROOT/skills/$CALLED_SKILL/SKILL.md")
     if echo "$FM" | grep -q "^disable-model-invocation: true"; then
         fail "skill $CALLED_SKILL: has disable-model-invocation but is invoked by wrap-up/self-improve via the Skill tool — the flag would break that delegation"
@@ -1159,7 +1159,7 @@ else
 fi
 
 # --- open-tasks root-drift surfaced at SessionStart (Audit-Hebel #6, moved 4.21.0) ---
-# memory-maintenance heals the root-vs-context open-tasks.json drift but is threshold-gated.
+# /agentic-os:maintain heals the root-vs-context open-tasks.json drift but is threshold-gated.
 # The SessionEnd prompt hook that used to promise the heal could not act (SessionEnd hooks
 # take no further actions); the drift is now flagged mechanically in the SessionStart
 # briefing, which the model actually sees. Behaviour is pinned by test-session-start-briefing.sh.

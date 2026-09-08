@@ -205,7 +205,7 @@ invent provenance; an honest empty list beats a guessed reference.
 
 **`review_after` (staleness contract):** date when the learning's validity should be
 re-checked; default = `date` + 90 days (matches the bootstrap STALE threshold). Set
-ONCE at creation — bootstrap and memory-maintenance read it, wrap-up never updates it
+ONCE at creation — bootstrap and /agentic-os:maintain read it, wrap-up never updates it
 on existing entries.
 
 Backward compatibility: entries created before v4.4.0 lack both fields — leave them
@@ -344,7 +344,7 @@ open tasks; Step 5's "Next Steps" is a RENDERING of it, never the reverse.
    append `{"id": "T-{next}", "title", "status": "open"|"blocked", "created", "updated",
    "source": "wrap-up", "cross_project": false}`.
 3. Items this session completed → `"status": "done", "updated": today`. Never delete —
-   memory-maintenance archives.
+   /agentic-os:maintain archives.
 4. `"cross_project": true` ONLY for items the user explicitly flagged — sole feed for
    the central handoff's `[cross-project]` lines.
 
@@ -523,9 +523,10 @@ a file.
 ## Step 9: Memory Maintenance (Delegated)
 
 Run `bash scripts/memory-thresholds.sh` (plugin root; threshold SSoT shared with
-memory-maintenance). Exit 10 (thresholds exceeded) or explicit user request ("clean
-memory", "prune patterns") → invoke the `memory-maintenance` skill after Step 8; it
-owns its own report and error handling. Exit 0 → skip entirely.
+`/agentic-os:maintain`). Exit 10 → print its `THRESHOLD:` lines in the wrap-up report
+and add one line `→ run /agentic-os:maintain` (a command with a script core; never
+invoked from here — a skill-body injection risks a full prefix-cache rewrite, L34/D-010).
+Exit 0 → no line.
 
 Then run the decay report (memory hub spec §4, report only):
 
@@ -536,7 +537,7 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/review_sweep.py" .agent-memory \
 ```
 
 Emit its one line verbatim. Any count > 0 → name the report path; decisions
-(keep / supersede / retire) are the owner's and happen via memory-maintenance,
+(keep / supersede / retire) are the owner's and happen via /agentic-os:maintain,
 never here.
 
 ## Step 9.5: Consolidation Marker + Dirty Reset (consolidation-marker)
@@ -558,7 +559,7 @@ them by hand only if the script is unavailable.
 Marker schema: `references/wrapup-schemas.md` §Consolidation marker.
 
 3. For EVERY dirty file consumed: set `dirty: false`, `consolidated_at: {ISO timestamp}`,
-   `consolidated_by: "wrap-up"`. Do NOT delete the files here — `memory-maintenance`
+   `consolidated_by: "wrap-up"`. Do NOT delete the files here — `/agentic-os:maintain`
    garbage-collects them later via `scripts/gc_dirty_markers.py` (consolidated markers +
    markers superseded by a later wrap-up; mtime <30min is protected).
 4. **Self-healing rule (parallel sessions):** if a consumed dirty file belonged to a
@@ -637,6 +638,6 @@ patterns / Open questions). Template: `references/wrapup-schemas.md` §Handoff M
 - Do NOT write session-summary.md longer than 30 lines
 - Do NOT commit without user confirmation
 - Do NOT log trivial "learnings"; do NOT prune skill_candidate patterns
-- Do NOT delete `working/dirty-*.json` (Step 9.5 flips flags; memory-maintenance
+- Do NOT delete `working/dirty-*.json` (Step 9.5 flips flags; /agentic-os:maintain
   GCs them via gc_dirty_markers.py) and do NOT write the consolidation marker when the
   wrap-up was incomplete

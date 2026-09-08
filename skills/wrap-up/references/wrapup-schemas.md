@@ -118,7 +118,7 @@ invent provenance; an honest empty list beats a guessed reference.
 
 **`review_after` (staleness contract):** date when the learning's validity should be
 re-checked; default = `date` + 90 days (matches the bootstrap STALE threshold). Set
-ONCE at creation — bootstrap and memory-maintenance read it, wrap-up never updates it
+ONCE at creation — bootstrap and /agentic-os:maintain read it, wrap-up never updates it
 on existing entries.
 
 Backward compatibility: entries created before v4.4.0 lack both fields — leave them

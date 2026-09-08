@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # memory-thresholds.sh — single source of truth for .agent-memory scaling thresholds.
-# Used by: wrap-up Step 9 (invoke-signal) and memory-maintenance (archive targets).
+# Used by: wrap-up Step 9 (THRESHOLD lines + recommendation) and /agentic-os:maintain (archive targets).
 # Exit 0 = all within limits. Exit 10 = at least one threshold exceeded (lines on stdout).
 # Usage: bash scripts/memory-thresholds.sh [path-to-.agent-memory]  (default: ./.agent-memory)
 

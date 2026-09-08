@@ -340,7 +340,7 @@ fi
 # bidirectionally verified (strip -> FAIL, restore -> PASS).
 WU_GROW_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
 SB_GROW_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
-MM_GROW_FILE="$SKILLS_DIR/memory-maintenance/SKILL.md"
+MM_GROW_FILE="$PLUGIN_ROOT/commands/maintain.md"
 
 echo ""
 echo "-- wrap-up: user.md growth engine (candidate queue + 3-stage classification) --"
@@ -413,12 +413,12 @@ if [ -f "$SB_GROW_FILE" ]; then
 fi
 
 echo ""
-echo "-- memory-maintenance: soul.md 80-line anti-bloat cap --"
+echo "-- maintain: soul.md 80-line anti-bloat cap --"
 if [ -f "$MM_GROW_FILE" ]; then
     if grep -qiE "soul\.md" "$MM_GROW_FILE" && grep -qiE "80[ -]?(line|Zeile)" "$MM_GROW_FILE"; then
-        pass "memory-maintenance: soul.md 80-line cap present (anti-bloat linter)"
+        pass "maintain: soul.md 80-line cap present (anti-bloat linter)"
     else
-        fail "memory-maintenance: soul.md 80-line cap missing — consistency check must warn when soul.md exceeds 80 lines (identity dilution)"
+        fail "maintain: soul.md 80-line cap missing — consistency check must warn when soul.md exceeds 80 lines (identity dilution)"
     fi
 fi
 
@@ -529,20 +529,20 @@ if [ -f "$SC_SUP_FILE" ]; then
     fi
 fi
 
-# --- memory-maintenance 4.A global decay ---
+# --- /agentic-os:maintain 4.A global decay ---
 # -0.1 per 90 days without recall, floor 0.3, lifecycle:archived (never hard-delete).
-MM_FILE="$SKILLS_DIR/memory-maintenance/SKILL.md"
+MM_FILE="$PLUGIN_ROOT/commands/maintain.md"
 echo ""
-echo "-- memory-maintenance: global confidence decay (floor 0.3, archive not delete) --"
+echo "-- maintain: global confidence decay (floor 0.3, archive not delete) --"
 if [ -f "$MM_FILE" ]; then
     if grep -qiE "\(global-decay\)" "$MM_FILE" \
        && grep -qiE "apply_decay" "$MM_FILE" \
        && grep -qiE "0\.1 per .*90|90-day step" "$MM_FILE" \
        && grep -qiE "floor(ed)? at 0\.3" "$MM_FILE" \
        && grep -qiE "lifecycle: ?.archived|never hard-delete" "$MM_FILE"; then
-        pass "memory-maintenance: global decay present — -0.1/90d, floor 0.3, archive not delete"
+        pass "maintain: global decay present — -0.1/90d, floor 0.3, archive not delete"
     else
-        fail "memory-maintenance: global decay missing — must apply_decay (-0.1 per 90 days, floor 0.3), set lifecycle:archived past 365d, never hard-delete"
+        fail "maintain: global decay missing — must apply_decay (-0.1 per 90 days, floor 0.3), set lifecycle:archived past 365d, never hard-delete"
     fi
 fi
 
@@ -557,7 +557,7 @@ if [ -f "$SB_FILE" ]; then
        && grep -qiE "do NOT .*(decay|write).*confidence|only marks, never mutates"  "$SB_FILE"; then
         pass "session-bootstrap: staleness wrap present and read-only (marks, never mutates)"
     else
-        fail "session-bootstrap: staleness wrap missing or not read-only — must mark entries >90d for display WITHOUT writing/decaying confidence (decay belongs to memory-maintenance)"
+        fail "session-bootstrap: staleness wrap missing or not read-only — must mark entries >90d for display WITHOUT writing/decaying confidence (decay belongs to /agentic-os:maintain)"
     fi
 fi
 
