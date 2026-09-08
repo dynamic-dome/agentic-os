@@ -873,7 +873,7 @@
       "codex:memory_summary:ab242196"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "feedback"
   },
@@ -893,7 +893,7 @@
       "codex:memory_summary:3172276f"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "feedback"
   },
@@ -913,7 +913,7 @@
       "codex:memory_summary:b0af4208"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "feedback"
   },
@@ -933,7 +933,7 @@
       "codex:memory_summary:7884fdec"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "feedback"
   },
@@ -953,7 +953,7 @@
       "codex:memory_summary:a3c7ac29"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "feedback"
   },
@@ -974,7 +974,7 @@
       "codex:memory_summary:2d8e6bc4"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "feedback"
   },
@@ -994,7 +994,7 @@
       "codex:memory_summary:c20ac075"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "learning"
   },
@@ -1014,7 +1014,7 @@
       "codex:memory_summary:c925d7ae"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "learning"
   },
@@ -1034,7 +1034,7 @@
       "codex:memory_summary:7577e8cc"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "learning"
   },
@@ -1054,8 +1054,40 @@
       "codex:memory_summary:9be77d87"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate",
+    "bridge_status": "approved",
     "source_agent": "codex",
     "kind": "learning"
+  },
+  {
+    "id": "L58",
+    "date": "2026-09-08",
+    "text": "git-Guard-Hooks auf User-Ebene pruefen den Volltext eines Bash-Aufrufs, nicht nur das erste Sub-Kommando: 'git stash drop' in einer &&-Kette mit harmlosen Vorbefehlen wurde als eigenstaendiger destruktiver Call geblockt. Destruktive/remote-wirksame git-Operationen (stash drop, push) einzeln aufrufen und im Zweifel dem User selbst ueberlassen statt sie in eine Kette mit Lese-Kommandos zu packen.",
+    "importance": 3,
+    "tags": [
+      "git",
+      "hooks",
+      "windows-subprocess"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [],
+    "review_after": "2026-12-07"
+  },
+  {
+    "id": "L59",
+    "date": "2026-09-08",
+    "text": "Eine Reihenfolge-Verletzung in einem mehrstufigen Skill-Body (wrap-up Step 7.5 vor 8.5) laesst sich vor dem Verstehen des ganzen Bodys mechanisch beweisen: zwei grep -n-Zeilennummern-Vergleiche als RED-Test reichten, um die Verletzung zu zeigen und nach der Verschiebung gruen zu bekommen -- TDD greift auch auf Markdown-Prozessbeschreibungen.",
+    "importance": 3,
+    "tags": [
+      "testing",
+      "wrap-up",
+      "tdd"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [],
+    "review_after": "2026-12-07"
   }
 ]

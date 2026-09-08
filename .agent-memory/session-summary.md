@@ -1,34 +1,33 @@
 # Last Session
 
-*Date: 2026-09-08 06:28*
+*Date: 2026-09-08 07:55*
 *Agent: Claude Code*
 
 ## What Was Done
 
-- V5 Portfolio-Schnitt released als 5.0.0: 9->5 Skills, self-improve+rollback+auto-commit+improvements archiviert (_archived/), memory-maintenance/iteration-logger/sync-context zu Slash-Commands mit Skript-Kern (disable-model-invocation: true)
-- Codex-Verifier-Review (Rolle 1): 4 Findings gefixt -- Commands sind ohne das Flag NICHT strukturell slash-only, /agentic-os:log Exit-2-Text korrigiert, apply_wrapup.py gated den Identity-Applier jetzt, README/ARCHITECTURE-Reste auf v5 nachgezogen
-- Release-Zweischritt: main gepusht (a132a11), claude plugin update (4.21.0->5.0.0), Cache-Inhalt verifiziert
-- Wiki-TODO 2026-09-08-agentic-os-gesamtanalyse-umsetzung.md aktualisiert: V5 erledigt, V3 als naechster Schritt markiert
+- Session-Bootstrap-Health-Check: RECOVERY-Befund eingeordnet (Tail-Writes des letzten Release-wrap-ups, harmlos), T-026 live verifiziert und geschlossen
+- wrap-up-Reihenfolgebug gefixt (TDD): Batch-Write vor Wiki-Sync/Handoff (Step 7.4), Marker als eigener Step-9.5-Call; 2 neue Ordnungstests, volle Suite 8/8 gruen
+- T-027 Stash-Aufraeumung: beide Alt-Stashes als Tags archiviert, User fuehrte die stash drops aus
+- Release 5.0.1: Version-Bump, 2 Commits (Code + Memory), Push, claude plugin update, Cache-Inhalt verifiziert
+- V3-Design per superpowers:brainstorming erarbeitet (Ansatz A: wrapup_core.py + Judge-Body) und als Spec committet (8c19dd5)
 
 ## Open Items
 
-- Live-Verifikation neue Session ausstehend: maintain/log/sync-context duerfen nicht in der Skill-Liste erscheinen
-- Gestashter Carry-over (stash@{0}): circuit-breaker sudo/git-Flag-Parsing -- Zweck/Owner klaeren
-- D-009-Praezisierung (Owner-Eskalation aus letzter Session) weiterhin offen
+- T-028 V3-Implementierung noch offen (Spec fertig, Umsetzung 6 Commits)
 
 ## Next Steps
 
-1. V3: wrap-up-core/judge trennen (Plan/Spec via superpowers:brainstorming)
-2. Danach V4: wrap-up-core headless/modellfrei ueber session_end.py ausloesen
-3. T-022/T-023: extract_patterns Evidence-Branch + P012 skill_candidate sichten
+1. T-028 umsetzen: Commit 1 test-wrapup-core.py (rot)
+2. T-022/T-023 extract_patterns/P012 weiterhin unbearbeitet
+3. T-007/T-008 Identity-Beobachtung/Eval-Checkliste
 
 ## Statistics
 
-- Iterations: 3 | Errors: 1 | New Patterns: 0
+- Iterations: 4 | Errors: 0 | New Patterns: 0
 
 ## Handoff Context
 
-- **Active task**: V3 (wrap-up-core/judge Trennung) -- noch nicht begonnen
-- **Current state**: agentic-os 5.0.0 released und live; main + origin/main identisch (a132a11)
-- **Active patterns**: P012 (TDD-auf-wrap-up-Stack) ist skill_candidate + hat 4 rueckfluss_candidates -- weiterhin unbearbeitet (T-023)
-- **Open questions**: Wirkt disable-model-invocation auf Commands wie erwartet? Erst in neuer Session pruefbar.
+- **Active task**: V3 (wrap-up-core/judge Trennung) -- Spec fertig, Implementierung nicht begonnen
+- **Current state**: agentic-os 5.0.1 released und verifiziert; main + origin/main identisch (8c19dd5)
+- **Active patterns**: P012 (TDD-auf-wrap-up-Stack) weiterhin skill_candidate, T-023 offen
+- **Open questions**: V3 Commit-1-Test (test-wrapup-core.py) -- Fixture-Store-Design fuer Fake-Git-Repo + Fake-wiki_root noch nicht ausgearbeitet

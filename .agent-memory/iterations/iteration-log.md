@@ -333,3 +333,19 @@ diese Commits nicht. Absichtlich kein Datums-Header — Parser ueberspringt den 
 - **Confidence:** 5/5
 - **Tests:** not applicable
 - **Commits:** a132a11
+
+## 2026-09-08 — fix: wrap-up: batch-write vor Wiki-Sync/Handoff verschoben (Step 7.4), Konsolidierungs-Marker als eigener Step-9.5-Call
+- **Type:** fix
+- **Tags:** wrap-up, ordering
+
+## 2026-09-08 — chore: T-024/T-026/T-027 geschlossen, beide Alt-Stashes als Tags archiviert (git stash drop von User ausgefuehrt)
+- **Type:** chore
+- **Tags:** memory, git-hygiene
+
+## 2026-09-08 — docs: V3-Design (wrap-up-core/judge-Trennung) via superpowers:brainstorming erarbeitet und als Spec committet
+- **Type:** docs
+- **Tags:** wrap-up, planning
+
+## 2026-09-08 — chore: Release 5.0.1: Version-Bump, Push, claude plugin update, Cache-Inhalt verifiziert
+- **Type:** chore
+- **Tags:** release, plugin

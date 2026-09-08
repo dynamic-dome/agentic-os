@@ -575,5 +575,87 @@
       "apply_wrapup",
       "identity"
     ]
+  },
+  {
+    "id": "D-017",
+    "date": "2026-09-08",
+    "type": "architecture-decision",
+    "title": "wrap-up: Batch-Write vor Wiki-Sync/Handoff, Marker als eigener Step-9.5-Call",
+    "status": "active",
+    "context": "obsidian-sync (7.5) und der zentrale Handoff (7.6) lasen learnings/decisions/session-summary von Disk, aber der Haupt-Batch-Write lief davor als Step 8.5 danach -- jeder regulÃ¤re Lauf synchronisierte den Stand VOR der Session (L44).",
+    "options_considered": [
+      {
+        "option": "Batch-Write vor 7.5/7.6 verschieben (Step 7.4), Marker separat in 9.5",
+        "pros": [
+          "Wiki/Handoff sehen frische Daten",
+          "kein Tail-Write hinter dem Marker"
+        ],
+        "cons": [
+          "ein zusaetzlicher kleiner apply_wrapup-Call fuer den Marker"
+        ]
+      },
+      {
+        "option": "obsidian-sync/Handoff VOR den Batch-Write ziehen und dort Rohdaten uebergeben",
+        "pros": [
+          "ein Call bleibt"
+        ],
+        "cons": [
+          "dupliziert die Datenaufbereitung, die apply_wrapup schon macht"
+        ]
+      }
+    ],
+    "decision": "Batch-Write auf Step 7.4 vorgezogen; Konsolidierungs-Marker als eigener {\"consolidate\": true}-Call in Step 9.5, damit Wiki-Note und Handoff nie als Tail-Writes hinter dem Marker landen.",
+    "consequences": "Zwei Ordnungstests in validate-skills.sh erzwingen die Reihenfolge; Release 5.0.1.",
+    "supersedes": null,
+    "tags": [
+      "wrap-up",
+      "ordering"
+    ]
+  },
+  {
+    "id": "D-018",
+    "date": "2026-09-08",
+    "type": "architecture-decision",
+    "title": "V3: wrapup_core.py als eigenes Modul (Ansatz A), apply_wrapup.py bleibt unveraendert",
+    "status": "active",
+    "context": "wrap-up braucht einen modellfreien Kern (Core) und einen kurzen Urteilsteil (Judge), um Kosten zu senken und V4 (headless) vorzubereiten.",
+    "options_considered": [
+      {
+        "option": "A: wrapup_core.py importiert apply_wrapup.py als Bibliothek, neue Module harvest/handoff/wikinote",
+        "pros": [
+          "apply_wrapup.py + 120 Tests bleiben unveraendert",
+          "klare Domaenentrennung"
+        ],
+        "cons": [
+          "ein neues Modul mit eigener Testsuite"
+        ]
+      },
+      {
+        "option": "B: apply_wrapup.py um handoff/wiki/harvest erweitern",
+        "pros": [
+          "ein Skript"
+        ],
+        "cons": [
+          "waechst auf ~1500 Zeilen mit fremden Domaenen ausserhalb .agent-memory/, APPLIER_OWNED-Kanonisierer muesste aufgeweicht werden"
+        ]
+      },
+      {
+        "option": "C: Bash-Orchestrator um bestehende Skripte",
+        "pros": [
+          "wenig neuer Code"
+        ],
+        "cons": [
+          "kein geteilter Zustand fuer Tally/Guard/Marker-Abbruch, Windows-Subprocess-Fallen"
+        ]
+      }
+    ],
+    "decision": "Ansatz A. Skill-Name bleibt wrap-up, sein Body wird zum Judge. Vier Nebenaeste (RAG-Dedup je Learning, NotebookLM-Angebot, Sharepoint-Delta-Schreiben, pattern-extractor-Skill-Aufruf) verlassen den Fluss; Identity bleibt im einen Plan-Turn mit Pflicht-Schema.",
+    "consequences": "Spec docs/superpowers/specs/2026-09-08-v3-wrapup-core-judge-design.md; Zielversion 5.1.0; Umsetzung in 6 Commits noch offen (T-028).",
+    "supersedes": null,
+    "tags": [
+      "wrap-up",
+      "architecture",
+      "v3"
+    ]
   }
 ]

@@ -78,7 +78,7 @@
     "status": "promoted",
     "signal_type": "preference",
     "confidence": 0.85,
-    "occurrences": 8,
+    "occurrences": 9,
     "evidence": [
       "session 2026-06-12 (abends): T-001/T-002/Context-Refresh als Block delegiert, Verlauf bestaetigt",
       "session 2026-06-12 (spaeter): 'kannst Du gerne die recommended next steps zu Ende ausarbeiten' — erneute Block-Delegation",
@@ -87,7 +87,8 @@
       "session 2026-07-06 (Folge): 'bereine die Ungereimtheiten … könntest Du das gerade übernehmen' — 5. Block-Delegation, lief komplett autonom (SC-4 seither auch in soul.md)",
       "Session 2026-07-27: Direktauftrag nach Bootstrap-Briefing",
       "session 2026-07-27 nachmittags",
-      "Session 2026-09-08 V5 Portfolio-Schnitt"
+      "Session 2026-09-08 V5 Portfolio-Schnitt",
+      "2026-09-08: 'dann arbeite die recommended next steps in sinnvoller reihenfolge ab'"
     ],
     "first_seen": "2026-06-12",
     "last_seen": "2026-09-08",
@@ -191,15 +192,31 @@
     "status": "promoted",
     "signal_type": "work-style",
     "confidence": 0.6,
-    "occurrences": 3,
+    "occurrences": 4,
     "evidence": [
       "session 2026-07-27: nach der Kosten-Analyse 'Mache es so, wie Du fuer richtig haeltst. Ich denke, jetzt sind wir auf dem richtigen Weg.'",
       "session 2026-07-27 nachmittags",
-      "Session 2026-09-08 V5 Portfolio-Schnitt"
+      "Session 2026-09-08 V5 Portfolio-Schnitt",
+      "2026-09-08: 'Nimm mal, wenn Du sagst, Du wuerdest annehmen, wuerd ich sagen, ich bin deiner Meinung.'"
     ],
     "first_seen": "2026-07-27",
     "last_seen": "2026-09-08",
     "trust_source": "conversation",
     "status_after_promotion": "promoted"
+  },
+  {
+    "id": "UC13",
+    "key": "defers-to-stated-recommendation",
+    "observation": "Wenn der Agent eine klare, begruendete Empfehlung ausspricht, uebernimmt der User sie ohne eigene Gegenpruefung ('ich bin deiner Meinung') -- Vertrauen folgt der Klarheit der Empfehlung, nicht der Vorlage aller Optionen.",
+    "status": "observed",
+    "signal_type": "preference",
+    "confidence": 0.6,
+    "occurrences": 1,
+    "evidence": [
+      "2026-09-08: Ansatz-A-Empfehlung sofort akzeptiert"
+    ],
+    "first_seen": "2026-09-08",
+    "last_seen": "2026-09-08",
+    "trust_source": "conversation"
   }
 ]
