@@ -225,5 +225,25 @@
     "resolution": null,
     "source": "wrap-up",
     "cross_project": false
+  },
+  {
+    "id": "T-024",
+    "title": "wrap-up SKILL.md: Step 7.5 (obsidian-sync) laeuft vor Step 8.5 (Batch-Write) -- Reihenfolge tauschen oder Daten vorab schreiben, damit obsidian-sync frische Learnings/Decisions/Summary sieht",
+    "status": "open",
+    "created": "2026-09-08",
+    "updated": "2026-09-08",
+    "resolution": null,
+    "source": "wrap-up",
+    "cross_project": false
+  },
+  {
+    "id": "T-025",
+    "title": "D-009 pruefen/praezisieren: Model-Frontmatter-No-Op gilt nur fuer den Skill-Tool-Pfad, nicht fuer Slash-Commands (Owner-Entscheid noetig, siehe ESKALATION)",
+    "status": "closed",
+    "created": "2026-09-08",
+    "updated": "2026-09-08",
+    "resolution": "resolved in wrap-up",
+    "source": "wrap-up",
+    "cross_project": false
   }
 ]

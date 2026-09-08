@@ -6,3 +6,4 @@
 {"ts": "2026-07-27T11:28:45Z", "task": "session", "estimate": false, "api_calls": 48, "context_tokens_sum": 6033099, "output_tokens": 53898, "cost_usd": 20.659, "rewrite_events": 4, "rewrite_cost_usd": 6.4372}
 {"ts":"2026-07-27T11:36:16Z","task_type":"session-bootstrap","model_class":"cheap-write","context_bytes":42000,"est_input_tokens":10500,"escalated":0,"estimate":true}
 {"ts": "2026-07-27T12:37:19Z", "task": "wrap-up", "estimate": false, "api_calls": 134, "context_tokens_sum": 20922594, "output_tokens": 99080, "cost_usd": 47.9513, "rewrite_events": 3, "rewrite_cost_usd": 6.112}
+{"ts": "2026-09-08T02:31:49Z", "task": "wrap-up", "estimate": false, "api_calls": 88, "context_tokens_sum": 27686626, "output_tokens": 141841, "cost_usd": 64.8418, "rewrite_events": 4, "rewrite_cost_usd": 7.9066}

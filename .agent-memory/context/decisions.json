@@ -260,7 +260,7 @@
     "date": "2026-07-27",
     "type": "constraint-update",
     "title": "skill `model:`-Frontmatter ist ein gemessener No-Op — Kostenannahmen duerfen nicht darauf bauen",
-    "status": "active",
+    "status": "superseded",
     "context": "D-005 fuehrte deklaratives Modell-Routing via Frontmatter ein. Eine Transkript-Probe auf Claude Code 2.1.215 und 2.1.220 zeigt: beim Aufruf eines Skills ueber das Skill-Tool bleibt das Session-Modell aktiv, das Frontmatter-Feld wird nicht angewendet.",
     "options_considered": [
       {
@@ -459,6 +459,45 @@
       "patterns",
       "trust-boundary",
       "api-contract"
+    ]
+  },
+  {
+    "id": "D-014",
+    "date": "2026-09-08",
+    "type": "constraint-update",
+    "title": "Model-Frontmatter greift nur ueber den Slash-Command-Pfad; das Skill-Tool behaelt das Session-Modell (praezisiert D-009)",
+    "status": "active",
+    "context": "D-009 (2026-07-27) hatte das model:-Frontmatter als No-Op eingestuft, gemessen ueber das Skill-Tool auf 2.1.215/2.1.220; CLAUDE.md/README verallgemeinerten das zu 'Frontmatter ist ein No-Op'. Messung 2026-09-08 auf 2.1.263 ueber 4 Transkripte plus den eigenen wrap-up-Lauf dieser Session: /agentic-os:wrap-up und /agentic-os:session-bootstrap als Slash-Command laufen auf claude-sonnet-5 (2/2 Sessions + dieser Lauf), Skill(agentic-os:wrap-up) ueber das Skill-Tool bleibt auf claude-fable-5-1 (2/2). Kein /model-Befehl in den Transkripten.",
+    "options_considered": [
+      {
+        "option": "D-009 unveraendert lassen und nur die Doku korrigieren",
+        "pros": [
+          "kein Decision-Churn"
+        ],
+        "cons": [
+          "der Record bliebe in seiner Wirkungsaussage zu eng; Kostenreasoning wuerde weiter auf 'No-Op' bauen"
+        ]
+      },
+      {
+        "option": "D-009 supersedieren mit der pfadabhaengigen Fassung",
+        "pros": [
+          "deckt sich mit der Messung",
+          "macht den billigen Pfad (Slash) zur Regel"
+        ],
+        "cons": [
+          "N=2+1 pro Pfad, weitere Versionen koennen sich anders verhalten"
+        ]
+      }
+    ],
+    "decision": "D-009 wird supersediert: das model:-Frontmatter eines Skills wird angewendet, wenn der Skill als Slash-Command (/agentic-os:<skill>) aufgerufen wird; ueber das Skill-Tool bleibt das Session-Modell aktiv. Klammer-Skills (session-bootstrap, wrap-up) sind deshalb immer per Slash aufzurufen; das SessionStart-Briefing (4.21.0) sagt das explizit.",
+    "consequences": "Kosten- und Sicherheitsargumente duerfen 'lief auf sonnet' nur fuer den Slash-Pfad annehmen. Die E0-Probe in docs/model-routing-eval-checklist.md muss beide Pfade getrennt pruefen. Bei neuen Claude-Code-Versionen erneut per Transkript verifizieren (attributionSkill + message.model).",
+    "supersedes": "D-009",
+    "tags": [
+      "model-routing",
+      "constraint",
+      "measurement",
+      "cost",
+      "invocation-path"
     ]
   }
 ]

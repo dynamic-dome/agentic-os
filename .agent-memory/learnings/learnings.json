@@ -741,5 +741,65 @@
     "last_relevant": "2026-07-27",
     "derived_from": [],
     "review_after": "2026-10-25"
+  },
+  {
+    "id": "L42",
+    "date": "2026-09-08",
+    "text": "Ein SessionStart-Hook, der {'systemMessage': ...} zurueckgibt, erreicht ausschliesslich die User-UI, nie den Modellkontext -- nur hookSpecificOutput.additionalContext wird ins Modell injiziert (gemessen 2026-09-08, Claude Code 2.1.263: Transkript zeigt den einen als hook_system_message, den anderen als hook_additional_context). Das Agentic-OS-Briefing war seit Monaten fuers Modell unsichtbar, unbemerkt, weil der User es in der UI sah. Konsequenz: das Output-Feld eines SessionStart/PreCompact-Hooks immer gegen ein echtes Transkript verifizieren, nie gegen die Doku-Beschreibung allein.",
+    "importance": 4,
+    "tags": [
+      "hooks",
+      "session-start",
+      "verification",
+      "claude-code",
+      "agentic-os"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "iteration-34"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "approved"
+  },
+  {
+    "id": "L43",
+    "date": "2026-09-08",
+    "text": "Der Aufrufweg entscheidet, ob das skill-eigene model:-Frontmatter greift: /agentic-os:<skill> als Slash-Command wendet die deklarierte Modellklasse an (gemessen: 4 Transkripte + dieser wrap-up-Lauf, alle auf claude-sonnet-5), Skill(<name>) ueber das Skill-Tool behaelt das Session-Modell (D-009-Befund, 4 Transkripte auf claude-fable-5-1). Kostenannahmen und Modell-Routing-Entscheidungen muessen den Aufrufweg mitdenken, nicht nur das Frontmatter.",
+    "importance": 4,
+    "tags": [
+      "model-routing",
+      "cost-analysis",
+      "claude-code",
+      "measurement"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [
+      "iteration-35"
+    ],
+    "review_after": "2026-12-07",
+    "bridge_status": "approved"
+  },
+  {
+    "id": "L44",
+    "date": "2026-09-08",
+    "text": "wrap-up SKILL.md Step 7.5 (Obsidian Sync) laeuft VOR Step 8.5 (Batch-Write von learnings/decisions/session-summary) -- obsidian-sync liest bei jedem reguleren Lauf den Stand VOR dieser Session, nie die frisch erzeugten Learnings/Decisions/Summary. Live gefunden beim Ausfuehren dieses wrap-up: obsidian-sync haette 0 substanzielle Learnings gesehen, obwohl 2 mit importance>=4 in diesem Lauf entstanden. Workaround dieses Laufs: Batch-Write vorgezogen, obsidian-sync danach mit frischen Daten aufgerufen. Fix gehoert ins Skill: Reihenfolge tauschen oder obsidian-sync nach Step 8.5 verschieben.",
+    "importance": 4,
+    "tags": [
+      "wrap-up",
+      "bug",
+      "step-order",
+      "agentic-os",
+      "obsidian-sync"
+    ],
+    "layer": "short-term",
+    "superseded_by": null,
+    "last_relevant": "2026-09-08",
+    "derived_from": [],
+    "review_after": "2026-12-07",
+    "bridge_status": "approved"
   }
 ]
