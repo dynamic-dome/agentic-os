@@ -17,6 +17,7 @@ neue additive Felder `source_agent` (claude|codex, Default claude) und `kind`
 - **E2 `scripts/memory_index_projection.py`** — approved Learnings + Feedback (inkl. Codex-Quelle) als managed Block in Claudes nativer MEMORY.md (Cap 40, handgeschriebene Zeilen byte-identisch).
 - **Verfall `scripts/review_sweep.py`** — Bericht über fällige `review_after`, nicht indexierte alte Native-Memories und überfällige Bridge-Kandidaten; wrap-up Step 9. Nur Bericht, keine Löschung.
 - **session-start.sh** — Guard: kein Auto-Init, wenn cwd innerhalb `.agent-memory` liegt (Ursache der 4 verschachtelten Stores, membrain memhygiene-2026-09). Controller-Befund: die tatsächlichen verschachtelten `.agent-memory/.agent-memory`-Stores kamen nicht von session-start.sh, sondern von `scripts/cost-trace.sh` (`mkdir -p "$MEM/metrics"`), wenn cwd bereits innerhalb `.agent-memory` lag — dieselbe Guard wurde daher zusätzlich dort eingebaut.
+- **wrap-up SKILL** 4.2 → 4.3 (Steps 3e, 3d.3, 9); Projektionsaufrufe in 3d.3 jetzt mit `${CLAUDE_PLUGIN_ROOT}`.
 
 ## [2026-07-27] Release v4.18.0 — T-015: Delegations-Umbau des wrap-up
 

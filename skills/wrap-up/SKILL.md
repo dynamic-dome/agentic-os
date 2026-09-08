@@ -9,7 +9,7 @@ model: sonnet
 effort: medium
 metadata:
   author: agentic-os
-  version: '4.2'
+  version: '4.3'
   part-of: agentic-os
   layer: core
 ---
@@ -231,9 +231,9 @@ learnings.json (`bridge_status`); the AGENTS.md block is a projection.
    apply run — do not re-read learnings.json for this.
 3. **Only on an explicit `j`** (all) or a listed subset (`j L26 L27`): set those
    entries to `"bridge_status": "approved"`, then run BOTH projections:
-   `python scripts/bridge_projection.py .agent-memory --agents-md <project-root>/AGENTS.md`
+   `python "${CLAUDE_PLUGIN_ROOT}/scripts/bridge_projection.py" .agent-memory --agents-md <project-root>/AGENTS.md`
    (Codex side; workspace store `~/AI/.agent-memory` → `~/AI/AGENTS.md`) and
-   `python scripts/memory_index_projection.py .agent-memory --project-root <project-root>`
+   `python "${CLAUDE_PLUGIN_ROOT}/scripts/memory_index_projection.py" .agent-memory --project-root <project-root>`
    (Claude side: managed block in `~/.claude/projects/<hash>/memory/MEMORY.md`;
    the script derives `<hash>` itself). Report both one-line outputs verbatim.
 4. On `n`/no answer: candidates stay queued — next wrap-up asks again. Never

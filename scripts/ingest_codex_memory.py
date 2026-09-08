@@ -17,11 +17,10 @@ import datetime as dt
 import hashlib
 import json
 import os
-import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from apply_wrapup import norm, render_learnings_md  # noqa: E402
+from apply_wrapup import next_id, norm, render_learnings_md  # noqa: E402
 
 SECTIONS = {"user preferences": "feedback", "general tips": "learning"}
 ADHOC = "[ad-hoc note]"
@@ -45,15 +44,6 @@ def parse_summary(text):
                 body = body[: -len(ADHOC)].strip()
             if body:
                 yield kind, body, adhoc
-
-
-def next_id(rows):
-    top = 0
-    for r in rows:
-        m = re.match(r"^L(\d+)$", str(r.get("id", "")))
-        if m:
-            top = max(top, int(m.group(1)))
-    return f"L{top + 1}"
 
 
 def load_rows(path):
@@ -111,7 +101,7 @@ def main(argv):
             dup += 1
             continue
         entry = {
-            "id": next_id(rows + new), "date": today, "text": text, "importance": 2,
+            "id": next_id(rows + new, "L"), "date": today, "text": text, "importance": 2,
             "tags": ["codex-native", kind] + (["ad-hoc"] if adhoc else []),
             "layer": "short-term", "superseded_by": None, "last_relevant": today,
             "derived_from": [prov],

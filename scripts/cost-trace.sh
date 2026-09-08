@@ -46,6 +46,7 @@ done
 # cwd was already inside .agent-memory and $MEM stayed the relative default —
 # never create a store inside a store. Resolve $MEM to an absolute path first
 # (it need not exist yet) and check its PARENT for an .agent-memory segment.
+# TODO(memory-hub): trailing slash in --mem and Windows-absolute C:/ paths are not normalised here (no in-repo caller passes them)
 case "$MEM" in
   /*) RESOLVED_MEM="$MEM" ;;
   *)  RESOLVED_MEM="$(pwd)/$MEM" ;;

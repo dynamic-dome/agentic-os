@@ -10,7 +10,13 @@ byte-identical. learnings.json stays canonical; regenerate any time.
 Usage:
   python memory_index_projection.py <mem-dir> --memory-md <path>
   python memory_index_projection.py <mem-dir> --project-root <dir> [--home <dir>]
+  python memory_index_projection.py --print-native-dir <project-root> [--home <dir>]
 Exit codes: 0 ok (also no-op) · 1 learnings.json unreadable · 2 usage error.
+
+`--print-native-dir` is a separate, side-effect-free lookup: it prints the
+native memory DIRECTORY (not the MEMORY.md file path) derived from the same
+hashing rule as `native_memory_md()` and exits 0 — no learnings.json read, no
+projection, no write.
 """
 import argparse
 import json
