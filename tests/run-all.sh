@@ -301,6 +301,22 @@ fi
 
 echo ""
 
+# Run memory index projection tests (memory hub E2)
+echo ">>> Running memory index projection tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-memory-index-projection.py"; then
+    echo ">>> Memory index projection tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Memory index projection tests: SKIPPED (no python found)"
+else
+    echo ">>> Memory index projection tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run skill-redesign eval harness (T-35: Schicht 1 signals + gate-linkage)
 echo ">>> Running skill-redesign eval harness..."
 if bash "$SCRIPT_DIR/eval/run-eval.sh"; then

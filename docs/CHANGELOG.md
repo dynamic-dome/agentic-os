@@ -14,6 +14,7 @@ neue additive Felder `source_agent` (claude|codex, Default claude) und `kind`
   (User preferences → feedback, General Tips → learning), dedupe via `norm`/Provenance-Hash,
   neue Einträge als `bridge_status=candidate`, `source_agent=codex`. wrap-up Step 3e.
 - **E3 `bridge_projection.py`** — Loop-Schutz: Einträge mit `source_agent=codex` werden nicht nach AGENTS.md zurückprojiziert.
+- **E2 `scripts/memory_index_projection.py`** — approved Learnings + Feedback (inkl. Codex-Quelle) als managed Block in Claudes nativer MEMORY.md (Cap 40, handgeschriebene Zeilen byte-identisch).
 
 ## [2026-07-27] Release v4.18.0 — T-015: Delegations-Umbau des wrap-up
 
