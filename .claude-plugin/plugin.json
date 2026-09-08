@@ -1,5 +1,5 @@
 {
   "name": "agentic-os",
-  "version": "4.19.0",
+  "version": "4.20.0",
   "description": "Self-improving agent memory system with 9 skills (session lifecycle, memory management, knowledge sync, policy-gated self-improve) and 5 hooks, including a PostToolUse dirty-state tracker (crash-safe consolidation via marker + recovery detection). Identity growth via gated candidate queues behind a conversation-only trust boundary that is enforced on enqueue AND on promotion; scaling thresholds live in one SSoT script. wrap-up applies every file mutation through a single batch writer (apply_wrapup.py) instead of one turn per write, and reports measured tallies rather than self-reported counts. Model/effort frontmatter is declared per skill (class SSoT in model-routing.sh) but measured inert as of 2026-07-27 — stage-0 preprocessing, escalation rules and cost-trace.jsonl remain effective; cost is dominated by context transport, not model class. MCP-Tool-Bridge Policy enforces clear roles (tool/introspection/knowledge) and hard no-gos against MCP-as-truth or cross-project mutation."
 }

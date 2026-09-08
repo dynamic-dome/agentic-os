@@ -285,6 +285,22 @@ fi
 
 echo ""
 
+# Run codex-memory ingest tests (memory hub E1)
+echo ">>> Running codex-memory ingest tests..."
+PY_BIN=""
+command -v python3 > /dev/null 2>&1 && PY_BIN="python3"
+[ -z "$PY_BIN" ] && command -v python > /dev/null 2>&1 && PY_BIN="python"
+if [ -n "$PY_BIN" ] && "$PY_BIN" "$SCRIPT_DIR/test-ingest-codex-memory.py"; then
+    echo ">>> Codex-memory ingest tests: ALL PASSED"
+elif [ -z "$PY_BIN" ]; then
+    echo ">>> Codex-memory ingest tests: SKIPPED (no python found)"
+else
+    echo ">>> Codex-memory ingest tests: FAILURES DETECTED"
+    ((TOTAL_ERRORS++))
+fi
+
+echo ""
+
 # Run skill-redesign eval harness (T-35: Schicht 1 signals + gate-linkage)
 echo ">>> Running skill-redesign eval harness..."
 if bash "$SCRIPT_DIR/eval/run-eval.sh"; then

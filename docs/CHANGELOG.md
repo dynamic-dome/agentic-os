@@ -4,6 +4,16 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-09-08] Release v4.20.0 — Memory-Hub: Codex→Claude-Kante, MEMORY.md-Projektion, Review-Sweep
+
+Spec: membrain/docs/2026-09-08-memory-hub-kreislauf-spec.md. learnings.json bleibt Hub;
+neue additive Felder `source_agent` (claude|codex, Default claude) und `kind`
+(learning|feedback, Default learning).
+
+- **E1 `scripts/ingest_codex_memory.py`** — liest `~/.codex/memories/memory_summary.md`
+  (User preferences → feedback, General Tips → learning), dedupe via `norm`/Provenance-Hash,
+  neue Einträge als `bridge_status=candidate`, `source_agent=codex`. wrap-up Step 3e.
+
 ## [2026-07-27] Release v4.18.0 — T-015: Delegations-Umbau des wrap-up
 
 wrap-up ruft auf dem Routine-Pfad keine Skills mehr auf, deren Arbeit mechanisch
