@@ -311,19 +311,6 @@ if [ -f "$SC_BODY_FILE" ]; then
     fi
 fi
 
-# research-pipeline skill removed in v4.0.0 — tests removed
-# research-phase test removed — merged into self-improve in v3
-echo ""
-echo "-- self-improve: research findings persistence --"
-SI_FILE="$SKILLS_DIR/self-improve/SKILL.md"
-if [ -f "$SI_FILE" ]; then
-    if grep -q "agent-memory/research\|research-cache" "$SI_FILE"; then
-        pass "self-improve: persists research findings to .agent-memory/research/ for cross-session reuse"
-    else
-        fail "self-improve: missing research findings persistence"
-    fi
-fi
-
 echo ""
 echo "-- wrap-up: optional NotebookLM sync --"
 WU2_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
@@ -336,45 +323,6 @@ if [ -f "$WU2_FILE" ]; then
 fi
 
 echo ""
-echo "-- self-improve: metadata block present --"
-SI2_FILE="$SKILLS_DIR/self-improve/SKILL.md"
-if [ -f "$SI2_FILE" ]; then
-    FRONTMATTER=$(awk '/^---/{c++} c==1{print} c==2{exit}' "$SI2_FILE")
-    if echo "$FRONTMATTER" | grep -q "metadata:"; then
-        pass "self-improve: has metadata block (consistent with all other skills)"
-    else
-        fail "self-improve: missing metadata block — all other skills have metadata with author, version, part-of, layer fields for plugin membership and discoverability"
-    fi
-fi
-
-# research-pipeline metadata test removed — skill deleted in v4.0.0
-# analysis-phase tests removed — merged into self-improve in v3
-
-echo ""
-echo "-- self-improve: consistent rollback strategy (no git stash) --"
-SI_FILE="$SKILLS_DIR/self-improve/SKILL.md"
-if [ -f "$SI_FILE" ]; then
-    if grep -qE "git stash (push|pop)" "$SI_FILE"; then
-        fail "self-improve: uses 'git stash push/pop' for rollback — contradicts improvement-phase which forbids stash-based rollback (fragile: stash may be empty or contain unrelated entries). Use commit-hash checkpoint instead."
-    else
-        pass "self-improve: rollback strategy consistent — no git stash push/pop (uses commit-hash checkpoint)"
-    fi
-fi
-
-# research-pipeline timeout test removed — skill deleted in v4.0.0
-
-echo ""
-echo "-- wrap-up: state.json path specified for self-improve loop check --"
-WU3_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
-if [ -f "$WU3_FILE" ]; then
-    if grep -q "state.json" "$WU3_FILE" && ! grep -qE "improvements/state\.json|improvements/state" "$WU3_FILE"; then
-        fail "wrap-up: references 'state.json' without path — agents won't know it's 'improvements/state.json' in the plugin root"
-    else
-        pass "wrap-up: state.json reference includes full path (improvements/state.json)"
-    fi
-fi
-
-echo ""
 echo "-- session-bootstrap: errors.json load count consistent with usage --"
 SB2_FILE="$SKILLS_DIR/session-bootstrap/SKILL.md"
 if [ -f "$SB2_FILE" ]; then
@@ -382,95 +330,6 @@ if [ -f "$SB2_FILE" ]; then
         fail "session-bootstrap: Step 2 loads 'last 5 entries' from errors.json but Step 4/5 only use 'last 3 errors' — inconsistent, causes confusion about buffer size"
     else
         pass "session-bootstrap: errors.json load count consistent with usage in Step 4/5"
-    fi
-fi
-
-# quality-gate skill removed in v4.0.0 — WARN verdict + pytest collection gate tests removed
-# skill-generator removed in v4.0.0 (folded into pattern-extractor, minimal template) — metadata template test removed
-
-# --- self-improve hardening levers (Wiki-TODO 2026-06-02-self-improve-mechanismus-haerten) ---
-# Each test pins one of the 5 levers into the SKILL.md body so they cannot silently
-# drift back out. SI_HARDEN_FILE is the self-improve skill.
-SI_HARDEN_FILE="$SKILLS_DIR/self-improve/SKILL.md"
-
-# Each lever carries a unique "(lever N)" marker in the SKILL.md body. The tests bind to
-# that marker AND a concept phrase, so stripping the hardening removes the marker and the
-# test goes red — verified via a strip-and-restore counter-probe (2026-06-03).
-
-echo ""
-echo "-- self-improve: lever 1 (global pattern-fixing before commit) --"
-if [ -f "$SI_HARDEN_FILE" ]; then
-    # Phase 3 must grep the just-fixed signature tree-wide before commit, not stop at the first hit.
-    if grep -qiE "\(lever 1\)" "$SI_HARDEN_FILE" \
-       && grep -qiE "all occurrences of the pattern before commit|fix all occurrences" "$SI_HARDEN_FILE"; then
-        pass "self-improve: lever 1 present — global pattern-fixing across the tree before commit"
-    else
-        fail "self-improve: lever 1 missing — Phase 3 must grep the fixed pattern across the whole skill/plugin tree and fix every occurrence before commit (else the loop re-fixes the same pattern in a later iteration)"
-    fi
-fi
-
-echo ""
-echo "-- self-improve: lever 2 (substance-based diminishing-returns stop) --"
-if [ -f "$SI_HARDEN_FILE" ]; then
-    # Circuit breaker must consider substance (only language/count fixes), not just fix-count.
-    if grep -qiE "\(lever 2\)" "$SI_HARDEN_FILE" \
-       && grep -qiE "only cosmetic fixes|SUBSTANCE-CONVERGENCE" "$SI_HARDEN_FILE"; then
-        pass "self-improve: lever 2 present — substance-based diminishing-returns stop"
-    else
-        fail "self-improve: lever 2 missing — circuit breaker must also stop when N consecutive iterations produce only language/count fixes (no functional bug), not just on fix-count"
-    fi
-fi
-
-echo ""
-echo "-- self-improve: lever 3 (functional analysis lens in Phase 2) --"
-if [ -f "$SI_HARDEN_FILE" ]; then
-    # Phase 2 must include a functional/runtime lens, not only frontmatter/language/counts.
-    if grep -qiE "\(lever 3\)" "$SI_HARDEN_FILE" \
-       && grep -qiE "Functional Lens|functional lens" "$SI_HARDEN_FILE"; then
-        pass "self-improve: lever 3 present — functional analysis lens in Phase 2"
-    else
-        fail "self-improve: lever 3 missing — Phase 2 must add a functional lens (e.g. does a skill declare outputs no step writes? does a gate ignore regressions?), not only frontmatter/language/count checks"
-    fi
-fi
-
-echo ""
-echo "-- self-improve: lever 4 (state<->.md atomicity check) --"
-if [ -f "$SI_HARDEN_FILE" ]; then
-    # Every state.json history entry must have a matching .md block; the two writes are coupled.
-    if grep -qiE "\(lever 4\)" "$SI_HARDEN_FILE" \
-       && grep -qiE "STATE-MD-DRIFT" "$SI_HARDEN_FILE"; then
-        pass "self-improve: lever 4 present — state.json<->.md atomicity / consistency check"
-    else
-        fail "self-improve: lever 4 missing — every state.json history entry must have a matching iterations-*.md block; the .md write must be coupled atomically to the state.json update"
-    fi
-fi
-
-echo ""
-echo "-- self-improve: lever 5 (absolute baseline sanity check) --"
-if [ -f "$SI_HARDEN_FILE" ]; then
-    # Absolute test-count sanity (halved / zero -> STOP), not only per-iteration delta.
-    if grep -qiE "\(lever 5\)" "$SI_HARDEN_FILE" \
-       && grep -qiE "BASELINE-SANITY" "$SI_HARDEN_FILE"; then
-        pass "self-improve: lever 5 present — absolute baseline sanity check"
-    else
-        fail "self-improve: lever 5 missing — Phase 0/4 must add an absolute baseline sanity check (test count halved or zero -> STOP + report), not only the per-iteration delta"
-    fi
-fi
-
-echo ""
-echo "-- self-improve: lever 6 (eval-driven acceptance gate) --"
-if [ -f "$SI_HARDEN_FILE" ]; then
-    # Phase 4 must score the mutated skill against a per-skill BINARY eval set and reject
-    # when the eval score drops — not only when the test suite fails. Marker + signal keyword,
-    # bidirectionally verifiable (strip -> red).
-    if grep -qiE "\(lever 6\)" "$SI_HARDEN_FILE" \
-       && grep -qiE "EVAL-REGRESSION" "$SI_HARDEN_FILE" \
-       && grep -qiE "improvements/evals" "$SI_HARDEN_FILE" \
-       && grep -qiE "baseline_eval" "$SI_HARDEN_FILE" \
-       && grep -qiE "green suite NEVER overrides|independent of the test result" "$SI_HARDEN_FILE"; then
-        pass "self-improve: lever 6 present — eval-driven acceptance gate (baseline + green-suite-independent rollback)"
-    else
-        fail "self-improve: lever 6 missing — Phase 4 must score the mutated skill against a per-skill binary eval set (improvements/evals/<skill>.eval.json), record a baseline before mutating, and rollback on EVAL-REGRESSION (eval score dropped), not only on test failure"
     fi
 fi
 

@@ -4,6 +4,33 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-09-08] Release v5.0.0 — Portfolio-Schnitt: 9 Skills → 5, mechanische Skills werden Commands
+
+Owner-Entscheid aus der Gesamtanalyse (`~/AI/membrain/memgesamtanalyse-2026-09.md`, F6/V5),
+Reihenfolge V5 → V3 → V4 (V5 raeumt V3 den Tisch frei). MAJOR laut VERSIONING: Skills entfallen.
+
+- **Archiviert nach `_archived/` (reversibel, `git mv`):** `skills/self-improve` (still seit
+  2026-06-21, 21 KB Policy ohne Nutzungsnachweis), `commands/rollback`, `commands/auto-commit`
+  (nur von self-improve gerufen), `improvements/` (Loop-State). Der Eval-Harness (Lever 6)
+  lebt in `tests/eval/` weiter. 17 validate-plugin- und 10 validate-skills-Bloecke entfernt.
+- **`memory-maintenance` → `/agentic-os:maintain`:** Command mit Skript-Kern
+  (`memory-thresholds.sh`, `gc_dirty_markers.py`, `native_memory_audit.py`, `review_sweep.py`,
+  `extract_patterns.py --refresh`). wrap-up Step 9 ruft den Skill nicht mehr auf, sondern druckt
+  die `THRESHOLD:`-Zeilen und empfiehlt den Command (L34/D-010: jede Skill-Body-Injektion
+  riskiert einen vollen Prefix-Cache-Rewrite).
+- **`iteration-logger` → `/agentic-os:log "<summary>"`:** baut einen `iterations`-Plan und
+  schreibt ueber `apply_wrapup.py` (einziger Writer seit 4.16.0). Trigger-Phrasen entfallen —
+  der Body war 70 % Mechanik.
+- **`sync-context` → `/agentic-os:sync-context [pull|push|sync]`:** war schon
+  `disable-model-invocation: true`; jetzt ein Command, dessen Regeln (Privacy-Filter,
+  Promotion-Gate, Provenance, Recency-Supersession, Pull-Lifecycle) unveraendert getestet werden.
+- **Bleiben Skills (echter Urteilsanteil):** session-bootstrap, wrap-up, pattern-extractor
+  (Steps 6.5/6.6), context-keeper, obsidian-sync. `scripts/model-routing.sh` fuehrt genau
+  diese fuenf.
+- Commands jetzt 6: init, status, memory-audit, maintain, log, sync-context.
+- Doku nachgezogen: README, CLAUDE.md, CAPABILITIES, DEPENDENCIES (Lifecycle, Matrix,
+  Prinzipien 4/5/6/8/9), references/skill-template + memory-structure, plugin.json-Description.
+
 ## [2026-09-08] Release v4.21.0 — Hook-Schicht ehrlich: Briefing erreicht das Modell, tote Prompt-Hooks entfernt
 
 Befund aus der Gesamtanalyse (`~/AI/membrain/memgesamtanalyse-2026-09.md`, F1/F2/V8):

@@ -53,7 +53,6 @@ case "$cmd" in
     printf 'obsidian-sync\tcheap-write\tsonnet\tmedium\n'
     printf 'context-keeper\tstandard\t-\t-\n'
     printf 'pattern-extractor\tstandard\t-\t-\n'
-    printf 'self-improve\tstrong\t-\t-\n'
     ;;
   list-agents)
     printf 'context-detective\tcheap-write\tsonnet\tmedium\n'

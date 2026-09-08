@@ -4,11 +4,11 @@ description: >
   Extracts recurring patterns, anti-patterns, and best practices from
   iteration and error history into the pattern catalog; generates skills
   from confirmed candidates. Use every ~5 iterations, at session end
-  (invoked by wrap-up or self-improve), or on "extract patterns" /
+  (invoked by wrap-up), or on "extract patterns" /
   "refresh patterns".
 metadata:
   author: agentic-os
-  version: '3.3'
+  version: '3.4'
   part-of: agentic-os
   layer: analysis
 ---

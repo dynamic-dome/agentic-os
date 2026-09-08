@@ -22,11 +22,4 @@ Display the current state of the memory system.
    - Total decisions (count in `context/decisions.json`)
    - Total code reviews (count in `quality/code-reviews.json`; legacy store since v4.0.0 — may stay at its last count)
 
-3. **Self-Improvement Loop:**
-   - Read `improvements/state.json` if it exists
-   - Show: current iteration, last run, status (idle/running), total fixes
-   - Show convergence state (count consecutive diminishing-returns in history)
-   - Quality score trend (last 5 iterations)
-   - List scheduled tasks via `mcp__scheduled-tasks__list_scheduled_tasks` if available
-
-4. **Format** as a compact table.
+3. **Format** as a compact table.

@@ -173,20 +173,6 @@ for cmd_file in "$PLUGIN_ROOT/commands"/*.md; do
     fi
 done
 
-# 6. improvements/state.json
-echo ""
-echo "-- Improvements state --"
-STATE="$PLUGIN_ROOT/improvements/state.json"
-if [ -f "$STATE" ]; then
-    if check_json_has "$STATE" "iteration"; then
-        pass "state.json valid with iteration field"
-    else
-        fail "state.json missing 'iteration' field"
-    fi
-else
-    echo "  SKIP: improvements/state.json not yet created"
-fi
-
 # 7. All skills referenced in DEPENDENCIES.md
 echo ""
 echo "-- DEPENDENCIES.md completeness --"
@@ -282,75 +268,6 @@ for DEAD_AGENT in improvement-agent research-agent; do
     fi
 done
 
-# 13. auto-commit command should not contain hardcoded model-specific co-author
-echo ""
-echo "-- auto-commit co-author portability --"
-AC_CMD="$PLUGIN_ROOT/commands/auto-commit.md"
-if [ -f "$AC_CMD" ]; then
-    if grep -q "Claude Opus 4.6\|claude-opus-4\|claude-3-opus\|Claude Opus 3" "$AC_CMD"; then
-        fail "auto-commit: has hardcoded model-specific co-author string — breaks portability across model versions"
-    else
-        pass "auto-commit: co-author string is model-portable"
-    fi
-else
-    fail "auto-commit: command file not found"
-fi
-
-# 14. quality-gate agent removed in v4.0.0 — test removed
-
-
-# 15. self-improve skill should not have hardcoded model-specific co-author string
-echo ""
-echo "-- self-improve co-author portability --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    if grep -q "Claude Opus 4.6\|claude-opus-4\|claude-3-opus\|Claude Opus 3" "$SI_SKILL"; then
-        fail "self-improve: has hardcoded model-specific co-author string — breaks portability when model changes"
-    else
-        pass "self-improve: co-author string is model-portable"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 16. self-improve must gate its final push on explicit user confirmation.
-#     A global "Do NOT push automatically" statement is insufficient if the final
-#     executable step still runs git push without first asking and waiting.
-echo ""
-echo "-- self-improve no-auto-push policy --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    FINAL_PUSH_SECTION=$(awk '/^## Step F\.1:/,/^## Step F\.2:/' "$SI_SKILL")
-    if echo "$FINAL_PUSH_SECTION" | grep -q "git push" \
-       && echo "$FINAL_PUSH_SECTION" | grep -qi "explicit user confirmation" \
-       && echo "$FINAL_PUSH_SECTION" | grep -qiE "ask the user|wait for (the )?user|only after.*confirm"; then
-        pass "self-improve: final push requires explicit user confirmation"
-    else
-        fail "self-improve: final step must ask and wait for explicit user confirmation before git push"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 17. auto-commit command description must not claim it "pushes" automatically
-#     (contradicts the no-auto-push policy established in iteration 8)
-echo ""
-echo "-- auto-commit no-auto-push consistency --"
-AC_CMD="$PLUGIN_ROOT/commands/auto-commit.md"
-if [ -f "$AC_CMD" ]; then
-    # The description field (first YAML line with "description:") must not promise automatic push
-    DESCRIPTION_LINE=$(grep -m1 "^description:" "$AC_CMD")
-    if echo "$DESCRIPTION_LINE" | grep -qi "pushes\|push to"; then
-        fail "auto-commit: description claims it auto-pushes — contradicts no-auto-push policy; update description to reflect push is optional"
-    else
-        pass "auto-commit: description is consistent with no-auto-push policy"
-    fi
-else
-    fail "auto-commit: command file not found"
-fi
-
 
 # 18. Agents that write files must declare Write in allowed_tools
 echo ""
@@ -385,180 +302,6 @@ if [ -f "$HOOKS_FILE" ]; then
     fi
 else
     fail "hooks.json not found"
-fi
-
-
-# 20. self-improve SKILL.md state.json history entry template must include
-#     the extended tracking fields added since iteration 5
-#     (false_alarm_count, quality_score, tests_plugin, tests_skill)
-echo ""
-echo "-- self-improve state history entry completeness --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    if grep -q "false_alarm_count" "$SI_SKILL" && grep -q "quality_score" "$SI_SKILL" && grep -q "tests_plugin" "$SI_SKILL"; then
-        pass "self-improve: state.json history entry template includes extended tracking fields"
-    else
-        fail "self-improve: state.json history entry template missing extended fields (false_alarm_count, quality_score, tests_plugin, tests_skill) — agents following this template produce incomplete history entries"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 21. self-improve SKILL.md error handling must specify a concrete rollback command
-#     "Revert the fix" is ambiguous — agents need a specific git command.
-#     Accepted: git reset --hard (commit-hash checkpoint), git checkout ., git restore .
-echo ""
-echo "-- self-improve rollback command specificity --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    if grep -qE "git reset --hard|git checkout \.|git restore \." "$SI_SKILL"; then
-        pass "self-improve: error handling specifies concrete rollback command"
-    else
-        fail "self-improve: error handling gives no concrete git rollback command — agents will guess and may lose test file changes"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 22. self-improve SKILL.md must instruct to create a safety checkpoint BEFORE making
-#     changes. Accepted: commit-hash checkpoint (git rev-parse HEAD + git reset --hard)
-#     or git stash. commit-hash is preferred as stash is fragile with untracked files.
-echo ""
-echo "-- self-improve pre-fix safety checkpoint --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    if grep -qE "checkpoint_sha|git rev-parse HEAD|safety checkpoint|git stash push" "$SI_SKILL"; then
-        pass "self-improve: TDD Fix step includes safety checkpoint before making changes"
-    else
-        fail "self-improve: TDD Fix step missing safety checkpoint — cannot recover from failed fix without a checkpoint"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 23. self-improve SKILL.md Step 2 analysis prompt must instruct the agent to
-#     read state.json history and skip previously-fixed weaknesses by name.
-#     Without this, improvement-agent re-identifies the same things each run
-#     and the loop wastes iterations re-fixing already-solved problems.
-echo ""
-echo "-- self-improve history dedup guidance --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    if grep -qiE "previously.fixed|skip.*history|history.*skip|state\.json.*history|already.fixed|dedup|avoid.*duplicate" "$SI_SKILL"; then
-        pass "self-improve: analysis step instructs agent to skip previously-fixed weaknesses from history"
-    else
-        fail "self-improve: analysis step missing history dedup guidance — improvement-agent will re-identify already-fixed weaknesses causing wasted iterations"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 24. quality-gate agent removed in v4.0.0 — test removed
-
-
-# 25. self-improve SKILL.md must instruct agents to filter weaknesses by severity
-#     (only fix critical/warning, log suggestions without fixing) and report
-#     "DIMINISHING RETURNS" when no actionable weaknesses remain.
-#     Without this, agents waste iterations fixing cosmetic suggestions and never
-#     gracefully exit when the plugin has no critical/warning-level issues.
-echo ""
-echo "-- self-improve severity filter and diminishing returns --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    # Must explicitly instruct: only fix critical/warning severity, log suggestions without fixing
-    HAS_SEVERITY=$(grep -ciE "only fix critical|Only fix critical|fix critical.and.warning|critical.*warning.*only|suggestion.*do not fix|do not fix.*suggestion|log suggestion|suggestion.*log.*not fix" "$SI_SKILL")
-    # Must explicitly name the diminishing-returns exit condition
-    HAS_DIMINISHING=$(grep -ciE "DIMINISHING RETURNS|diminishing.returns" "$SI_SKILL")
-    if [ "$HAS_SEVERITY" -gt 0 ] && [ "$HAS_DIMINISHING" -gt 0 ]; then
-        pass "self-improve: instructs severity-based filtering and diminishing-returns exit condition"
-    else
-        fail "self-improve: missing severity filter (only fix critical/warning, log suggestions) and/or diminishing-returns exit — agents will fix trivial suggestions and never gracefully stop"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 26. self-improve must define the critical/warning/suggestion severity taxonomy.
-#     In v3 the analysis/severity logic lives in the self-improve SKILL.md (the
-#     improvement-agent is a thin delegation wrapper with no own severity output).
-#     The ecosystem standard is critical/warning/suggestion — verify the skill that
-#     actually ranks weaknesses uses these labels, not HIGH/MEDIUM/LOW.
-echo ""
-echo "-- self-improve severity label consistency --"
-SI_SEV_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SEV_SKILL" ]; then
-    if grep -qiE "critical.*warning.*suggestion|critical and warning|severity.*critical|\*\*critical\*\*" "$SI_SEV_SKILL"; then
-        pass "self-improve: uses critical/warning/suggestion severity taxonomy consistently"
-    else
-        fail "self-improve: missing critical/warning/suggestion severity taxonomy — analysis ranking may use inconsistent labels"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 27. self-improve SKILL.md Step 2 must not have duplicate step numbers.
-#     Duplicate numbering (two items labeled "2.") makes the procedure ambiguous —
-#     agents may skip or repeat the feedback-check step.
-echo ""
-echo "-- self-improve step 2 no duplicate numbering --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    # Extract the Step 2 section and count how many lines start with "2. "
-    # A correct numbered list has each number appear exactly once
-    STEP2_SECTION=$(awk '/^### Step 2:/,/^### Step [^2]:/' "$SI_SKILL")
-    DUP_COUNT=$(echo "$STEP2_SECTION" | grep -cE "^[[:space:]]*2\. ")
-    if [ "$DUP_COUNT" -le 1 ]; then
-        pass "self-improve: Step 2 has no duplicate step numbers"
-    else
-        fail "self-improve: Step 2 has $DUP_COUNT items numbered '2.' — duplicate numbering makes procedure ambiguous; renumber the feedback-check and subsequent steps"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 28. self-improve SKILL.md batch_start formula must use floor() for integer division.
-#     Without floor(), agents using floating-point division compute wrong batch numbers.
-#     E.g. iteration 22: ((22-1)/5)*5+1 = 4.2*5+1 = 22 (wrong) vs floor(4.2)*5+1 = 21 (correct).
-echo ""
-echo "-- self-improve batch formula uses floor --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    if grep -qE "floor\(\(" "$SI_SKILL"; then
-        pass "self-improve: batch_start formula uses floor() for correct integer division"
-    else
-        fail "self-improve: batch_start formula missing floor() — floating-point division produces wrong batch file names (e.g. iteration 22 gives batch 22 instead of 21)"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
-fi
-
-
-# 29. self-improve SKILL.md Step 7 report and Output Format section must use the
-#     full path placeholder {batch_start}-{batch_end}, not the abbreviated {batch}.
-#     Step 1 defines the correct filename as iterations-{batch_start:03d}-{batch_end:03d}.md
-#     but Step 7 and Output Format reference iterations-{batch}.md — agents following
-#     the report template will log the wrong filename, making iteration docs hard to find.
-echo ""
-echo "-- self-improve step 7 report uses correct batch placeholder --"
-SI_SKILL="$PLUGIN_ROOT/skills/self-improve/SKILL.md"
-if [ -f "$SI_SKILL" ]; then
-    # Check that nowhere after "### Step 7" or "## Output Format" does "{batch}" appear alone
-    # (without being part of "{batch_start}" or "{batch_end}")
-    BARE_BATCH=$(grep -nE "iterations-\{batch\}" "$SI_SKILL" | grep -vE "\{batch_start\}|\{batch_end\}")
-    if [ -z "$BARE_BATCH" ]; then
-        pass "self-improve: Step 7 report uses full batch path placeholder (not bare {batch})"
-    else
-        fail "self-improve: Step 7 / Output Format uses 'iterations-{batch}.md' — should be 'iterations-{batch_start:03d}-{batch_end:03d}.md' to match Step 1's defined path"
-    fi
-else
-    fail "self-improve: SKILL.md not found"
 fi
 
 
@@ -728,26 +471,6 @@ if [ -f "$MANIFEST" ]; then
     fi
 else
     fail "plugin.json not found"
-fi
-
-
-
-# 41. DEPENDENCIES.md must use the correct batch filename placeholder for self-improve output.
-#     iterations-{batch}.md is the old/wrong format. The correct format (as defined in
-#     self-improve SKILL.md) is iterations-{batch_start:03d}-{batch_end:03d}.md.
-#     Stale DEPENDENCIES.md misleads developers and agents about where iteration docs are stored.
-echo ""
-echo "-- DEPENDENCIES.md self-improve batch filename accuracy --"
-DEPS="$PLUGIN_ROOT/skills/DEPENDENCIES.md"
-if [ -f "$DEPS" ]; then
-    # The bare {batch}.md pattern (without batch_start/batch_end) should not appear
-    if grep -qE "iterations-\{batch\}\.md" "$DEPS"; then
-        fail "DEPENDENCIES.md: self-improve output path uses stale '{batch}.md' placeholder — should be '{batch_start:03d}-{batch_end:03d}.md' to match actual file naming"
-    else
-        pass "DEPENDENCIES.md: self-improve batch filename placeholder is accurate (no stale '{batch}.md')"
-    fi
-else
-    fail "DEPENDENCIES.md not found"
 fi
 
 
@@ -1282,7 +1005,7 @@ for SKILL_FILE in "$PLUGIN_ROOT"/skills/*/SKILL.md "$PLUGIN_ROOT"/commands/*.md;
         pass "$SKILL_NAME: no dead user_invocable field"
     fi
 done
-for MANUAL_SKILL in sync-context self-improve; do
+for MANUAL_SKILL in sync-context; do
     FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$PLUGIN_ROOT/skills/$MANUAL_SKILL/SKILL.md")
     if echo "$FM" | grep -q "^disable-model-invocation: true"; then
         pass "skill $MANUAL_SKILL: manual-only via disable-model-invocation: true"
@@ -1298,33 +1021,6 @@ for CALLED_SKILL in iteration-logger context-keeper pattern-extractor obsidian-s
         pass "skill $CALLED_SKILL: stays model-invocable (required for skill-to-skill delegation)"
     fi
 done
-
-# 78. research-agent removed in 4.15.0 (self-improve Phase 1 researches inline) —
-#     its absence is enforced by test 12; the old stale-reference check is obsolete.
-
-# quality-gate agent removed in v4.0.0 — WARN threshold + pytest collection gate tests removed
-
-echo ""
-echo "-- improvement-agent: no stale git-stash safety rule --"
-IA2_FILE="$PLUGIN_ROOT/agents/improvement-agent.md"
-if [ -f "$IA2_FILE" ]; then
-    if grep -q "git stash" "$IA2_FILE"; then
-        fail "improvement-agent: safety rule says 'git stash checkpoint' — but self-improve uses commit-hash checkpoints (git rev-parse HEAD + git reset --hard); stash is explicitly avoided as rollback strategy"
-    else
-        pass "improvement-agent: uses commit-hash checkpoint strategy (no git stash)"
-    fi
-fi
-
-echo ""
-echo "-- improvement-agent: no stale phase-skill references --"
-IA_FILE="$PLUGIN_ROOT/agents/improvement-agent.md"
-if [ -f "$IA_FILE" ]; then
-    if grep -qE "research-phase|analysis-phase|improvement-phase|validation-phase" "$IA_FILE"; then
-        fail "improvement-agent: references phase skills (research-phase, analysis-phase, improvement-phase, validation-phase) which no longer exist — all phases were merged inline into agentic-os:self-improve in v3"
-    else
-        pass "improvement-agent: no stale phase-skill references"
-    fi
-fi
 
 echo ""
 echo "-- memory schema: Single Source of Truth exists and is the only definition --"

@@ -9,7 +9,7 @@ model: sonnet
 effort: medium
 metadata:
   author: agentic-os
-  version: '4.3'
+  version: '4.4'
   part-of: agentic-os
   layer: core
 ---
@@ -637,8 +637,6 @@ patterns / Open questions). Template: `references/wrapup-schemas.md` §Handoff M
 - Do NOT write session-summary.md longer than 30 lines
 - Do NOT commit without user confirmation
 - Do NOT log trivial "learnings"; do NOT prune skill_candidate patterns
-- Do NOT run memory maintenance during an active self-improve loop
-  (`improvements/state.json` → `status: "running"`)
 - Do NOT delete `working/dirty-*.json` (Step 9.5 flips flags; memory-maintenance
   GCs them via gc_dirty_markers.py) and do NOT write the consolidation marker when the
   wrap-up was incomplete
