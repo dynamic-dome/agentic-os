@@ -255,17 +255,6 @@ if [ -f "$SB_FILE" ]; then
 fi
 
 echo ""
-echo "-- sync-context trigger language consistency --"
-SC_FILE="$SKILLS_DIR/sync-context/SKILL.md"
-if [ -f "$SC_FILE" ]; then
-    if grep -q "Kontext synchronisieren\|globale Patterns holen\|Wissen teilen\|was gibt es in anderen projekten\|welche patterns kann ich importieren\|wissen uebertragen" "$SC_FILE"; then
-        fail "sync-context: description contains German trigger phrases — triggers must use English for consistent auto-matching"
-    else
-        pass "sync-context: description trigger phrases use English (no German triggers)"
-    fi
-fi
-
-echo ""
 echo "-- wrap-up trigger language consistency --"
 WU_FILE="$SKILLS_DIR/wrap-up/SKILL.md"
 if [ -f "$WU_FILE" ]; then
@@ -291,7 +280,7 @@ fi
 
 echo ""
 echo "-- sync-context body language consistency --"
-SC_BODY_FILE="$SKILLS_DIR/sync-context/SKILL.md"
+SC_BODY_FILE="$PLUGIN_ROOT/commands/sync-context.md"
 if [ -f "$SC_BODY_FILE" ]; then
     if grep -q "holen\|importieren\|teilen\|exportieren\|beides\|was gibt es" "$SC_BODY_FILE"; then
         fail "sync-context: body contains German intent phrases — all direction-matching phrases must use English for consistency"
@@ -437,7 +426,7 @@ fi
 # NOT by confidence alone — a stale high-confidence fact must not beat a newer one (Mem0
 # interference). Max one `active` per (fact_type, scope); the older one becomes `superseded`
 # (never deleted). Confidence-merge for NON-conflicting same-fact entries stays.
-SC_SUP_FILE="$SKILLS_DIR/sync-context/SKILL.md"
+SC_SUP_FILE="$PLUGIN_ROOT/commands/sync-context.md"
 
 echo ""
 echo "-- sync-context: recency supersession on conflict (not confidence-only) --"

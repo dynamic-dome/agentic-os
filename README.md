@@ -9,7 +9,7 @@ Self-improving agent memory system that works across any project.
 - **Session Lifecycle**: Auto-bootstrap at start, user-driven during work, wrap-up at end (the two-skill bracket is the supported minimal workflow)
 - **Lean Hook Surface**: 2 command hooks (SessionStart briefing via `additionalContext`, PostToolUse dirty-tracker); no prompt hooks — they cannot invoke skills or survive compaction (removed 4.21.0). The only per-edit hook is the mechanical fail-soft dirty-tracker (no LLM, bookkeeping only)
 - **Wiki / Knowledge Layer**: `obsidian-sync` writes session results into the Obsidian wiki
-- **Optional Cross-Project Sync**: Manual pattern sharing via `sync-context` skill
+- **Optional Cross-Project Sync**: Manual pattern sharing via the `/agentic-os:sync-context` command
 
 ## Commands
 

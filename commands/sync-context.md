@@ -1,26 +1,16 @@
 ---
 name: sync-context
-description: >
-  Manual cross-project sync between local .agent-memory/ and the global
-  ~/.claude-memory/global/ store (privacy filter + promotion gate).
-  Invoke via /agentic-os:sync-context.
-disable-model-invocation: true
-model: sonnet
-effort: low
-metadata:
-  author: agentic-os
-  version: '3.1'
-  part-of: agentic-os
-  layer: utility
+description: Manual cross-project sync between local .agent-memory/ and the global ~/.claude-memory/global/ store — privacy pre-filter, promotion gate, provenance schema, recency supersession, pull serves lifecycle:active only. Never auto-triggered.
+argument-hint: "[pull|push|sync]"
+allowed_tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 ---
 
 # Cross-Project Sync (Optional, Manual Only)
 
 Bidirectional sync between local `.agent-memory/` and `~/.claude-memory/global/`.
 
-**This skill is never auto-triggered** — `disable-model-invocation: true` enforces it
-mechanically: the model cannot invoke it and its description never loads into context.
-It runs only via `/agentic-os:sync-context`.
+**Never auto-triggered.** This is a command: it runs only when the user types
+`/agentic-os:sync-context [pull|push|sync]`; no skill or hook may call it.
 
 ## Prerequisites (Auto-Setup)
 
@@ -35,7 +25,7 @@ This MUST run automatically — do not require the user to set it up manually.
 └── projects.json    (initialize as {"projects": []})
 ```
 
-**Auto-creation logic (run at skill start, before Step 1):**
+**Auto-creation logic (run at command start, before Step 1):**
 1. Check if `~/.claude-memory/global/` exists
 2. If not, create the directory and all three JSON files with their defaults
 3. If directory exists but files are missing, create only the missing files
@@ -43,20 +33,6 @@ This MUST run automatically — do not require the user to set it up manually.
 5. For each existing JSON file, attempt `JSON.parse`:
    - If corrupt (parse fails) → rename to `<filename>.corrupt.bak`, reinitialize with default, warn user
    - Example: `patterns.json` fails → move to `patterns.json.corrupt.bak`, create fresh `[]`
-
-## When to Use
-
-- User wants to import patterns from other projects
-- User wants to share this project's learnings globally
-- Switching between projects and wanting accumulated knowledge
-- User has 3+ active projects and wants to leverage cross-project patterns
-
-## Architecture
-
-```
-Project A (.agent-memory/)  ──push──>  ~/.claude-memory/global/  <──push──  Project B
-                            <──pull──                            ──pull──>
-```
 
 ## Step 1: Check Minimum Project Count
 
@@ -68,7 +44,7 @@ Before any sync, verify there are at least 2 projects registered globally:
 
 ## Step 2: Determine Direction
 
-From user intent:
+From `$ARGUMENTS` first (`pull` / `push` / `sync`); only when empty, from user intent:
 - "pull" / "import" / "get" → pull only
 - "push" / "share" / "export" → push only
 - "sync" / "both" / no direction → bidirectional (pull then push)
@@ -184,7 +160,7 @@ Cross-Project Sync Complete:
 
 ## What NOT to Do
 
-- Do NOT auto-trigger this skill from hooks or other skills
+- Do NOT auto-trigger this command from hooks or skills
 - Do NOT sync patterns with confidence < 0.5 (pull) or < 0.6 (push)
 - Do NOT overwrite local patterns with lower-confidence global ones
 - Do NOT sync if fewer than 2 projects exist globally (nothing to cross-pollinate)

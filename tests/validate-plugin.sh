@@ -195,7 +195,7 @@ fi
 # 8. sync-context skill has error handling guidance
 echo ""
 echo "-- sync-context error handling --"
-SYNC_SKILL="$PLUGIN_ROOT/skills/sync-context/SKILL.md"
+SYNC_SKILL="$PLUGIN_ROOT/commands/sync-context.md"
 if [ -f "$SYNC_SKILL" ]; then
     if grep -qi "error\|corrupt\|fail\|missing\|not exist\|does not exist\|fallback" "$SYNC_SKILL"; then
         pass "sync-context: has error handling guidance"
@@ -203,7 +203,7 @@ if [ -f "$SYNC_SKILL" ]; then
         fail "sync-context: missing error handling guidance (what to do when files are corrupt or missing)"
     fi
 else
-    fail "sync-context: SKILL.md not found"
+    fail "sync-context: commands/sync-context.md not found"
 fi
 
 # 9. session-start.sh has file size guard before stats counting
@@ -368,7 +368,7 @@ fi
 #     The correct approach is to output a question as plain text and wait for user response.
 echo ""
 echo "-- sync-context no phantom AskUserQuestion tool --"
-SYNC_SKILL="$PLUGIN_ROOT/skills/sync-context/SKILL.md"
+SYNC_SKILL="$PLUGIN_ROOT/commands/sync-context.md"
 if [ -f "$SYNC_SKILL" ]; then
     if grep -q "AskUserQuestion" "$SYNC_SKILL"; then
         fail "sync-context: references 'AskUserQuestion' which is not a real Claude Code tool — replace with plain text question output"
@@ -376,7 +376,7 @@ if [ -f "$SYNC_SKILL" ]; then
         pass "sync-context: does not reference nonexistent AskUserQuestion tool"
     fi
 else
-    fail "sync-context: SKILL.md not found"
+    fail "sync-context: commands/sync-context.md not found"
 fi
 
 
@@ -835,26 +835,6 @@ if grep -q '"matcher":' "$PLUGIN_ROOT/hooks/hooks.json"; then
     fi
 fi
 
-# 60. run-loop command removed in v4.0.0 (self-improve skill is directly invocable) — test removed
-
-# 61. quality-gate skill removed in v4.0.0 — self-improve depends-on test removed
-#     (validation phase runs bash tests/run-all.sh directly)
-
-# 62. research-pipeline skill removed in v4.0.0 — test removed
-
-# 63. sync-context version must be 3.0 (consistent with other skills)
-echo ""
-echo "-- sync-context version consistency --"
-SC_SKILL="$PLUGIN_ROOT/skills/sync-context/SKILL.md"
-if [ -f "$SC_SKILL" ]; then
-    SC_FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print}' "$SC_SKILL")
-    if echo "$SC_FM" | grep -qE "version:.*['\"]?1\.0"; then
-        fail "sync-context: version is 1.0 — should be 3.0 (consistent with other skills)"
-    else
-        pass "sync-context: version is consistent (not stale 1.0)"
-    fi
-fi
-
 # 64. session-start.sh must produce valid JSON output
 echo ""
 echo "-- session-start.sh JSON output validity --"
@@ -989,7 +969,7 @@ fi
 #     user-invocable / disable-model-invocation, docs: code.claude.com/docs/en/skills)
 #     — it was silently ignored by the harness. Contract now:
 #     (a) no skill or command may declare the dead user_invocable field;
-#     (b) manual-only skills (sync-context, self-improve) MUST declare
+#     (b) manual-only behaviour is structural since v5.0.0 (sync-context is a command); skills invoked by wrap-up must NOT declare
 #         disable-model-invocation: true — keeps their descriptions out of context
 #         and blocks autonomous invocation mechanically instead of via prose;
 #     (c) skills invoked by other skills via the Skill tool MUST stay
@@ -1003,14 +983,6 @@ for SKILL_FILE in "$PLUGIN_ROOT"/skills/*/SKILL.md "$PLUGIN_ROOT"/commands/*.md;
         fail "$SKILL_NAME: declares dead user_invocable field — harness ignores it; use disable-model-invocation (or drop the line for model-invoked default)"
     else
         pass "$SKILL_NAME: no dead user_invocable field"
-    fi
-done
-for MANUAL_SKILL in sync-context; do
-    FM=$(awk 'BEGIN{c=0} /^---/{c++; next} c==1{print} c==2{exit}' "$PLUGIN_ROOT/skills/$MANUAL_SKILL/SKILL.md")
-    if echo "$FM" | grep -q "^disable-model-invocation: true"; then
-        pass "skill $MANUAL_SKILL: manual-only via disable-model-invocation: true"
-    else
-        fail "skill $MANUAL_SKILL: manual-only skill missing disable-model-invocation: true — description burns context every turn and prose alone cannot prevent auto-invocation"
     fi
 done
 for CALLED_SKILL in context-keeper pattern-extractor obsidian-sync; do
