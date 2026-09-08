@@ -817,7 +817,7 @@
     "last_relevant": "2026-09-08",
     "derived_from": [],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate"
+    "bridge_status": "approved"
   },
   {
     "id": "L46",
@@ -836,7 +836,7 @@
       "err-015"
     ],
     "review_after": "2026-12-07",
-    "bridge_status": "candidate"
+    "bridge_status": "approved"
   },
   {
     "id": "L47",

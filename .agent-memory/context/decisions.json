@@ -536,7 +536,9 @@
       "plugin",
       "architecture",
       "agentic-os"
-    ]
+    ],
+    "wiki_ref": "wiki/entities/agentic-os-plugin.md",
+    "promoted_at": "2026-09-08"
   },
   {
     "id": "D-016",
