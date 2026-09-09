@@ -91,7 +91,8 @@ def main():
         with open(os.path.join(mem, "learnings", "learnings.json"), "w", encoding="utf-8") as f:
             json.dump([{"id": "L1", "text": "Lehre (verlaengert P006/L6): siehe auch P010"},
                        {"id": "L2", "text": "ok", "derived_from": ["G-pattern-005", "iteration-7"]},
-                       {"id": "L3", "text": "ok", "derived_from": ["P004"]}], f)
+                       {"id": "L3", "text": "ok", "derived_from": ["P004"]},
+                       {"id": "L4", "text": "Die Grafikkarte P100 ist schnell, Preis P250"}], f)
         p = run([mem], cwd=tmp)
         state = json.loads(p.stdout)
         errs = state["validation_errors"]
@@ -100,6 +101,16 @@ def main():
               and "learnings.json: L3 references unknown pattern P004" in errs, str(errs))
         check("known pattern refs are not errors",
               not any("P010" in e or "G-pattern-005" in e for e in errs), str(errs))
+        check("prose like P100/P250 is not a pattern ref", not any("L4" in e for e in errs), str(errs))
+        # patterns.json = null must not crash the validator or hide the rest of the state
+        with open(os.path.join(mem, "patterns", "patterns.json"), "w", encoding="utf-8") as f:
+            f.write("null")
+        p = run([mem], cwd=tmp)
+        state = json.loads(p.stdout)
+        check("patterns.json null: exit 0, state intact, ref check silent",
+              p.returncode == 0 and isinstance(state.get("validation_errors"), list)
+              and not any("pattern" in e for e in state["validation_errors"])
+              and isinstance(state.get("open_tasks"), list), p.stdout[:300])
 
         # 4. Broken JSON -> validation_errors names file, still exit 0
         os.makedirs(os.path.join(mem, "learnings"), exist_ok=True)

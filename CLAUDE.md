@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-Agentic OS v5.0.2 — a Claude Code plugin providing a persistent agent memory system. It installs skills, hooks, agents, and commands that persist project knowledge across sessions in `.agent-memory/`.
+Agentic OS v5.0.3 — a Claude Code plugin providing a persistent agent memory system. It installs skills, hooks, agents, and commands that persist project knowledge across sessions in `.agent-memory/`.
 
 ## Build & Test
 

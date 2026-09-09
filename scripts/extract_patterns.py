@@ -656,7 +656,7 @@ def main() -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8")
         sys.stdin.reconfigure(encoding="utf-8")
-    except (AttributeError, OSError):
+    except (AttributeError, OSError, ValueError):
         pass
 
     ap = argparse.ArgumentParser(description="Deterministic pattern extraction.")

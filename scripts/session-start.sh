@@ -54,8 +54,16 @@ if [ ! -d "$MEMORY_DIR" ]; then
   if [ -n "$GIT_TOP" ]; then
     HERE="$(cd "$PROJECT_DIR" 2>/dev/null && (pwd -W 2>/dev/null || pwd -P))"
     if [ "$(printf '%s' "$GIT_TOP" | tr 'A-Z' 'a-z')" != "$(printf '%s' "$HERE" | tr 'A-Z' 'a-z')" ]; then
-      echo "[Agentic OS] $PROJECT_DIR is a subdirectory of git repo $GIT_TOP - skipping auto-init (start from the repo root or run /agentic-os:init here)."
-      exit 0
+      if [ -d "$GIT_TOP/.agent-memory" ]; then
+        # The repo root already has the store: serve it (briefing, recovery) instead of
+        # creating a second one here. Plain echo is not allowed - the hook emits JSON.
+        STORE_NOTE="[Agentic OS] Session started in $PROJECT_DIR; briefing served from the repo-root store $GIT_TOP/.agent-memory."
+        PROJECT_DIR="$GIT_TOP"
+        MEMORY_DIR="$GIT_TOP/.agent-memory"
+      else
+        echo "[Agentic OS] $PROJECT_DIR is a subdirectory of git repo $GIT_TOP - skipping auto-init (start from the repo root or run /agentic-os:init here)."
+        exit 0
+      fi
     fi
   fi
 fi
@@ -136,7 +144,7 @@ fi
 # PHASE 2: Load context and output as systemMessage
 # ============================================================
 
-context=""
+context="${STORE_NOTE:+$STORE_NOTE\n}"
 
 # Git-State
 if command -v git &> /dev/null && git rev-parse --git-dir > /dev/null 2>&1; then

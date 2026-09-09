@@ -126,7 +126,8 @@ def threshold_events(mem):
         return []
 
 
-PATTERN_REF = re.compile(r"\b(G-pattern-\d{3}|P\d{3})\b")
+# P0dd only: pattern ids are zero-padded (P004..P012); "P100" in prose is a GPU, not a ref.
+PATTERN_REF = re.compile(r"\b(G-pattern-\d{3}|P0\d{2})\b")
 
 
 def _rows(mem, rel, key):
@@ -137,7 +138,12 @@ def _rows(mem, rel, key):
         data = json.loads(text)
     except ValueError:
         return None
-    rows = data if isinstance(data, list) else data.get(key, [])
+    if isinstance(data, list):
+        rows = data
+    elif isinstance(data, dict):
+        rows = data.get(key, [])
+    else:
+        return None
     return [r for r in rows if isinstance(r, dict)] if isinstance(rows, list) else None
 
 
@@ -161,7 +167,10 @@ def dangling_pattern_refs(mem):
 
 
 def validation_errors(mem):
-    errors = dangling_pattern_refs(mem)
+    try:
+        errors = dangling_pattern_refs(mem)
+    except Exception as e:  # fail-soft: a validator must never take the state with it
+        errors = [f"pattern-ref check failed: {e}"]
     for root, dirs, files in os.walk(mem):
         # metrics traces are append-only JSONL, not JSON documents
         dirs[:] = [d for d in dirs if d not in ("metrics",)]

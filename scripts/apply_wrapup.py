@@ -570,19 +570,25 @@ def _jaccard(a, b):
     return len(ta & tb) / len(ta | tb)
 
 
+_CITATION_SUFFIX = re.compile(r"\s*[\[(]\s*UC\d+\s*,[^\])]*[\])]\s*$")
+
+
 def _already_in_user_md(cand, user_md):
-    """A candidate whose id is already cited in user.md, or whose observation is a
-    near-duplicate (Jaccard >= 0.6) of an existing line, must not be promoted
-    again (2026-07-27: UC1-UC3 were re-promoted as plain duplicates)."""
+    """Return the user.md line a candidate duplicates, else None. Duplicate =
+    the candidate id is already cited, or the observation nearly repeats an
+    existing line (Jaccard >= 0.8 after stripping the '(UCn, date)' citation).
+    2026-07-27: UC1-UC3 were re-promoted as plain duplicates. Limitation: a
+    negated restatement ('niemals') still scores as a duplicate - that is why
+    every skip is written to the changelog instead of vanishing."""
     cid = str(cand.get("id", ""))
     obs = cand.get("observation", "")
     for lines in user_md.values():
         for line in lines:
-            if cid and re.search(r"[\[(]" + re.escape(cid) + r"[,\])]", line):
-                return True
-            if _jaccard(obs, line) >= 0.6:
-                return True
-    return False
+            if cid and re.search(r"[\[(]\s*" + re.escape(cid) + r"\s*[,\])]", line):
+                return line
+            if _jaccard(obs, _CITATION_SUFFIX.sub("", line)) >= 0.8:
+                return line
+    return None
 
 
 def promote_candidates(mem, queue, date, dry, touched, tally):
@@ -616,7 +622,17 @@ def promote_candidates(mem, queue, date, dry, touched, tally):
 
     promoted = []
     for c in promotable:
-        if _already_in_user_md(c, user_md):
+        dup = _already_in_user_md(c, user_md)
+        if dup is not None:
+            changelog.append({
+                "ts": now,
+                "field": "user.md/skipped-duplicate",
+                "old_value": dup,
+                "new_value": c.get("observation"),
+                "candidate_id": c.get("id"),
+                "evidence": c.get("evidence") or [],
+                "reason": "duplicate_of_existing",
+            })
             c["status"] = "promoted"
             c["status_after_promotion"] = "duplicate_of_existing"
             tally["promotion_skipped_duplicate"] += 1
@@ -839,7 +855,7 @@ def main() -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8")
         sys.stdin.reconfigure(encoding="utf-8")
-    except (AttributeError, OSError):
+    except (AttributeError, OSError, ValueError):
         pass
 
     ap = argparse.ArgumentParser(description="Apply a wrap-up write plan in one pass.")

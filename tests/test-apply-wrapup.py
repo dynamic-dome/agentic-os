@@ -708,7 +708,19 @@ check(all(c["status"] == "promoted" for c in queue)
       and [c["status_after_promotion"] for c in queue if c["id"] != "UC10"] == ["duplicate_of_existing"] * 2,
       "skipped duplicates leave the queue as promoted/duplicate_of_existing (no eternal re-review)")
 changelog = load(mem, "identity/user-changelog.json")
-check([e["candidate_id"] for e in changelog] == ["UC10"], "changelog records only the real promotion")
+check([e["candidate_id"] for e in changelog] == ["UC2", "UC9", "UC10"]
+      and [e["field"] for e in changelog] == ["user.md/skipped-duplicate", "user.md/skipped-duplicate", "user.md/Preferences"]
+      and changelog[0]["old_value"].startswith("- **Ground-Truth vor Aktion**"),
+      "skipped duplicates leave an audit entry naming the matched line; the real promotion is logged as before")
+# a genuinely different preference on the same topic must still be promoted (threshold 0.8, not 0.6)
+mem = make_mem()
+write(mem, "identity/user.md", "# User Profile\n\n## Preferences\n\n- Vor jedem Deployment alle Tests ausfuehren (UC7, 2026-07-01)\n\n## Work Style\n\n- x\n")
+put(mem, "working/user-candidates.json", [
+    {"id": "UC11", "observation": "Vor jedem Deployment nur die betroffenen Module testen, die volle Suite erst vor dem Release",
+     "signal_type": "preference", "status": "confirmed", "occurrences": 2, "confidence": 0.8, "trust_source": "conversation", "evidence": ["e"]}])
+rc, out = run(mem, {"date": "2026-09-09", "consolidate": True})
+check(rc == 0 and out["tally"]["candidates_promoted"] == 1 and out["tally"]["promotion_skipped_duplicate"] == 0,
+      "a related but different preference is promoted, not swallowed as duplicate")
 
 for tmp in []:
     shutil.rmtree(tmp, ignore_errors=True)

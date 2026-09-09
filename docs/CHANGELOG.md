@@ -4,6 +4,26 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-09-09] Release v5.0.3 — Codex-Verifier-Befunde zu 5.0.2 (4 MEDIUM, 1 LOW)
+
+PATCH. Verifier-Lauf (`codex exec --sandbox read-only`, Verdikt PARTIAL) gegen 7d2b1bf.
+
+- **Promotion-Dedup (MEDIUM):** Jaccard-Schwelle 0,6 → 0,8 und Zitat-Suffix `(UCn, Datum)`
+  wird vor dem Vergleich entfernt (sonst lag ein echtes Duplikat bei genau 0,60 und eine
+  verwandte, andere Praeferenz bei 0,64). Jeder Skip schreibt jetzt einen
+  `user.md/skipped-duplicate`-Eintrag mit der getroffenen Zeile ins user-changelog —
+  eine negierte Restatement-Praeferenz („niemals") ist per Jaccard nicht erkennbar,
+  darf aber nicht stumm verschwinden. Test 34 erweitert (+ Gegenprobe).
+- **Pattern-Ref-Check (2× MEDIUM):** `patterns.json = null` warf `AttributeError` und
+  unterdrueckte den restlichen State — `_rows` typgeprueft, Aufruf fail-soft gekapselt.
+  Regex auf `P0\d{2}` verengt (`P100`/`P250` in Prosa sind keine Pattern-ids). Tests +2.
+- **Subdir-Guard (MEDIUM):** Session in einem Unterverzeichnis eines Repos, dessen Wurzel
+  einen Store HAT, bekommt jetzt das Briefing/Recovery aus dem Root-Store (PROJECT_DIR
+  wird auf das Toplevel umgebogen, Hinweiszeile im additionalContext) statt eines
+  stillen `exit 0` vor dem JSON-Vertrag. Ohne Root-Store bleibt es beim Skip. Test +3.
+- **stdin-Fail-soft (LOW):** `ValueError` (geschlossenes stdin) in beide
+  `reconfigure`-Guards aufgenommen.
+
 ## [2026-09-09] Release v5.0.2 — stdin ist UTF-8 (Mojibake-Quelle), E2-Cap 40 → 20
 
 PATCH laut VERSIONING: „verhaelt sich jetzt korrekt".

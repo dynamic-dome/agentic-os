@@ -57,6 +57,21 @@ if [ -d "$TMP/repo/.agent-memory" ]; then
 else
   echo "  FAIL: git toplevel not initialised"; FAIL=1
 fi
+# Fourth case (Codex verifier 5.0.2): subdirectory of a repo whose root HAS a store ->
+# no second store, but the hook still emits the JSON briefing from the root store.
+echo '{"cwd":"x","session_id":"t"}' | CLAUDE_PROJECT_DIR="$TMP/repo/scripts/work" bash "$DIR/scripts/session-start.sh" > "$TMP/sub2-out.txt" 2>&1
+RC=$?
+if [ -d "$TMP/repo/scripts/work/.agent-memory" ]; then
+  echo "  FAIL: second store created next to a root store"; FAIL=1
+else
+  echo "  PASS: no second store when the repo root has one"
+fi
+if grep -q '"additionalContext"' "$TMP/sub2-out.txt" && grep -q "repo-root store" "$TMP/sub2-out.txt"; then
+  echo "  PASS: JSON briefing served from the root store"
+else
+  echo "  FAIL: no JSON briefing for subdirectory session"; FAIL=1; head -5 "$TMP/sub2-out.txt"
+fi
+[ "$RC" -eq 0 ] && echo "  PASS: exit 0" || { echo "  FAIL: exit $RC"; FAIL=1; }
 
 rm -rf "$TMP"
 exit $FAIL
