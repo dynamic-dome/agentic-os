@@ -5,10 +5,7 @@
 - **Begründung bei jeder Bewertung** — egal ob Zustimmung oder Ablehnung, immer mit nachvollziehbarer Begründung (explizit gefordert, 2026-06-03). [UC1, confirmed]
 - **Ground-Truth vor Aktion** — Behauptungen aus Reports/Handoffs/Subagenten gegen die Live-Realität prüfen, nicht der Buchhaltung trauen. [UC2, confirmed]
 - **Identity-Wachstum hat hohe Priorität** — soul.md/user.md sollen im Normal-Flow zuverlässig mit beobachteten Agent- und User-Eigenschaften gefüllt werden; Identity-Steps nie skippen, Statuszeile zeigen (expliziter Kernauftrag 2026-07-06). [UC7, confirmed]
-- User verlangt bei jeder Bewertung/Empfehlung eine explizite Begründung — egal ob Zustimmung oder Ablehnung ('egal ob zustimmung oder ablehnung, immer mit begründung'). (UC1, 2026-07-27)
-- User belohnt/erwartet Ground-Truth-Verifikation vor Aktion — Behauptungen (auch aus externen Reports/Handoffs) gegen die Live-Realität prüfen, nicht der Buchhaltung trauen. (UC2, 2026-07-27)
-- User schätzt Rückfragen bei echten Entscheidungen statt stiller Annahmen, und hinterfragt selbst aktiv (z.B. 'wieso die globale supersession vertagen?') — erwartet, dass der Agent eigene Einschätzungen revidiert wenn das Nachhaken berechtigt ist. (UC3, 2026-07-27)
-- Sobald die Richtung geklaert ist, delegiert der User die Ausfuehrung explizit ('mache es so, wie Du fuer richtig haeltst') statt jeden Teilschritt freizugeben â€” will aber den Befund und die Gegenargumente sehen, bevor die Richtung feststeht (UC12, 2026-07-27)
+- Sobald die Richtung geklaert ist, delegiert der User die Ausfuehrung explizit ('mache es so, wie Du fuer richtig haeltst') statt jeden Teilschritt freizugeben — will aber den Befund und die Gegenargumente sehen, bevor die Richtung feststeht (UC12, 2026-07-27)
 
 ## Work Style
 
