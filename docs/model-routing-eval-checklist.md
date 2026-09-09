@@ -4,6 +4,15 @@
 > the main-loop model (CC 2.1.215 + 2.1.220). Run E0 first — while it fails,
 > E1–E5 test the *behaviour* of the skills but say nothing about which model
 > executed them. Details: header of `scripts/model-routing.sh`.
+>
+> **Update 2026-09-09 (CC 2.1.263 + 2.1.266):** the routing is PATH-dependent.
+> Slash invocation (`/agentic-os:wrap-up`, `/agentic-os:session-bootstrap`) DOES
+> switch the request model to `claude-sonnet-5` for the skill's turns and reverts
+> afterwards (transcript `message.model`). Skill-tool invocation still does NOT
+> switch the request model — only the system-prompt identity text changes
+> ("powered by Sonnet 5"), the assistant message keeps the session model
+> (probe 2026-09-09, membrain session 10f7252d). Cost savings therefore require
+> the slash path; the Agent tool needs an explicit `model:` at the call site.
 
 The spec's model-dependent test cases (memospartoken.md section 24) cannot be
 asserted by bash tests without faking model behavior. They are checked
