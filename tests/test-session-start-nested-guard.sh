@@ -32,5 +32,31 @@ else
   echo "  PASS: cost-trace.sh created no nested .agent-memory"
 fi
 
+# Third case (V7): a subdirectory of a git repo must not get its own store;
+# a plain non-git directory still auto-inits (the AI workspace is not a repo).
+mkdir -p "$TMP/repo/scripts/work" "$TMP/plain"
+git -C "$TMP/repo" init -q
+echo '{"cwd":"x","session_id":"t"}' | CLAUDE_PROJECT_DIR="$TMP/repo/scripts/work" bash "$DIR/scripts/session-start.sh" > "$TMP/sub-out.txt" 2>&1
+RC=$?
+if [ -d "$TMP/repo/scripts/work/.agent-memory" ]; then
+  echo "  FAIL: auto-init in git subdirectory"; FAIL=1
+else
+  echo "  PASS: no auto-init in git subdirectory"
+fi
+grep -q "subdirectory of git repo" "$TMP/sub-out.txt" && echo "  PASS: subdirectory skip is explained" || { echo "  FAIL: no skip message"; FAIL=1; }
+[ "$RC" -eq 0 ] && echo "  PASS: exit 0 (fail-soft)" || { echo "  FAIL: exit $RC"; FAIL=1; }
+echo '{"cwd":"x","session_id":"t"}' | CLAUDE_PROJECT_DIR="$TMP/plain" bash "$DIR/scripts/session-start.sh" > "$TMP/plain-out.txt" 2>&1
+if [ -d "$TMP/plain/.agent-memory" ]; then
+  echo "  PASS: non-git directory still auto-inits"
+else
+  echo "  FAIL: non-git directory not initialised"; FAIL=1
+fi
+echo '{"cwd":"x","session_id":"t"}' | CLAUDE_PROJECT_DIR="$TMP/repo" bash "$DIR/scripts/session-start.sh" > "$TMP/root-out.txt" 2>&1
+if [ -d "$TMP/repo/.agent-memory" ]; then
+  echo "  PASS: git toplevel still auto-inits"
+else
+  echo "  FAIL: git toplevel not initialised"; FAIL=1
+fi
+
 rm -rf "$TMP"
 exit $FAIL

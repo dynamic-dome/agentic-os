@@ -559,6 +559,32 @@ def apply_user_candidates(mem, plan, date, dry, touched, tally):
     tally["queue_open"] = sum(1 for c in queue if c.get("status") != "promoted")
 
 
+def _norm_tokens(text):
+    return set(re.sub(r"[^a-z0-9\s]", " ", str(text or "").lower()).split())
+
+
+def _jaccard(a, b):
+    ta, tb = _norm_tokens(a), _norm_tokens(b)
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / len(ta | tb)
+
+
+def _already_in_user_md(cand, user_md):
+    """A candidate whose id is already cited in user.md, or whose observation is a
+    near-duplicate (Jaccard >= 0.6) of an existing line, must not be promoted
+    again (2026-07-27: UC1-UC3 were re-promoted as plain duplicates)."""
+    cid = str(cand.get("id", ""))
+    obs = cand.get("observation", "")
+    for lines in user_md.values():
+        for line in lines:
+            if cid and re.search(r"[\[(]" + re.escape(cid) + r"[,\])]", line):
+                return True
+            if _jaccard(obs, line) >= 0.6:
+                return True
+    return False
+
+
 def promote_candidates(mem, queue, date, dry, touched, tally):
     """Step 6.3: review EVERY candidate, not just this session's."""
     promotable = []
@@ -588,7 +614,14 @@ def promote_candidates(mem, queue, date, dry, touched, tally):
     user_md = read_user_md(mem)
     now = _dt.datetime.now().astimezone().isoformat(timespec="seconds")
 
+    promoted = []
     for c in promotable:
+        if _already_in_user_md(c, user_md):
+            c["status"] = "promoted"
+            c["status_after_promotion"] = "duplicate_of_existing"
+            tally["promotion_skipped_duplicate"] += 1
+            continue
+        promoted.append(c)
         section = SECTION_BY_SIGNAL.get(c.get("signal_type", "preference"), "Preferences")
         line = f"- {c.get('observation')} ({c.get('id')}, {date})"
         # changelog BEFORE edit - ordering is part of the contract
@@ -608,8 +641,8 @@ def promote_candidates(mem, queue, date, dry, touched, tally):
 
     write_json(mem, "identity/user-changelog.json", changelog, dry, touched)
     write_user_md(mem, user_md, dry, touched)
-    tally["candidates_promoted"] = len(promotable)
-    tally["promoted_ids"] = [c.get("id") for c in promotable]
+    tally["candidates_promoted"] = len(promoted)
+    tally["promoted_ids"] = [c.get("id") for c in promoted]
     return promotable
 
 
@@ -805,6 +838,7 @@ def main() -> int:
     # Without this the whole run dies AFTER the files were written.
     try:
         sys.stdout.reconfigure(encoding="utf-8")
+        sys.stdin.reconfigure(encoding="utf-8")
     except (AttributeError, OSError):
         pass
 
@@ -840,6 +874,7 @@ def main() -> int:
         "bridge_candidates": [],
         "candidates_new": 0, "candidates_updated": 0, "candidates_promoted": 0,
         "candidates_rejected_trust": 0, "promotion_blocked_trust": 0,
+        "promotion_skipped_duplicate": 0,
         "promoted_ids": [], "queue_open": 0,
         "soul_candidates_added": 0, "soul_skipped_duplicate": 0,
         "tasks_added": 0, "tasks_closed": 0, "tasks_skipped_duplicate": 0,

@@ -47,6 +47,19 @@ fi
 # PHASE 1: Auto-Init (if .agent-memory/ does not exist)
 # ============================================================
 
+# Guard (V7, 2026-09-09): a subdirectory of a git repo is not a project root -
+# 25+ stub stores grew in scratch/proof/work dirs. Non-git dirs still init (AI workspace).
+if [ ! -d "$MEMORY_DIR" ]; then
+  GIT_TOP="$(git -C "$PROJECT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
+  if [ -n "$GIT_TOP" ]; then
+    HERE="$(cd "$PROJECT_DIR" 2>/dev/null && (pwd -W 2>/dev/null || pwd -P))"
+    if [ "$(printf '%s' "$GIT_TOP" | tr 'A-Z' 'a-z')" != "$(printf '%s' "$HERE" | tr 'A-Z' 'a-z')" ]; then
+      echo "[Agentic OS] $PROJECT_DIR is a subdirectory of git repo $GIT_TOP - skipping auto-init (start from the repo root or run /agentic-os:init here)."
+      exit 0
+    fi
+  fi
+fi
+
 if [ ! -d "$MEMORY_DIR" ] && [ "$SCHEMA_OK" = true ]; then
   create_memory_structure "$MEMORY_DIR"
 

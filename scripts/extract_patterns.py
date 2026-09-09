@@ -655,6 +655,7 @@ def render_patterns_md(patterns, date) -> str:
 def main() -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8")
+        sys.stdin.reconfigure(encoding="utf-8")
     except (AttributeError, OSError):
         pass
 

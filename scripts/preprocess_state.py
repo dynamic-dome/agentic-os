@@ -19,6 +19,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -125,8 +126,42 @@ def threshold_events(mem):
         return []
 
 
-def validation_errors(mem):
+PATTERN_REF = re.compile(r"\b(G-pattern-\d{3}|P\d{3})\b")
+
+
+def _rows(mem, rel, key):
+    text = read_text(os.path.join(mem, rel))
+    if not text:
+        return None
+    try:
+        data = json.loads(text)
+    except ValueError:
+        return None
+    rows = data if isinstance(data, list) else data.get(key, [])
+    return [r for r in rows if isinstance(r, dict)] if isinstance(rows, list) else None
+
+
+def dangling_pattern_refs(mem):
+    """Learnings citing a pattern id that patterns.json does not hold (L5/L10/L12
+    pointed at P006 for months; nothing surfaced it)."""
+    patterns = _rows(mem, "patterns/patterns.json", "patterns")
+    learnings = _rows(mem, "learnings/learnings.json", "learnings")
+    if patterns is None or learnings is None:
+        return []
+    known = {str(p.get("id", "")) for p in patterns}
     errors = []
+    for l in learnings:
+        refs = set(PATTERN_REF.findall(str(l.get("text", ""))))
+        for d in l.get("derived_from") or []:
+            if isinstance(d, str) and PATTERN_REF.fullmatch(d):
+                refs.add(d)
+        for ref in sorted(refs - known):
+            errors.append(f"learnings.json: {l.get('id')} references unknown pattern {ref}")
+    return errors
+
+
+def validation_errors(mem):
+    errors = dangling_pattern_refs(mem)
     for root, dirs, files in os.walk(mem):
         # metrics traces are append-only JSONL, not JSON documents
         dirs[:] = [d for d in dirs if d not in ("metrics",)]

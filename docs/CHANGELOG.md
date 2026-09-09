@@ -4,6 +4,38 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-09-09] Release v5.0.2 — stdin ist UTF-8 (Mojibake-Quelle), E2-Cap 40 → 20
+
+PATCH laut VERSIONING: „verhaelt sich jetzt korrekt".
+
+- **Mojibake-Ursache gefunden und behoben:** `apply_wrapup.py` und `extract_patterns.py`
+  lesen den Plan per Heredoc von stdin; stdout war seit 4.x auf UTF-8 umgestellt, stdin
+  blieb auf Windows cp1252. Jeder Gedankenstrich im Plan landete als `â€”` im Store
+  (membrain L57/L59/L60 + session-summary, DCO L177–L179 + `Â§`, agentic-os L34 + user.md
+  UC12). Fix: `sys.stdin.reconfigure(encoding="utf-8")` neben dem stdout-Reconfigure.
+  Test 33 in `test-apply-wrapup.py` (roh-UTF-8-Plan unter `PYTHONIOENCODING=cp1252`;
+  gegen die 5.0.1-Version rc 2, jetzt gruen). Bestandsdaten in allen drei Stores
+  repariert (cp1252→utf-8-Redecode, 0 Restfunde).
+- **E2-Cap 40 → 20 Zeilen** in `memory_index_projection.py` (Owner-Entscheid T-43,
+  membrain): der MEMORY.md-Block ist der teuerste Posten des Startkontexts (~370 B/Zeile);
+  Overflow-Zeile verweist auf learnings.json. Test angepasst (25 approved → 20 + 5 overflow).
+- **V7-Hygiene (Gesamtanalyse):**
+  - `apply_wrapup.py` promotet keinen Kandidaten mehr, dessen id schon in user.md zitiert
+    ist oder dessen Text eine bestehende Zeile fast wiederholt (Jaccard ≥ 0,6) — Tally
+    `promotion_skipped_duplicate`, Queue-Status `duplicate_of_existing`; Test 34 mit dem
+    realen UC1–UC3-Fall vom 2026-07-27. Die 3 Duplikate im eigenen user.md entfernt.
+  - `preprocess_state.py` meldet Learnings, die eine nicht existierende Pattern-id zitieren,
+    als `validation_errors` (`L5 references unknown pattern P006`); L5/L10/L12 auf
+    `G-pattern-005` umgehaengt, toter P004-Verweis aus patterns.json entfernt.
+  - `session-start.sh` initialisiert keinen Store mehr in einem Unterverzeichnis eines
+    Git-Repos (77 Stub-Stores in Scratch-/Work-/Temp-Ordnern gefunden); Nicht-Git-Ordner
+    (AI-Workspace) und Repo-Wurzeln initialisieren weiter. Guard-Suite +5 Faelle.
+    Stub-Loeschung bewusst NICHT durchgefuehrt: 60 liegen in `%TEMP%` (Test-Artefakte),
+    der Rest sind Fixtures/Quarantaene/Loop-Work-Dirs.
+  - Doku: `plugin.json`-description auf einen Satz, `CONSUMERS.md` auf die realen Konsumenten
+    (research-pipeline/quality-gate raus; haengende Referenzen in dome-loop und
+    devil-advocate-swarms benannt), `ANALYSE.md` (2.0.0) nach `docs/archive/`.
+
 ## [2026-09-08] Release v5.0.1 — wrap-up: Batch-Write vor Wiki-Sync/Handoff, Marker als eigener Call (T-024, L44)
 
 PATCH laut VERSIONING: „verhaelt sich jetzt korrekt", keine neue Faehigkeit.

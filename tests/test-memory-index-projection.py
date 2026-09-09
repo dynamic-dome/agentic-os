@@ -89,13 +89,13 @@ def main():
         p = run([mem, "--memory-md", md], cwd=tmp)
         check("second run byte-identical", read(md) == before and "up to date" in p.stdout, p.stdout)
 
-    # 2. cap 40 + overflow line
+    # 2. cap 20 + overflow line
     with tempfile.TemporaryDirectory() as tmp:
-        rows = [learning(f"L{i}", f"2026-08-{(i % 28) + 1:02d}", f"Text {i}") for i in range(1, 46)]
+        rows = [learning(f"L{i}", f"2026-08-{(i % 28) + 1:02d}", f"Text {i}") for i in range(1, 26)]
         mem, md = setup(tmp, rows, memory_body="")
         run([mem, "--memory-md", md], cwd=tmp)
         txt = read(md)
-        check("cap 40 lines", sum(1 for l in txt.split("\n") if l.startswith("- [")) == 40)
+        check("cap 20 lines", sum(1 for l in txt.split("\n") if l.startswith("- [")) == 20)
         check("overflow line", "(5 weitere approved: .agent-memory/learnings/learnings.json)" in txt, txt[-200:])
 
     # 3. no MEMORY.md -> created with block only; 0 approved -> block removed, file untouched otherwise

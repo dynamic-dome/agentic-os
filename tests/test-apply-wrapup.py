@@ -668,6 +668,48 @@ rc, out = run(mem, {"date": "2026-07-27", "consolidate": True})
 check(out["tally"]["candidates_promoted"] == 1,
       "a consolidating plan without a user_candidates key still re-reviews the full queue")
 
+# --- 33. plan via stdin survives a cp1252 console (Windows heredoc path) ----------
+# The skill pipes the plan as a heredoc. On Windows sys.stdin defaults to cp1252,
+# so every "—" in the plan became "â€”" on disk (L57/L59/L60 membrain, L177-L179 DCO).
+mem = make_mem()
+env = dict(os.environ, PYTHONIOENCODING="cp1252")
+proc = subprocess.run(
+    [sys.executable, SCRIPT, mem, "--session-id", "sess-A"],
+    input=json.dumps({"date": "2026-09-09", "learnings": [
+        {"text": "Gedankenstrich — bleibt — erhalten", "importance": 3}]},
+        ensure_ascii=False).encode("utf-8"),
+    capture_output=True, env=env)
+texts = [e["text"] for e in load(mem, "learnings/learnings.json")]
+check(proc.returncode == 0 and "Gedankenstrich — bleibt — erhalten" in texts,
+      f"stdin plan is decoded as UTF-8 regardless of console encoding (got {texts[-1:]!r})")
+
+# --- 34. promotion never duplicates a line that already sits in user.md ----------
+# 2026-07-27 (agentic-os store): UC1-UC3 were promoted a second time as plain
+# duplicates of lines already present. Guard: id already cited OR Jaccard >= 0.6.
+mem = make_mem()
+write(mem, "identity/user.md", "# User Profile\n\n## Preferences\n\n"
+      "- **Ground-Truth vor Aktion** — Behauptungen aus Reports gegen die Live-Realitaet pruefen, nicht der Buchhaltung trauen. [UC2, confirmed]\n"
+      "- Codex-Verifier nach jeder substanziellen Aenderung anbieten (UC7, 2026-07-01)\n\n## Work Style\n\n- x\n")
+put(mem, "working/user-candidates.json", [
+    {"id": "UC2", "observation": "Ground-Truth vor Aktion: Behauptungen aus Reports gegen die Live-Realitaet pruefen, nicht der Buchhaltung trauen",
+     "signal_type": "preference", "status": "confirmed", "occurrences": 3, "confidence": 0.9, "trust_source": "conversation", "evidence": ["e"]},
+    {"id": "UC9", "observation": "Codex-Verifier nach jeder substanziellen Aenderung anbieten",
+     "signal_type": "preference", "status": "confirmed", "occurrences": 2, "confidence": 0.8, "trust_source": "conversation", "evidence": ["e"]},
+    {"id": "UC10", "observation": "Bevorzugt Deutsch in der Kommunikation und Englisch in Code und Dateinamen",
+     "signal_type": "communication", "status": "confirmed", "occurrences": 2, "confidence": 0.8, "trust_source": "conversation", "evidence": ["e"]}])
+rc, out = run(mem, {"date": "2026-09-09", "consolidate": True})
+umd = read(mem, "identity/user.md")
+check(rc == 0 and out["tally"]["promotion_skipped_duplicate"] == 2 and out["tally"]["candidates_promoted"] == 1,
+      f"duplicate candidates (id cited / near-identical text) are skipped, the new one promoted ({out.get('tally')})")
+check(umd.count("Ground-Truth vor Aktion") == 1 and umd.count("Codex-Verifier") == 1 and "Deutsch in der Kommunikation" in umd,
+      "user.md gains exactly one new line and no duplicates")
+queue = load(mem, "working/user-candidates.json")
+check(all(c["status"] == "promoted" for c in queue)
+      and [c["status_after_promotion"] for c in queue if c["id"] != "UC10"] == ["duplicate_of_existing"] * 2,
+      "skipped duplicates leave the queue as promoted/duplicate_of_existing (no eternal re-review)")
+changelog = load(mem, "identity/user-changelog.json")
+check([e["candidate_id"] for e in changelog] == ["UC10"], "changelog records only the real promotion")
+
 for tmp in []:
     shutil.rmtree(tmp, ignore_errors=True)
 

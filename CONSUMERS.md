@@ -1,96 +1,33 @@
 # CONSUMERS — agentic-os
 
-Plugins, die Skills aus diesem Plugin (`agentic-os`) extern aufrufen oder konsumieren.
-**Bei Breaking Changes diese Konsumenten warnen** — die hier gelisteten Skill-Namen und
-Outputs sind effektive Public-API der Plugin-Memory-Schicht.
+Wer ausserhalb dieses Repos Skills, Commands, Skripte oder das Store-Layout von
+`agentic-os` benutzt. **Bei Breaking Changes diese Konsumenten pruefen.**
 
-> Stand 2026-04-30. Pflege-Hinweis: bei jeder Aenderung an Skills, die hier gelistet
-> sind (Frontmatter, Trigger, Output-Format, gelesene/geschriebene Memory-Dateien),
-> diese Tabelle als Pflichtchecks durchgehen.
+> Stand 2026-09-09 (V7-Hygiene, Gesamtanalyse F8). Ermittelt per Grep ueber
+> `~/Desktop/Claude-Plugins-Skills/*` und `~/AI/*`; die Tabelle von 2026-04-30
+> listete `research-pipeline` und `quality-gate`, beide seit 4.0.0 entfernt.
 
-## Konsumenten
+## Aktive Konsumenten
 
-### `dome-loop` — Discover-Phase
-
-| Aspekt | Wert |
-|---|---|
-| Aufgerufener Skill | `agentic-os:research-pipeline` |
-| Wo aufgerufen | `dome-loop/skills/dome-loop/SKILL.md` Phase D + `dome-loop/docs/ARCHITECTURE.md` |
-| Kopplung | **weich** (Konsument hat dokumentierten manuellen Fallback) |
-| Erwartetes Verhalten | Token-optimierte Pipeline Perplexity → NotebookLM → Claude, Output passt in `research-brief.md` |
-| Fallback wenn nicht installiert | manuelles Paste der Perplexity-Antwort |
-| Bei Breaking Change warnen? | JA — Output-Format aenderung wuerde dome-loop-Templates brechen |
-
-### `devil-advocate-swarms` — Research-Workflow
-
-| Aspekt | Wert |
-|---|---|
-| Aufgerufener Skill | `agentic-os:research-pipeline` (via Alias `devil-advocate-swarms:research-pipeline`, Option-2-Redirect) |
-| Wo aufgerufen | `devil-advocate-swarms/CLAUDE.md` "Research-Workflow (Standard)"-Sektion |
-| Kopplung | **weich** (Alias matcht nicht ohne explizite Skill-Invokation, fallback ist canonical-Aufruf) |
-| Bei Breaking Change warnen? | JA |
-
-### `multi-model-orchestrator` (Repo `inception-sandbox/`) — Research-Workflow
-
-| Aspekt | Wert |
-|---|---|
-| Aufgerufener Skill | `agentic-os:research-pipeline` (via Alias `multi-model-orchestrator:research-pipeline`, Option-2-Redirect) |
-| Wo aufgerufen | `inception-sandbox/CLAUDE.md` "Research-Workflow (Standard)"-Sektion |
-| Kopplung | **weich** (Alias matcht nicht ohne explizite Skill-Invokation) |
-| Bei Breaking Change warnen? | JA |
-
-### `crazy-professor` — Session-Output Konsumption (`--from-session` Flag)
-
-| Aspekt | Wert |
-|---|---|
-| Konsumierte Datei | `.agent-memory/session-summary.md` (Output von `agentic-os:wrap-up`) |
-| Wo konsumiert | `crazy-professor/skills/crazy-professor/SKILL.md` (`--from-session`-Flag-Logik) |
-| Kopplung | **weich** (read-only File-Konsumption, optional via Flag, robust gegen fehlende Datei) |
-| Erwartetes Format | Markdown mit Sektion "Was wurde getan" oder gleichwertigen Abschnitten — crazy-professor liest das als Themen-Pool fuer Provokationen |
-| Bei Breaking Change warnen? | JA — wenn `wrap-up` das Format der `session-summary.md` strukturell aendert (z.B. JSON statt MD oder andere Pflicht-Sektionen), crazy-professor `--from-session` gleichfalls anpassen |
-
-### `agent-orchestrator-plugin` — Quality Gate (Phase 4)
-
-| Aspekt | Wert |
-|---|---|
-| Aufgerufener Skill | `agentic-os:quality-gate` (Binary-Acceptance-Variante) |
-| Wo aufgerufen | `agent-orchestrator-plugin/skills/agent-orchestrator/SKILL.md` Phase 4 |
-| Kopplung | **weich** (Fallback: inline Self-Critique mit Plateau-Kriterium) |
-| Bei Breaking Change warnen? | JA — Acceptance-Format-Änderungen (binary vs score) würden Phase-4 brechen |
-
-### `dome-loop` — Evaluate-Phase
-
-| Aspekt | Wert |
-|---|---|
-| Aufgerufener Skill | `agentic-os:quality-gate` (alternativ `devil-advocate-swarms:swarm`) |
-| Wo aufgerufen | `dome-loop/skills/dome-loop/SKILL.md` Phase E + `docs/ARCHITECTURE.md` |
-| Kopplung | **weich** |
-
-## Skills, die KEINE externen Konsumenten haben
-
-- `skills/session-bootstrap/`, `skills/iteration-logger/`, `skills/pattern-extractor/`, `skills/context-keeper/`, `skills/skill-generator/`, `skills/sync-context/`, `skills/memory-maintenance/`, `skills/wiki-query/`, `skills/obsidian-sync/`, `skills/self-improve/` — Plugin-internal, frei iterierbar
-
-## Aenderungs-Checkliste bei Breaking Changes
-
-Wenn die folgenden Aspekte geaendert werden, vor dem Commit eine Issue/PR-Note in den Repos
-der Konsumenten oeffnen:
-
-1. Frontmatter-Trigger (z.B. `agentic-os:research-pipeline` bekommt neue Sub-Trigger oder
-   verliert "research" als Match-Phrase) → Konsumenten-Aliase muessen ggf. nachziehen
-2. Output-Format (`.agent-memory/session-summary.md`-Schema, `quality/code-reviews.json`-Schema, `research/<topic>-<date>.md`-Struktur)
-3. Skill-Name selbst (Re-Naming bricht alle Konsumenten — bewusster Major-Bump)
-4. NotebookLM-Pflicht-Wechsel (User-CLAUDE.md mandates notebooklm-py CLI; ein Wechsel zur Plugin-MCP-Variante würde Konsumenten zwingen, ihre eigenen Erwartungen anzupassen)
-
-## Pflichtfelder, die Konsumenten lesen
-
-| Skill | Output-Datei | Was Konsumenten dort erwarten |
+| Konsument | Nutzt | Kopplung |
 |---|---|---|
-| `wrap-up` | `.agent-memory/session-summary.md` | Markdown mit klar erkennbaren "Was wurde getan"-Abschnitten — von crazy-professor `--from-session` gelesen |
-| `research-pipeline` | `research/<topic>-<date>.md` | Markdown mit den Sektionen Question/Findings/Sources/Open Questions — von dome-loop in `research-brief.md` gemappt |
-| `quality-gate` | `.agent-memory/quality/code-reviews.json` | JSON mit `score`, `dimensions`, `issues` — von agent-orchestrator Phase 4 binary-mapped |
+| `agentic-workflow-suite/hooks/workflow-wrap-up.py` | `agentic-os:wrap-up` (Empfehlung/Aufruf am Session-Ende) | Skill-Name |
+| `agentic-memory/skills/memory-bootstrap/SKILL.md` | `agentic-os:session-start` (Hook-Briefing) | Hook-Name + Briefing-Format |
+| `crazy-professor` | schreibt `<projekt>/.agent-memory/lab/crazy-professor/`, liest `session-summary.md` | Store-Layout |
+| `~/AI/membrain` (`scripts/`, `eval/`, mem*-Dokumente) | `apply_wrapup.py`, `bridge_projection.py`, `memory_index_projection.py`, `review_sweep.py`, `measure_session_cost.py` als CLI | Skript-CLI + Exit-Codes |
+| `agent-memory-atlas` (Daemon, `codex_native`-Adapter) | liest `learnings.json`, `decisions.json`, `open-tasks.json`, `patterns.json` aller Stores | JSON-Schema der Stores |
+| Codex (jedes Projekt) | `AGENTS.md`-Managed-Block aus `bridge_projection.py` | Block-Marker `bridge:agentic-os` |
+| Claude Auto-Memory (jedes Projekt) | `MEMORY.md`-Managed-Block aus `memory_index_projection.py` | Block-Marker `bridge:claude-native` |
 
-## Verwandte Dokumente
+## Haengende Referenzen (Owner-TODO in den jeweiligen Plugins)
 
-- `inception-sandbox/CONSUMERS.md` (komplementaer fuer multi-model-orchestrator)
-- `wiki/concepts/skill-alias-pattern.md`
-- `wiki/todos/2026-04-30-cross-plugin-contract-callouts.md` (Quelle dieser Datei)
+- `dome-loop/commands/dome-discover.md`, `dome-evaluate.md` und `devil-advocate-swarms`
+  (`CLAUDE.md`, `README.md`, `skills/research-pipeline/SKILL.md`) referenzieren
+  `agentic-os:research-pipeline` — seit 4.0.0 nicht mehr vorhanden.
+
+## Effektive Public-API
+
+Skills `session-bootstrap`, `wrap-up`, `context-keeper`, `pattern-extractor`, `obsidian-sync`;
+Commands `maintain`, `log`, `sync-context`, `init`, `status`, `memory-audit`; die Skript-CLIs
+oben; das Store-Schema in `scripts/mem-schema.sh`; die beiden Managed-Block-Marker.
+Aenderungen daran → CHANGELOG + VERSIONING (MAJOR bei Entfall).

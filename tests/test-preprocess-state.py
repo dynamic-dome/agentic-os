@@ -83,6 +83,24 @@ def main():
         check("open task listed", "T1" in ids, str(ids))
         check("done task excluded", "T2" not in ids, str(ids))
 
+        # 3b. Learnings citing a pattern id that patterns.json does not hold
+        os.makedirs(os.path.join(mem, "patterns"), exist_ok=True)
+        os.makedirs(os.path.join(mem, "learnings"), exist_ok=True)
+        with open(os.path.join(mem, "patterns", "patterns.json"), "w", encoding="utf-8") as f:
+            json.dump([{"id": "P010"}, {"id": "G-pattern-005"}], f)
+        with open(os.path.join(mem, "learnings", "learnings.json"), "w", encoding="utf-8") as f:
+            json.dump([{"id": "L1", "text": "Lehre (verlaengert P006/L6): siehe auch P010"},
+                       {"id": "L2", "text": "ok", "derived_from": ["G-pattern-005", "iteration-7"]},
+                       {"id": "L3", "text": "ok", "derived_from": ["P004"]}], f)
+        p = run([mem], cwd=tmp)
+        state = json.loads(p.stdout)
+        errs = state["validation_errors"]
+        check("dangling pattern refs reported",
+              "learnings.json: L1 references unknown pattern P006" in errs
+              and "learnings.json: L3 references unknown pattern P004" in errs, str(errs))
+        check("known pattern refs are not errors",
+              not any("P010" in e or "G-pattern-005" in e for e in errs), str(errs))
+
         # 4. Broken JSON -> validation_errors names file, still exit 0
         os.makedirs(os.path.join(mem, "learnings"), exist_ok=True)
         with open(os.path.join(mem, "learnings", "learnings.json"), "w", encoding="utf-8") as f:

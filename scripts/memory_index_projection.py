@@ -29,7 +29,7 @@ BEGIN = ("<!-- bridge:claude-native:begin — generiert von agentic-os "
 END = "<!-- bridge:claude-native:end -->"
 BEGIN_PREFIX = "<!-- bridge:claude-native:begin"
 HEADING = "## Bridge: Learnings + Feedback (learnings.json, kuratiert)"
-CAP = 40
+CAP = 20
 
 
 def native_memory_md(project_root, home=None):
