@@ -132,7 +132,7 @@ def main():
         check("revoke: block removed", BEGIN not in read(agents))
         check("revoke: foreign preserved", read(agents).startswith("# AGENTS.md"))
 
-    # 6. Cap 10 + sichtbarer Ueberhang
+    # 6. Cap 6 + sichtbarer Ueberhang
     with tempfile.TemporaryDirectory() as tmp:
         many = [learning(f"L{i}", f"2026-07-{i:02d}", f"text {i}",
                          bridge="approved") for i in range(1, 13)]
@@ -140,9 +140,23 @@ def main():
         run([mem, "--agents-md", agents], cwd=tmp)
         content = read(agents)
         block = content[content.index(BEGIN):content.index(END)]
-        check("cap: 10 entries", block.count("- [L") == 10, f"n={block.count('- [L')}")
-        check("cap: overflow visible", "2 ältere" in block, block[-200:])
-        check("cap: newest kept", "[L12]" in block and "[L1]" not in block)
+        check("cap: 6 entries", block.count("- [L") == 6, f"n={block.count('- [L')}")
+        check("cap: overflow visible", "6 ältere" in block, block[-200:])
+        check("cap: newest kept", "[L12]" in block and "[L6]" not in block)
+
+    # 6b. Text-Cap 220: langer Text wird mit Ellipse gekuerzt, kurzer bleibt
+    with tempfile.TemporaryDirectory() as tmp:
+        long_text = "x" * 300
+        mem, agents = setup(tmp, [
+            learning("L1", "2026-07-16", long_text, bridge="approved"),
+            learning("L2", "2026-07-17", "kurz", bridge="approved"),
+        ], foreign)
+        run([mem, "--agents-md", agents], cwd=tmp)
+        block = read(agents)
+        l1 = [ln for ln in block.splitlines() if ln.startswith("- [L1]")][0]
+        check("text-cap: truncated with ellipsis",
+              l1.endswith("…") and len(l1) < 260, f"len={len(l1)}")
+        check("text-cap: short text intact", "- [L2] (2026-07-17) kurz" in block)
 
     # 7. superseded approved wird ausgeschlossen
     with tempfile.TemporaryDirectory() as tmp:

@@ -26,8 +26,9 @@ BEGIN = ("<!-- bridge:begin — generiert von agentic-os bridge_projection, "
          "NICHT von Hand editieren -->")
 END = "<!-- bridge:end -->"
 BEGIN_PREFIX = "<!-- bridge:begin"
-CAP = 10
+CAP = 6
 TASK_CAP = 5
+TEXT_CAP = 220
 
 
 def load_approved(mem_dir):
@@ -101,7 +102,10 @@ def render_block(approved, tasks, label):
     if approved:
         lines.append("## Bridge: Learnings von Claude (kuratiert)")
         for e in approved[:CAP]:
-            lines.append(f"- [{e.get('id')}] ({e.get('date')}) {e.get('text')}")
+            text = str(e.get("text", "")).strip()
+            if len(text) > TEXT_CAP:
+                text = text[:TEXT_CAP - 1].rstrip() + "…"
+            lines.append(f"- [{e.get('id')}] ({e.get('date')}) {text}")
         overflow = len(approved) - CAP
         if overflow > 0:
             lines.append(f"({overflow} ältere: learnings.json)")

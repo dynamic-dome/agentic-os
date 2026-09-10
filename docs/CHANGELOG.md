@@ -4,6 +4,16 @@ Neueste Eintraege oben. Format: `## [YYYY-MM-DD] Kurztitel`
 
 ---
 
+## [2026-09-10] Release v5.0.4 — Bridge-Block Diaet (Cap 10 → 6, Text-Cap 220)
+
+PATCH. Anlass membrain T-47 (DCO-Startkontext): der generierte AGENTS.md-Bridge-Block
+lag bei 5,7 KB, Learnings 450-600 B je Eintrag.
+
+- **bridge_projection.py:** Learnings-Cap `CAP` 10 → 6 (Ueberhang bleibt sichtbar als
+  `(n ältere: learnings.json)`), neu `TEXT_CAP = 220` — Learning-Text wird wie der
+  Task-Titel mit `…` gekuerzt; learnings.json bleibt kanonisch und vollstaendig.
+  Gemessen DCO: 5,7 → ~2,3 KB. Tests: Cap-Fall auf 6 angepasst, Text-Cap-Fall neu (+2).
+
 ## [2026-09-09] Release v5.0.3 — Codex-Verifier-Befunde zu 5.0.2 (4 MEDIUM, 1 LOW)
 
 PATCH. Verifier-Lauf (`codex exec --sandbox read-only`, Verdikt PARTIAL) gegen 7d2b1bf.
